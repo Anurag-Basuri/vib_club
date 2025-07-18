@@ -71,3 +71,15 @@ const ticketSchema = new mongoose.Schema({
 }, {
     timestamps: true
 })
+
+ticketSchema.index({ eventId: 1, createdAt: -1 });
+ticketSchema.pre('save', function(next) {
+    if (this.isModified('email') && !validator.isEmail(this.email)) {
+        return next(new Error('Invalid email format'));
+    }
+    next();
+});
+
+const Ticket = mongoose.model('Ticket', ticketSchema);
+
+export default Ticket;
