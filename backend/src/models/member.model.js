@@ -42,7 +42,21 @@ const memberSchema = new mongoose.Schema({
     program: {
         type: String,
         enum: {
-            values: ['BTech CSE', 'BTech ECE', ''],
+            values: [
+                'BTech CSE',
+                'BTech ECE',
+                'BTech IT',
+                'BTech ME',
+                'BTech CE',
+                'BTech EE',
+                'BCA',
+                'BSc',
+                'MCA',
+                'MTech CSE',
+                'MTech ECE',
+                'PhD',
+                'Agriculture'
+            ],
             message: 'Please select a valid program'
         }
     },
