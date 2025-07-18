@@ -8,7 +8,6 @@ const memberSchema = new mongoose.Schema({
         default: 'default-profile.png',
         validate: {
             validator: function(v) {
-                // Allow default value and valid URLs or file paths
                 return v === 'default-profile.png' || 
                        /^https?:\/\/.*\.(jpg|jpeg|png|gif|webp)$/i.test(v) ||
                        /^[a-zA-Z0-9_-]+\.(jpg|jpeg|png|gif|webp)$/i.test(v);
@@ -36,24 +35,19 @@ const memberSchema = new mongoose.Schema({
     },
     email: {
         type: String,
-        required: [true, 'Email is required'],
         unique: true,
         lowercase: true,
         validate: [validator.isEmail, 'Please provide a valid email']
     },
     program: {
         type: String,
-        required: [true, 'Program is required'],
         enum: {
-            values: ['Computer Science', 'Information Technology', 'Software Engineering', 
-                    'Data Science', 'Cybersecurity', 'Digital Marketing', 'Business Administration', 
-                    'Engineering', 'Other'],
+            values: ['BTech CSE', 'BTech ECE', ''],
             message: 'Please select a valid program'
         }
     },
     year: {
         type: Number,
-        required: [true, 'Year is required'],
         enum: {
             values: [1, 2, 3, 4],
             message: 'Year must be between 1 and 4'

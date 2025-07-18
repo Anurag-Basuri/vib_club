@@ -34,14 +34,12 @@ const EventSchema = new mongoose.Schema({
     },
     organizer: {
         type: String,
-        required: [true, 'Organizer is required'],
         trim: true,
         minlength: [2, 'Organizer must be at least 2 characters'],
         maxlength: [100, 'Organizer cannot exceed 100 characters']
     },
     sponser: {
         type: String,
-        required: [true, 'Sponsor is required'],
         trim: true,
         minlength: [2, 'Sponsor must be at least 2 characters'],
         maxlength: [100, 'Sponsor cannot exceed 100 characters'],
@@ -60,13 +58,11 @@ const EventSchema = new mongoose.Schema({
 
     ticketPrice: {
         type: Number,
-        required: [true, 'Ticket price is required'],
         min: [0, 'Ticket price cannot be negative']
     },
     registrations: {
         type: Mongoose.Schema.Types.ObjectId,
         ref: 'Ticket',
-        required: [true, 'Registrations are required'],
         validate: {
             validator: function(v) {
                 return mongoose.Types.ObjectId.isValid(v);
