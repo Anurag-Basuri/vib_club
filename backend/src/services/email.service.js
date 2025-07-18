@@ -21,11 +21,6 @@ const transporter = nodemailer.createTransport({
 	},
 });
 
-/**
- * Generates a QR Code as a Buffer
- * @param {string} qrData
- * @returns {Promise<Buffer>}
- */
 const generateQRCodeBuffer = async qrData => {
 	try {
 		return await QRCode.toBuffer(qrData, {
@@ -95,4 +90,14 @@ export const sendTicketEmail = async ({
 		console.error('❌ Failed to send ticket email:', err.message);
 		throw new Error('Could not send ticket email');
 	}
+};
+
+export const sendPasswordResetEmail = async (to, resetLink) => {
+  const subject = 'Password Reset Request';
+  const html = `
+    <p>You requested a password reset.</p>
+    <p>Click <a href="${resetLink}">here</a> to reset your password.</p>
+    <p>If you did not request this, please ignore this email.</p>
+  `;
+  return sendEmail(to, subject, html);
 };
