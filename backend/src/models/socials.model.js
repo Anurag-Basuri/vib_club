@@ -32,6 +32,11 @@ const SocialSchema = new mongoose.Schema({
             message: 'All videos must be valid video URLs'
         }
     },
+
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
 }, {
     timestamps: true
 });
