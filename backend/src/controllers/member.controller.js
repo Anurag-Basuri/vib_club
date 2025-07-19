@@ -274,3 +274,14 @@ const getMemberById = asyncHandler(async (req, res) => {
         )
     );
 });
+
+export {
+    registerMember,
+    loginMember,
+    logoutMember,
+    resetPassword,
+    updateProfile,
+    uploadProfilePicture,
+    getCurrentMember,
+    getMemberById
+}
