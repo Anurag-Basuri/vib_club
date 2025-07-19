@@ -111,6 +111,12 @@ const memberSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+
+    refreshToken: {
+        type: String,
+        select: false,
+        default: null,
+    }
 }, {
     timestamps: true,
     toJSON: { virtuals: true },
