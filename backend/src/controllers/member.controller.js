@@ -211,3 +211,66 @@ const uploadProfilePicture = asyncHandler(async (req, res) => {
         )
     );
 });
+
+// Get current member
+const getCurrentMember = asyncHandler(async (req, res) => {
+    const id = req.id;
+    if (!id) {
+        throw new ApiError(401, 'Unauthorized access');
+    }
+    const member = await Member.findById(id).select('-password -refreshToken');
+    if (!member) {
+        throw new ApiError(404, 'Member not found');
+    }
+
+    res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            'Current member retrieved successfully',
+            { member: member.toJSON() }
+        )
+    );
+});
+
+// Get member by ID
+const getMemberById = asyncHandler(async (req, res) => {
+    const id = req.params.id;
+    if (!id) {
+        throw new ApiError(400, 'Member ID is required');
+    }
+
+    const currentUser = req.user;
+    if (currentUser.role !== 'admin' && currentUser.role !== 'member') {
+        const member = await Member.findById(id).select('-password -refreshToken');
+        if (!member) {
+            throw new ApiError(404, 'Member not found');
+        }
+
+        res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                'Member retrieved successfully',
+                { member: member.toJSON() }
+            )
+        );
+    }
+
+    const member = await Member.findById(id).select('-password -refreshToken -LpuId -email -joinedAt');
+    if (!member) {
+        throw new ApiError(404, 'Member not found');
+    }
+
+    res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            'Member retrieved successfully',
+            { member: member.toJSON() }
+        )
+    );
+});
