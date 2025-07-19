@@ -22,7 +22,7 @@ const memberSchema = new mongoose.Schema({
         minlength: [2, 'Full name must be at least 2 characters'],
         maxlength: [50, 'Full name cannot exceed 50 characters']
     },
-    lpuID: {
+    LpuId: {
         type: String,
         required: [true, 'LPU ID is required'],
         unique: true,
