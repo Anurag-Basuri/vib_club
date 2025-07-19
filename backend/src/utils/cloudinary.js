@@ -1,5 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary';
-import { ApiError } from './ApiError.js';
+import { ApiError } from './apiError.js';
 import fs from 'fs';
 import path from 'path';
 

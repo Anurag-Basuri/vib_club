@@ -2,6 +2,8 @@ import Member from '../models/member.model.js';
 import {asyncHandler} from '../utils/asyncHandler.js';
 import {ApiError} from '../utils/apiError.js';
 import {ApiResponse} from '../utils/apiResponse.js';
+import jwt from 'jsonwebtoken';
+import { uploadFile, deleteFile } from '../utils/cloudinary.js';
 
 // Generate JWT token
 const generateToken = (memberId) => {
@@ -169,6 +171,42 @@ const updateProfile = asyncHandler(async (req, res) => {
         new ApiResponse(
             200,
             'Profile updated successfully',
+            { member: member.toJSON() }
+        )
+    );
+});
+
+// Upload profile picture
+const uploadProfilePicture = asyncHandler(async (req, res) => {
+    const file = req.files;
+    if (!file || file.length === 0) {
+        throw new ApiError(400, 'No files uploaded');
+    }
+
+    const member = await Member.findById(req.id);
+    if (!member) {
+        throw new ApiError(404, 'Member not found');
+    }
+
+    // Delete old profile picture from Cloudinary
+    if (member.profilePicture) {
+        await deleteFile(member.profilePicture.publicId);
+    }
+
+    // Upload new profile picture to Cloudinary
+    const uploadResponse = await uploadFile(file[0]);
+    member.profilePicture = {
+        url: uploadResponse.url,
+        publicId: uploadResponse.publicId,
+    };
+    await member.save();
+
+    res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            'Profile picture uploaded successfully',
             { member: member.toJSON() }
         )
     );
