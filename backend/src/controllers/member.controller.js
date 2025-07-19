@@ -135,3 +135,41 @@ const resetPassword = asyncHandler(async (req, res) => {
         )
     );
 });
+
+// Update member profile
+const updateProfile = asyncHandler(async (req, res) => {
+    const {
+        fullName,
+        email,
+        program,
+        year,
+        linkedIn,
+        github,
+        bio,
+    } = req.body;
+
+    const member = await Member.findById(req.params.id);
+    if (!member) {
+        throw new ApiError(404, 'Member not found');
+    }
+
+    member.fullName = fullName || member.fullName;
+    member.email = email || member.email;
+    member.program = program || member.program;
+    member.year = year || member.year;
+    member.linkedIn = linkedIn || member.linkedIn;
+    member.github = github || member.github;
+    member.bio = bio || member.bio;
+
+    await member.save();
+
+    res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            'Profile updated successfully',
+            { member: member.toJSON() }
+        )
+    );
+});

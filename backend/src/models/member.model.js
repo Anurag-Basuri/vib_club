@@ -15,7 +15,7 @@ const memberSchema = new mongoose.Schema({
             message: props => `${props.value} is not a valid profile picture!`
         },
     },
-    fullname: {
+    fullName: {
         type: String,
         required: [true, 'Full name is required'],
         trim: true,
