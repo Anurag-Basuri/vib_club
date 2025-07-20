@@ -21,6 +21,12 @@ const ALLOWED_FILE_TYPES = {
 	'image/jpeg': 'jpg',
 	'image/jpg': 'jpg',
 	'image/png': 'png',
+	'image/gif': 'gif',
+	'video/mp4': 'mp4',
+	'video/mpeg': 'mpeg',
+	'video/quicktime': 'mov',
+	'video/webm': 'webm',
+	'video/ogg': 'ogg',
 	'application/pdf': 'pdf',
 	'application/msword': 'doc',
 };
