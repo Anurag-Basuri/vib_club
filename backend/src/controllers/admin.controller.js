@@ -29,7 +29,7 @@ const createAdmin = asyncHandler(async (req, res) => {
 
     const admin = await Admin.create({ fullname, password });
 
-    res
+    return res
         .status(201)
         .json(
             new ApiResponse(
@@ -54,7 +54,15 @@ const loginAdmin = asyncHandler(async (req, res) => {
     }
 
     const token = admin.generateAuthToken();
-    res.status(200).json(new ApiResponse(200, 'Login successful', { token }));
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                'Login successful',
+                { token }
+            )
+        );
 });
 
 
