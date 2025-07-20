@@ -116,3 +116,10 @@ const markContactAsResolved = asyncHandler(async (req, res) => {
             )
         );
 });
+
+export {
+    sendContact,
+    getAllContacts,
+    getContactById,
+    markContactAsResolved
+};
