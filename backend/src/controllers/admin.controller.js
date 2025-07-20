@@ -65,5 +65,7 @@ const loginAdmin = asyncHandler(async (req, res) => {
         );
 });
 
-
-
+export {
+    createAdmin,
+    loginAdmin
+};
