@@ -32,23 +32,26 @@ export const sendRegistrationEmail = async ({ to, name, eventName, eventDate, qr
 	}
 };
 
-export const sendPasswordResetEmail = async ({ to, name, resetUrl }) => {
+export const sendPasswordResetEmail = async (email, token) => {
+	const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${token}`;
+
 	const mailOptions = {
-		from: `"Support" <${process.env.MAIL_USER}>`,
-		to,
-		subject: '🔐 Reset Your Password',
+		from: `"Vibranta Club" <${process.env.MAIL_USER}>`,
+		to: email,
+		subject: 'Password Reset Request',
 		html: `
-		<h2>Hello ${name},</h2>
-		<p>We received a request to reset your password. Click the button below to proceed:</p>
-		<a href="${resetUrl}" style="padding:10px 20px; background:#007bff; color:white; text-decoration:none; border-radius:5px;">Reset Password</a>
-		<p>If you didn't request this, you can ignore the email.</p>
-		<p>— Support Team</p>
-		`,
+			<h3>Password Reset</h3>
+			<p>Click the link below to reset your password. This link is valid for 15 minutes:</p>
+			<a href="${resetUrl}" target="_blank">${resetUrl}</a>
+			<br /><br />
+			<p>If you did not request this, please ignore this email.</p>
+		`
 	};
 
 	try {
 		await transporter.sendMail(mailOptions);
 	} catch (error) {
-		throw new ApiError(500, 'Failed to send reset password email');
+		throw new ApiError(500, 'Failed to send password reset email');
 	}
 };
+
