@@ -107,3 +107,27 @@ export const updateTicketStatus = asyncHandler(async (req, res) => {
             new ApiResponse(200, 'Ticket status updated successfully', ticket)
         );
 });
+
+// Get all tickets for an event
+export const getTicketsByEvent = asyncHandler(async (req, res) => {
+    const { eventId } = req.params;
+
+    // Validate event ID
+    if (!eventId) {
+        throw new ApiError(400, 'Event ID is required');
+    }
+
+    // Find tickets for the event
+    const tickets = await Ticket.find({ eventId }).populate('eventId', 'name date');
+
+    if (!tickets.length) {
+        throw new ApiError(404, 'No tickets found for this event');
+    }
+
+    // Return success response
+    res
+        .status(200)
+        .json(
+            new ApiResponse(200, 'Tickets retrieved successfully', tickets)
+        );
+});
