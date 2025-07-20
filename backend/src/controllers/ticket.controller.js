@@ -5,6 +5,7 @@ import { ApiResponse } from '../utils/apiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { generateTicketQR } from '../services/qrcode.service.js';
 import { sendRegistrationEmail } from '../services/email.service.js';
+import { v4 as uuidv4 } from 'uuid';
 
 // Create a new ticket
 const createTicket = asyncHandler(async (req, res) => {
@@ -24,16 +25,27 @@ const createTicket = asyncHandler(async (req, res) => {
 		throw new ApiError(409, 'You have already registered for this event');
 	}
 
-	let ticket = await Ticket.create({
+	const ticket = new Ticket({
+		ticketId: uuidv4(),
 		fullName,
 		email,
 		LpuId,
-		eventId
+		eventId,
+		isUsed: false,
+		isCancelled: false
 	});
-	console.log(ticket);
 
-	const qrCode = await generateTicketQR(ticket);
-	console.log(qrCode);
+	await ticket.save();
+
+	let qrCode;
+	try {
+		qrCode = await generateTicketQR(ticket);
+		console.log(qrCode);
+	} catch (qrErr) {
+		await Ticket.findByIdAndDelete(ticket._id);
+		throw new ApiError(500, 'Failed to generate QR code for the ticket');
+	}
+
 	ticket.qrCode = {
 		url: qrCode.url,
 		publicId: qrCode.publicId
@@ -45,7 +57,7 @@ const createTicket = asyncHandler(async (req, res) => {
 	try {
 		await sendRegistrationEmail({
 			to: email,
-			name: fullname,
+			name: fullName,
 			eventName: event.name,
 			eventDate: event.date,
 			qrUrl: qrCode.url

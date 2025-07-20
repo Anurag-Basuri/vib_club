@@ -7,25 +7,24 @@ import { InitializeCloudinary as cloudinary } from '../utils/cloudinary.js';
 export const generateTicketQR = async (details) => {
 	try {
 		const {
-            ticketId,
-             fullName,
-             email,
-             lpuID,
-             eventName,
-             eventId,
-             isUsed,
-             isCancelled } = details;
+			ticketId,
+			fullName,
+			email,
+			LpuId,
+			eventId,
+			isUsed,
+			isCancelled
+		} = details;
 
 		// Prepare data to encode in the QR
 		const qrData = JSON.stringify({
 			ticketId,
 			fullName,
 			email,
-			lpuID,
-			eventName,
+			LpuId,
 			eventId,
 			isUsed,
-			isCancelled,
+			isCancelled
 		});
 
 		// Generate QR code as a buffer
