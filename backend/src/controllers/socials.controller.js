@@ -59,3 +59,33 @@ const createSocial = asyncHandler(async (req, res) => {
         .status(201)
         .json(ApiResponse.success('Social post created successfully', socials));
 });
+
+const deleteSocial = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+        throw ApiError.badRequest('Valid social post ID is required');
+    }
+
+    const social = await Social.findById(id);
+    if (!social) {
+        throw ApiError.notFound('Social post not found');
+    }
+
+    // Delete associated files from cloud storage if any
+    const filesToDelete = [
+        ...(social.images || []),
+        ...(social.videos || [])
+    ];
+    await Promise.all(filesToDelete.map(url => deleteFile(url)));
+
+    await social.deleteOne();
+
+    return ApiResponse.success(res, 'Social post deleted successfully');
+});
+
+export {
+    getSocials,
+    createSocial,
+    deleteSocial
+}
