@@ -4,6 +4,7 @@ import { ApiResponse } from '../utils/apiResponse.js';
 import { asyncHandler } from '../middlewares/asyncHandler.js';
 import { uploadFile, deleteFile } from '../utils/cloudinary.js';
 import mongoose from 'mongoose';
+import e from 'express';
 
 // Controller to create a new event
 const createEvent = asyncHandler(async (req, res) => {
@@ -73,3 +74,5 @@ const updateEvent = asyncHandler(async (req, res) => {
 
     res.status(200).json(new ApiResponse('Event updated successfully', updatedEvent));
 });
+
+export { createEvent, updateEvent };
