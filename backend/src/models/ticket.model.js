@@ -57,9 +57,10 @@ const ticketSchema = new mongoose.Schema({
                 },
                 message: 'QR Code must be a valid image URL'
             },
-        publicId: {
-            type: String,
-            unique: true
+            publicId: {
+                type: String,
+                unique: true
+            }
         }
     },
 
