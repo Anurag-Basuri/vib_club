@@ -4,6 +4,7 @@ import {ApiError} from '../utils/apiError.js';
 import {ApiResponse} from '../utils/apiResponse.js';
 import jwt from 'jsonwebtoken';
 import { uploadFile, deleteFile } from '../utils/cloudinary.js';
+import { sendPasswordResetEmail } from '../services/email.service.js';
 
 // Generate JWT token
 const generateToken = (memberId) => {
@@ -275,6 +276,35 @@ const getMemberById = asyncHandler(async (req, res) => {
     );
 });
 
+// Send password reset email
+const sendResetPasswordEmail = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+    if (!email) {
+        throw new ApiError(400, 'Email is required');
+    }
+
+    const member = await Member.findOne({ email });
+    if (!member) {
+        throw new ApiError(404, 'Member not found');
+    }
+
+    // Generate password reset token
+    const resetToken = member.generateResetToken();
+    await member.save();
+
+    // Send password reset email
+    await sendPasswordResetEmail(member.email, resetToken);
+
+    res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                'Password reset email sent successfully'
+            )
+        );
+});
+
 export {
     registerMember,
     loginMember,
@@ -283,5 +313,6 @@ export {
     updateProfile,
     uploadProfilePicture,
     getCurrentMember,
-    getMemberById
-}
+    getMemberById,
+    sendResetPasswordEmail
+};
