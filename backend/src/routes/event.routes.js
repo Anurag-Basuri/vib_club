@@ -19,23 +19,18 @@ router.post(
     '/create',
     authMiddleware.verifyToken,
     authMiddleware.isAdmin,
-    uploadFile('posters'), // expects field name 'posters' for file uploads
     validate([
         body('title').notEmpty().withMessage('Title is required'),
         body('description').notEmpty().withMessage('Description is required'),
         body('date').notEmpty().withMessage('Date is required').isISO8601().withMessage('Date must be valid'),
         body('venue').notEmpty().withMessage('Venue is required'),
-        body('organizer').optional().isString(),
-        body('sponsor').optional().isString(),
-        body('ticketPrice').optional().isFloat({ min: 0 }).withMessage('Ticket price must be a positive number'),
-        body('status').optional().isIn(['upcoming', 'completed', 'cancelled']).withMessage('Invalid status')
     ]),
     createEvent
 );
 
 // Update Event
 router.put(
-    '/:id',
+    '/:id/update',
     authMiddleware.verifyToken,
     authMiddleware.isAdmin,
     uploadFile('posters'),
@@ -55,7 +50,7 @@ router.put(
 
 // Get All Events (optionally filter by status)
 router.get(
-    '/getallevents',
+    '/getall',
     getAllEvents
 );
 
@@ -70,7 +65,7 @@ router.get(
 
 // Delete Event
 router.delete(
-    '/:id',
+    '/:id/delete',
     authMiddleware.verifyToken,
     authMiddleware.isAdmin,
     validate([

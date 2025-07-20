@@ -65,9 +65,10 @@ const EventSchema = new mongoose.Schema({
         ref: 'Ticket',
         validate: {
             validator: function(v) {
-                return mongoose.Types.ObjectId.isValid(v);
+			    if (!v || v.length === 0) return true;
+			    return v.every(id => mongoose.Types.ObjectId.isValid(id));
             },
-            message: props => `${props.value} is not a valid registration ID!`
+            message: props => `One or more registration IDs are invalid!`
         }
     },
     status: {
