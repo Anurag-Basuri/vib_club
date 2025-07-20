@@ -9,7 +9,7 @@ const ticketSchema = new mongoose.Schema({
         unique: true
     },
 
-    fullname: {
+    fullName: {
         type: String,
         required: [true, 'Full name is required'],
         trim: true,
@@ -25,7 +25,7 @@ const ticketSchema = new mongoose.Schema({
             message: 'Invalid email format'
         }
     },
-    lpuID: {
+    LpuId: {
         type: Number,
         required: [true, 'LPU ID is required'],
         validate: {
@@ -50,7 +50,6 @@ const ticketSchema = new mongoose.Schema({
     qrCode: {
         url: {
             type: String,
-            required: true,
             validate: {
                 validator: function(v) {
                     return /^https?:\/\/.*\.(png|jpg|jpeg)$/.test(v);

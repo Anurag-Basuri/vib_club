@@ -16,9 +16,9 @@ const router = Router();
 router.post(
     '/create',
     validate([
-        body('fullname').notEmpty().withMessage('Full name is required'),
+        body('fullName').notEmpty().withMessage('Full name is required'),
         body('email').isEmail().withMessage('Valid email is required'),
-        body('lpuID').notEmpty().withMessage('LPU ID is required'),
+        body('LpuId').notEmpty().withMessage('LPU ID is required'),
         body('eventId').isMongoId().withMessage('Valid event ID is required')
     ]),
     createTicket

@@ -8,9 +8,9 @@ import { sendRegistrationEmail } from '../services/email.service.js';
 
 // Create a new ticket
 const createTicket = asyncHandler(async (req, res) => {
-	const { fullname, email, lpuID, eventId } = req.body;
+	const { fullName, email, LpuId, eventId } = req.body;
 
-	if (!fullname || !email || !lpuID || !eventId) {
+	if (!fullName || !email || !LpuId || !eventId) {
 		throw new ApiError(400, 'All fields are required');
 	}
 
@@ -19,19 +19,21 @@ const createTicket = asyncHandler(async (req, res) => {
 		throw new ApiError(404, 'Event not found');
 	}
 
-	const existingTicket = await Ticket.findOne({ lpuID, eventId });
+	const existingTicket = await Ticket.findOne({ LpuId, eventId });
 	if (existingTicket) {
 		throw new ApiError(409, 'You have already registered for this event');
 	}
 
 	let ticket = await Ticket.create({
-		fullname,
+		fullName,
 		email,
-		lpuID,
+		LpuId,
 		eventId
 	});
+	console.log(ticket);
 
 	const qrCode = await generateTicketQR(ticket);
+	console.log(qrCode);
 	ticket.qrCode = {
 		url: qrCode.url,
 		publicId: qrCode.publicId
