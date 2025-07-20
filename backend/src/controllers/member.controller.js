@@ -288,21 +288,19 @@ const sendResetPasswordEmail = asyncHandler(async (req, res) => {
         throw new ApiError(404, 'Member not found');
     }
 
-    // Generate password reset token
+    // Generate reset token
     const resetToken = member.generateResetToken();
     await member.save();
 
-    // Send password reset email
-    await sendPasswordResetEmail(member.email, resetToken);
+    // Send the reset email
+    await sendPasswordResetEmail(email, resetToken);
 
-    res
-        .status(200)
-        .json(
-            new ApiResponse(
-                200,
-                'Password reset email sent successfully'
-            )
-        );
+    res.status(200).json(
+        new ApiResponse(
+            200,
+            'Password reset email sent successfully'
+        )
+    );
 });
 
 export {
