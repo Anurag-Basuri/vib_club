@@ -13,26 +13,18 @@ const SocialSchema = new mongoose.Schema({
         trim: true,
         maxlength: [1000, 'Content cannot exceed 1000 characters']
     },
-    images: {
-        type: [String],
-        validate: {
-            validator: function(v) {
-                if (!v || v.length === 0) return true; // Optional field
-                return v.every(url => /^https?:\/\/.*\.(jpg|jpeg|png|gif|webp)$/i.test(url));
-            },
-            message: 'All images must be valid image URLs'
+    images: [
+        {
+            url: { type: String, required: true },
+            publicId: { type: String, required: true },
         }
-    },
-    videos: {
-        type: [String],
-        validate: {
-            validator: function(v) {
-                if (!v || v.length === 0) return true; // Optional field
-                return v.every(url => /^https?:\/\/.*\.(mp4|webm|ogg)$/i.test(url));
-            },
-            message: 'All videos must be valid video URLs'
+    ],
+    videos: [
+        {
+            url: { type: String, required: true },
+            publicId: { type: String, required: true },
         }
-    },
+    ],
 
     createdAt: {
         type: Date,

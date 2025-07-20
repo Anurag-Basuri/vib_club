@@ -3,8 +3,6 @@ import { ApiError } from '../utils/apiError.js';
 import {ApiResponse} from '../utils/apiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { uploadFile, deleteFile } from '../utils/cloudinary.js';
-import Member from '../models/member.model.js';
-import Admin from '../models/admin.model.js';
 import mongoose from 'mongoose';
 
 const getSocials = asyncHandler(async (req, res) => {
@@ -14,7 +12,7 @@ const getSocials = asyncHandler(async (req, res) => {
         page: Number(page),
         limit: Number(limit),
         sort: { createdAt: -1 },
-        populate: { path: 'userId', select: 'name profilePicture' }
+        populate: { path: 'userId', select: 'fullname profilePicture' }
     };
 
     try {
@@ -46,7 +44,7 @@ const createSocial = asyncHandler(async (req, res) => {
 
     const cloudinaryUploads = await Promise.all(uploadedFiles.map(file => uploadFile(file)));
 
-    socials = new Social({
+    const socials = new Social({
         userId: mongoose.Types.ObjectId(userId),
         content,
         images: cloudinaryUploads.filter(file => file.url.match(/\.(jpg|jpeg|png|gif)$/i)).map(file => file.url),
