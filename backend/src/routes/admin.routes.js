@@ -9,7 +9,7 @@ import { body } from 'express-validator';
 const router = Router();
 
 // Admin routes
-router.post('/create',
+router.post('/register',
     validate([
         body('fullname').notEmpty().withMessage('Fullname is required'),
         body('password').notEmpty().withMessage('Password is required'),
