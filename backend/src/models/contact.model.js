@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import mongoosepagination from "mongoose-paginate-v2";
 
 const contactSchema = new mongoose.Schema({
     name: {
@@ -62,6 +63,12 @@ const contactSchema = new mongoose.Schema({
     timestamps: true
 });
 
+contactSchema.index({ name: 'text', email: 'text', subject: 'text', message: 'text' });
 const Contact = mongoose.model('Contact', contactSchema);
+
+contactSchema.plugin(mongoosepagination);
+contactSchema.statics.getPaginatedContacts = async function (options) {
+    return this.paginate({}, options);
+};
 
 export default Contact;

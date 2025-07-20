@@ -34,3 +34,33 @@ const sendContact = asyncHandler(async (req, res) => {
             )
         );
 });
+
+const getAllContacts = asyncHandler(async (req, res) => {
+    const options = {
+        page: parseInt(req.query.page) || 1,
+        limit: parseInt(req.query.limit) || 10,
+        sort: req.query.sort || '-createdAt',
+    };
+
+    // Fetch paginated contacts
+    const contacts = await Contact.getPaginatedContacts(options);
+    if (!contacts || contacts.length === 0) {
+        throw new ApiError.notFound('No contacts found');
+    }
+
+    // Check if contacts is an object with results
+    if (typeof contacts !== 'object' || !contacts.docs) {
+        throw new ApiError.notFound('No contacts found');
+    }
+
+    // Send success response
+    res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                'Contacts retrieved successfully',
+                contacts
+            )
+        );
+});
