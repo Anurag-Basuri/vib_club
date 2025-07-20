@@ -1,56 +1,56 @@
 import QRCode from 'qrcode';
-import fs from 'fs';
-import path from 'path';
 import { ApiError } from '../utils/apiError.js';
+import { v4 as uuidv4 } from 'uuid';
+import streamifier from 'streamifier';
+import { InitializeCloudinary as cloudinary } from '../utils/cloudinary.js';
 
-export const generateTicketQR = async details => {
-    try {
-        const {
+export const generateTicketQR = async (details) => {
+	try {
+		const {
             ticketId,
-            fullName,
-            email,
-            lpuID,
-            eventName,
-            eventId,
-            isUsed,
-            isCancelled,
-        } = details;
+             fullName,
+             email,
+             lpuID,
+             eventName,
+             eventId,
+             isUsed,
+             isCancelled } = details;
 
-        const qrData = JSON.stringify({
-            ticketId,
-            fullName,
-            email,
-            lpuID,
-            eventName,
-            eventId,
-            isUsed,
-            isCancelled,
-        });
+		// Prepare data to encode in the QR
+		const qrData = JSON.stringify({
+			ticketId,
+			fullName,
+			email,
+			lpuID,
+			eventName,
+			eventId,
+			isUsed,
+			isCancelled,
+		});
 
-        // Define directory and file path
-        const qrDir = path.resolve('public', 'qrcodes');
-        if (!fs.existsSync(qrDir)) {
-            fs.mkdirSync(qrDir, { recursive: true });
-        }
-        const fileName = `ticket_${ticketId}_${Date.now()}.png`;
-        const filePath = path.join(qrDir, fileName);
+		// Generate QR code as a buffer
+		const qrBuffer = await QRCode.toBuffer(qrData, { type: 'png' });
 
-        // Generate and save QR code
-        await QRCode.toFile(filePath, qrData, {
-            type: 'png',
-            errorCorrectionLevel: 'H',
-            scale: 8,
-            margin: 2,
-            color: {
-                dark: '#000000',
-                light: '#FFFFFF',
-            },
-        });
+		// Upload buffer directly to Cloudinary
+		const uploadResult = await new Promise((resolve, reject) => {
+			const uploadStream = cloudinary.uploader.upload_stream(
+				{
+					folder: 'tickets/qr-codes',
+					public_id: `ticket_${uuidv4()}`,
+					resource_type: 'image',
+				},
+				(error, result) => {
+					if (error) return reject(error);
+					resolve(result);
+				}
+			);
 
-        // Return the file path (relative to server root)
-        return `/public/qrcodes/${fileName}`;
-    } catch (error) {
-        console.error('Error generating QR code:', error);
-        throw new ApiError(500, 'Failed to generate QR code');
-    }
+			streamifier.createReadStream(qrBuffer).pipe(uploadStream);
+		});
+
+		return uploadResult; // contains url, public_id, etc.
+	} catch (error) {
+		console.error('Error generating QR code:', error);
+		throw new ApiError(500, 'Failed to generate QR code');
+	}
 };
