@@ -55,3 +55,55 @@ export const createTicket = asyncHandler(async (req, res) => {
             new ApiResponse(201, 'Ticket created successfully', ticket)
         );
 });
+
+// Get ticket by ID
+export const getTicketById = asyncHandler(async (req, res) => {
+    const { ticketId } = req.params;
+
+    // Find ticket by ID
+    const ticket = await Ticket.findById(ticketId);
+    if (!ticket) {
+        throw new ApiError(404, 'Ticket not found');
+    }
+
+    // Return success response
+    res
+        .status(200)
+        .json(
+            new ApiResponse(200, 'Ticket retrieved successfully', ticket)
+        );
+});
+
+// Update ticket status (used/cancelled)
+export const updateTicketStatus = asyncHandler(async (req, res) => {
+    const { ticketId } = req.params;
+    const { isUsed, isCancelled } = req.body;
+
+    // Validate request data
+    if (isUsed === undefined && isCancelled === undefined) {
+        throw new ApiError(400, 'At least one status field must be provided');
+    }
+
+    // Find ticket by ID
+    const ticket = await Ticket.findById(ticketId);
+    if (!ticket) {
+        throw new ApiError(404, 'Ticket not found');
+    }
+
+    // Update ticket status
+    if (isUsed !== undefined) {
+        ticket.isUsed = isUsed;
+    }
+    if (isCancelled !== undefined) {
+        ticket.isCancelled = isCancelled;
+    }
+
+    await ticket.save();
+
+    // Return success response
+    res
+        .status(200)
+        .json(
+            new ApiResponse(200, 'Ticket status updated successfully', ticket)
+        );
+});
