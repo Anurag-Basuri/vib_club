@@ -14,7 +14,7 @@ const router = Router();
 
 // Apply rate limiter to contact form submission
 router.post(
-    '/',
+    '/send',
     rateLimiter,
     validate([
         body('name')
@@ -41,7 +41,7 @@ router.post(
 
 // Admin routes (protected)
 router.get(
-    '/',
+    '/getall',
     authMiddleware.verifyToken,
     authMiddleware.isAdmin,
     getAllContacts
