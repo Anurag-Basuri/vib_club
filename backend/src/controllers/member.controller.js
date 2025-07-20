@@ -34,9 +34,9 @@ const generateToken = (memberId) => {
 
 //  Register a new member
 const registerMember = asyncHandler(async (req, res) => {
-    const {name, LpuId, password} = req.body;
-    if (!name || !LpuId || !password) {
-        throw new ApiError(400, 'Name, LPU ID, and password are required');
+    const {fullName, LpuId, password} = req.body;
+    if (!fullName || !LpuId || !password) {
+        throw new ApiError(400, 'Full name, LPU ID, and password are required');
     }
 
     const existingMember = await Member.findOne({ LpuId });
@@ -45,7 +45,7 @@ const registerMember = asyncHandler(async (req, res) => {
     }
 
     const member = await Member.create({
-        name,
+        fullName,
         LpuId,
         password
     });

@@ -56,7 +56,7 @@ router.get(
 
 // Get Event By ID
 router.get(
-    '/:id',
+    '/by-id/:id',
     validate([
         param('id').isMongoId().withMessage('Invalid event ID')
     ]),
@@ -76,7 +76,7 @@ router.delete(
 
 // Get Upcoming Events
 router.get(
-    '/upcoming',
+    '/upcoming-events',
     getUpcomingEvents
 );
 

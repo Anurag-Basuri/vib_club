@@ -21,7 +21,7 @@ const router = Router();
 router.post(
     '/register',
     validate([
-        body('name').notEmpty().withMessage('Name is required'),
+        body('fullName').notEmpty().withMessage('Full name is required'),
         body('LpuId').notEmpty().withMessage('LPU ID is required'),
         body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
     ]),
