@@ -1,9 +1,6 @@
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 
 let rateLimiter = null; // Will hold the initialized limiter
-
-const getClientIp = req =>
-	req.ip || req.headers['x-forwarded-for'] || req.connection?.remoteAddress || 'unknown';
 
 export const initRateLimiter = async () => {
 	if (process.env.NODE_ENV === 'production') {
@@ -21,7 +18,7 @@ export const initRateLimiter = async () => {
 			max: 100, // limit each IP to 100 requests per windowMs
 			standardHeaders: true,
 			legacyHeaders: false,
-			keyGenerator: getClientIp,
+			keyGenerator: ipKeyGenerator, // Use the helper for proper IP handling
 			store: new RedisStore({
 				client: redisClient,
 				prefix: 'rate-limit:',
@@ -33,7 +30,7 @@ export const initRateLimiter = async () => {
 			max: 100,
 			standardHeaders: true,
 			legacyHeaders: false,
-			keyGenerator: getClientIp,
+			keyGenerator: ipKeyGenerator, // Use the helper for proper IP handling
 		});
 	}
 };
