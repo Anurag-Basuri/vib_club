@@ -23,13 +23,17 @@ const createAdmin = asyncHandler(async (req, res) => {
     const admin = await Admin.create({ fullname, password });
     const token = admin.generateAuthToken();
 
+    // Save token in tokens array
+    admin.tokens.push({ token });
+    await admin.save();
+
     return res
         .status(201)
         .json(
             new ApiResponse(
                 201,
                 "Admin created successfully",
-                {admin, token}
+                { admin, token }
             )
         );
 });
@@ -49,14 +53,18 @@ const loginAdmin = asyncHandler(async (req, res) => {
 
     const token = admin.generateAuthToken();
 
+    // Save token in tokens array
+    admin.tokens.push({ token });
+    await admin.save();
+
     return res
         .status(200)
         .json(
             new ApiResponse(200, "Login successful", {
-            admin,
-            token,
-        })
-    );
+                admin,
+                token,
+            })
+        );
 });
 
 // Logout Admin
@@ -67,6 +75,7 @@ const logoutAdmin = asyncHandler(async (req, res) => {
         throw new ApiError(401, "Unauthorized");
     }
 
+    // Remove all tokens (logout from all devices)
     admin.tokens = [];
     await admin.save();
 
@@ -77,4 +86,4 @@ const logoutAdmin = asyncHandler(async (req, res) => {
         );
 });
 
-export { createAdmin, loginAdmin };
+export { createAdmin, loginAdmin, logoutAdmin };
