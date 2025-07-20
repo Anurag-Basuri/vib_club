@@ -20,9 +20,18 @@ router.post(
         body('name')
             .notEmpty()
             .withMessage('Name is required'),
+        body('phone')
+            .notEmpty()
+            .withMessage('Phone number is required'),
+        body('lpuID')
+            .notEmpty()
+            .withMessage('LPU ID is required'),
         body('email')
             .isEmail()
             .withMessage('Invalid email format'),
+        body('subject')
+            .notEmpty()
+            .withMessage('Subject is required'),
         body('message')
             .notEmpty()
             .withMessage('Message is required')
