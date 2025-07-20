@@ -27,7 +27,8 @@ router.post('/login',
 );
 
 router.post('/logout',
-    authMiddleware,
+    authMiddleware.verifyToken,
+    authMiddleware.isAdmin,
     logoutAdmin
 );
 
