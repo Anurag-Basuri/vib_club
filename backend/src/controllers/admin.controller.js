@@ -1,14 +1,7 @@
 import Admin from '../models/admin.model.js';
-import Member from '../models/member.model.js';
-import Event from '../models/event.model.js';
-import Ticket from '../models/ticket.model.js';
-import Socials from '../models/socials.model.js';
-import Contact from '../models/contact.model.js';
 import { ApiError } from '../utils/apiError.js';
 import { ApiResponse } from '../utils/apiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
-import { uploadFile, deleteFile } from '../utils/fileUpload.js';
-import { sendEmail } from '../utils/emailService.js';
 
 // Create a new admin
 const createAdmin = asyncHandler(async (req, res) => {

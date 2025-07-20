@@ -1,35 +1,58 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
-import { v4 as uuidv4 } from 'uuid';
+import jwt from "jsonwebtoken";
+import { v4 as uuidv4 } from "uuid";
 
-const adminSchema = new mongoose.Schema({
+const adminSchema = new mongoose.Schema(
+  {
     adminID: {
-        type: String,
-        default: uuidv4,
-        unique: true
+      type: String,
+      default: uuidv4,
+      unique: true,
     },
     fullname: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
     },
     password: {
-        type: String,
-        required: true
+      type: String,
+      required: true,
+      minlength: 6,
     },
-},
-{timestamps:true});
+  },
+  { timestamps: true }
+);
 
-adminSchema.pre('save', async function(next) {
-    if (this.isModified('password')) {
-        this.password = await bcrypt.hash(this.password, 10);
-    }
-    next();
+// Hash password before save
+adminSchema.pre("save", async function (next) {
+  if (this.isModified("password")) {
+    this.password = await bcrypt.hash(this.password, 10);
+  }
+  next();
 });
 
-adminSchema.methods.comparePassword = async function(candidatePassword) {
-    return await bcrypt.compare(candidatePassword, this.password);
+// Compare password method
+adminSchema.methods.comparePassword = async function (candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.password);
 };
 
-const Admin = mongoose.model('Admin', adminSchema);
+// Generate JWT token
+adminSchema.methods.generateAuthToken = function () {
+  return jwt.sign(
+    { id: this._id, adminID: this.adminID, fullname: this.fullname },
+    process.env.ACCESS_TOKEN_SECRET,
+    process.env.ACCESS_TOKEN_EXPIRY ? { expiresIn: process.env.ACCESS_TOKEN_EXPIRY } : {}
+  );
+};
 
+// Prevent password from being returned
+adminSchema.methods.toJSON = function () {
+  const admin = this.toObject();
+  delete admin.password;
+  return admin;
+};
+
+const Admin = mongoose.model("Admin", adminSchema);
 export default Admin;
