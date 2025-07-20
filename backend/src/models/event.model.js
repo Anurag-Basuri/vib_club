@@ -38,7 +38,7 @@ const EventSchema = new mongoose.Schema({
         minlength: [2, 'Organizer must be at least 2 characters'],
         maxlength: [100, 'Organizer cannot exceed 100 characters']
     },
-    sponser: {
+    sponsor: {
         type: String,
         trim: true,
         minlength: [2, 'Sponsor must be at least 2 characters'],
