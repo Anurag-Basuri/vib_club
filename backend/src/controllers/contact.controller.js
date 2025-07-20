@@ -22,7 +22,15 @@ const sendContact = asyncHandler(async (req, res) => {
 	});
 
 	// Send success response
-	res.status(201).json(new ApiResponse(201, 'Contact created successfully', contact));
+	return res
+		.status(201)
+		.json(
+			new ApiResponse(
+				201,
+				'Contact created successfully',
+				contact
+			)
+		);
 });
 
 const getAllContacts = asyncHandler(async (req, res) => {
@@ -44,7 +52,15 @@ const getAllContacts = asyncHandler(async (req, res) => {
 	}
 
 	// Send success response
-	res.status(200).json(new ApiResponse(200, 'Contacts retrieved successfully', contacts));
+	return res
+		.status(200)
+		.json(
+			new ApiResponse(
+				200,
+				'Contacts retrieved successfully',
+				contacts
+			)
+		);
 });
 
 const getContactById = asyncHandler(async (req, res) => {
@@ -62,7 +78,15 @@ const getContactById = asyncHandler(async (req, res) => {
 	}
 
 	// Send success response
-	res.status(200).json(new ApiResponse(200, 'Contact retrieved successfully', contact));
+	return res
+		.status(200)
+		.json(
+			new ApiResponse(
+				200,
+				'Contact retrieved successfully',
+				contact
+			)
+		);
 });
 
 const markContactAsResolved = asyncHandler(async (req, res) => {
@@ -84,7 +108,15 @@ const markContactAsResolved = asyncHandler(async (req, res) => {
 	}
 
 	// Send success response
-	res.status(200).json(new ApiResponse(200, 'Contact marked as resolved', contact));
+	return res
+		.status(200)
+		.json(
+			new ApiResponse(
+				200,
+				'Contact marked as resolved',
+				contact
+			)
+		);
 });
 
 export { sendContact, getAllContacts, getContactById, markContactAsResolved };
