@@ -2,7 +2,7 @@ import QRCode from 'qrcode';
 import { ApiError } from '../utils/apiError.js';
 import { v4 as uuidv4 } from 'uuid';
 import streamifier from 'streamifier';
-import { InitializeCloudinary as cloudinary } from '../utils/cloudinary.js';
+import { v2 as cloudinary } from 'cloudinary';
 
 export const generateTicketQR = async (details) => {
 	try {
@@ -27,10 +27,8 @@ export const generateTicketQR = async (details) => {
 			isCancelled
 		});
 
-		// Generate QR code as a buffer
 		const qrBuffer = await QRCode.toBuffer(qrData, { type: 'png' });
 
-		// Upload buffer directly to Cloudinary
 		const uploadResult = await new Promise((resolve, reject) => {
 			const uploadStream = cloudinary.uploader.upload_stream(
 				{
@@ -47,7 +45,7 @@ export const generateTicketQR = async (details) => {
 			streamifier.createReadStream(qrBuffer).pipe(uploadStream);
 		});
 
-		return uploadResult; // contains url, public_id, etc.
+		return uploadResult;
 	} catch (error) {
 		console.error('Error generating QR code:', error);
 		throw new ApiError(500, 'Failed to generate QR code');
