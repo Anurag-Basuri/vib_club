@@ -27,10 +27,10 @@
   "name": "express-server",
   "version": "1.0.0",
   "description": "A simple Express.js server for handling event ticketing and QR code generation.",
-  "main": "server.js",
+  "main": "src/server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js --watch src --watch server.js --watch package.json",
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js --watch src --watch package.json",
     "lint": "eslint ."
   },
   "keywords": [],
