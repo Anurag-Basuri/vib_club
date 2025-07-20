@@ -64,3 +64,55 @@ const getAllContacts = asyncHandler(async (req, res) => {
             )
         );
 });
+
+const getContactById = asyncHandler(async (req, res) => {
+    const contactId = req.params.id;
+
+    // Validate contact ID
+    if (!contactId) {
+        throw new ApiError.badRequest('Contact ID is required');
+    }
+
+    // Fetch contact by ID
+    const contact = await Contact.findById(contactId);
+    if (!contact) {
+        throw new ApiError.notFound('Contact not found');
+    }
+
+    // Send success response
+    res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                'Contact retrieved successfully',
+                contact
+            )
+        );
+});
+
+const markContactAsResolved = asyncHandler(async (req, res) => {
+    const contactId = req.params.id;
+
+    // Validate contact ID
+    if (!contactId) {
+        throw new ApiError.badRequest('Contact ID is required');
+    }
+
+    // Update contact status to resolved
+    const contact = await Contact.findByIdAndUpdate(contactId, { status: 'resolved' }, { new: true });
+    if (!contact) {
+        throw new ApiError.notFound('Contact not found');
+    }
+
+    // Send success response
+    res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                'Contact marked as resolved',
+                contact
+            )
+        );
+});
