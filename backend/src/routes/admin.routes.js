@@ -4,6 +4,7 @@ import { createAdmin,
     logoutAdmin } from '../controllers/admin.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { validate } from '../middlewares/validator.middleware.js';
+import { body } from 'express-validator';
 
 const router = Router();
 
