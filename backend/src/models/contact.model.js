@@ -14,7 +14,12 @@ const contactSchema = new mongoose.Schema({
         required: [true, 'Email is required'],
         unique: true,
         lowercase: true,
-        validate: [validator.isEmail, 'Please provide a valid email']
+        validate: {
+            validator: function(v) {
+                return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v);
+            },
+            message: 'Invalid email format'
+        }
     },
     phone: {
         type: Number,
