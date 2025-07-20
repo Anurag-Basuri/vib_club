@@ -52,16 +52,16 @@ const registerMember = asyncHandler(async (req, res) => {
 
     const { accessToken, refreshToken } = generateToken(member.id);
 
-    res
-    .status(201)
-    .json(
-        new ApiResponse(
-            201,
-            'Member registered successfully',
-            { member: member.toJSON() },
-            { accessToken, refreshToken }
-        )
-    );
+    return res
+        .status(201)
+        .json(
+            new ApiResponse(
+                201,
+                'Member registered successfully',
+                { member: member.toJSON() },
+                { accessToken, refreshToken }
+            )
+        );
 });
 
 // Login member
@@ -78,16 +78,16 @@ const loginMember = asyncHandler(async (req, res) => {
 
     const { accessToken, refreshToken } = generateToken(member.id);
 
-    res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            'Login successful',
-            { member: member.toJSON() },
-            { accessToken, refreshToken }
-        )
-    );
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                'Login successful',
+                { member: member.toJSON() },
+                { accessToken, refreshToken }
+            )
+        );
 });
 
 // Logout member
@@ -103,14 +103,14 @@ const logoutMember = asyncHandler(async (req, res) => {
     }
     member.refreshToken = null;
 
-    res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            'Logout successful'
-        )
-    );
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                'Logout successful'
+            )
+        );
 });
 
 // Reset password
@@ -128,12 +128,12 @@ const resetPassword = asyncHandler(async (req, res) => {
     member.password = newPassword;
     await member.save();
 
-    res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            'Password reset successfully',
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                'Password reset successfully',
             { member: member.toJSON() }
         )
     );
@@ -166,12 +166,12 @@ const updateProfile = asyncHandler(async (req, res) => {
 
     await member.save();
 
-    res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            'Profile updated successfully',
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                'Profile updated successfully',
             { member: member.toJSON() }
         )
     );
@@ -202,14 +202,14 @@ const uploadProfilePicture = asyncHandler(async (req, res) => {
     };
     await member.save();
 
-    res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            'Profile picture uploaded successfully',
-            { member: member.toJSON() }
-        )
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                'Profile picture uploaded successfully',
+                { member: member.toJSON() }
+            )
     );
 });
 
@@ -224,12 +224,12 @@ const getCurrentMember = asyncHandler(async (req, res) => {
         throw new ApiError(404, 'Member not found');
     }
 
-    res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            'Current member retrieved successfully',
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                'Current member retrieved successfully',
             { member: member.toJSON() }
         )
     );
@@ -249,12 +249,12 @@ const getMemberById = asyncHandler(async (req, res) => {
             throw new ApiError(404, 'Member not found');
         }
 
-        res
-        .status(200)
-        .json(
-            new ApiResponse(
-                200,
-                'Member retrieved successfully',
+        return res
+            .status(200)
+            .json(
+                new ApiResponse(
+                    200,
+                    'Member retrieved successfully',
                 { member: member.toJSON() }
             )
         );
@@ -265,12 +265,12 @@ const getMemberById = asyncHandler(async (req, res) => {
         throw new ApiError(404, 'Member not found');
     }
 
-    res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            'Member retrieved successfully',
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                'Member retrieved successfully',
             { member: member.toJSON() }
         )
     );
@@ -295,7 +295,9 @@ const sendResetPasswordEmail = asyncHandler(async (req, res) => {
     // Send the reset email
     await sendPasswordResetEmail(email, resetToken);
 
-    res.status(200).json(
+    return res
+        .status(200)
+        .json(
         new ApiResponse(
             200,
             'Password reset email sent successfully'

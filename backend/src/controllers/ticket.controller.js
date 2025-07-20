@@ -52,9 +52,15 @@ const createTicket = asyncHandler(async (req, res) => {
 		console.error('Email sending failed:', emailErr.message);
 	}
 
-	res.status(201).json(
-		new ApiResponse(201, 'Ticket created successfully', ticket)
-	);
+	return res
+		.status(201)
+		.json(
+			new ApiResponse(
+				201,
+				'Ticket created successfully',
+				ticket
+			)
+		);
 });
 
 // Get ticket by ID
@@ -66,9 +72,15 @@ const getTicketById = asyncHandler(async (req, res) => {
 		throw new ApiError(404, 'Ticket not found');
 	}
 
-	res.status(200).json(
-		new ApiResponse(200, 'Ticket retrieved successfully', ticket)
-	);
+	return res
+		.status(200)
+		.json(
+			new ApiResponse(
+				200,
+				'Ticket retrieved successfully',
+				ticket
+			)
+		);
 });
 
 // Update ticket status (used/cancelled)
@@ -90,9 +102,11 @@ const updateTicketStatus = asyncHandler(async (req, res) => {
 
 	await ticket.save();
 
-	res.status(200).json(
-		new ApiResponse(200, 'Ticket status updated successfully', ticket)
-	);
+	return res
+		.status(200)
+		.json(
+			new ApiResponse(200, 'Ticket status updated successfully', ticket)
+		);
 });
 
 // Get all tickets for an event
@@ -109,9 +123,11 @@ const getTicketsByEvent = asyncHandler(async (req, res) => {
 		throw new ApiError(404, 'No tickets found for this event');
 	}
 
-	res.status(200).json(
-		new ApiResponse(200, 'Tickets retrieved successfully', tickets)
-	);
+	return res
+		.status(200)
+		.json(
+			new ApiResponse(200, 'Tickets retrieved successfully', tickets)
+		);
 });
 
 
@@ -123,9 +139,12 @@ const deleteTicket = asyncHandler(async (req, res) => {
 		throw new ApiError(404, 'Ticket not found or already deleted');
 	}
 
-	res.status(200).json(
-		new ApiResponse(200, 'Ticket deleted successfully')
-	);
+	return res
+		.status(200)
+		.json(
+			new ApiResponse(
+				200, 'Ticket deleted successfully')
+		);
 });
 
 export {

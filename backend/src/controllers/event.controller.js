@@ -27,7 +27,7 @@ const createEvent = asyncHandler(async (req, res) => {
 		status: status || 'upcoming'
 	});
 
-	res
+	return res
 		.status(201)
 		.json(
 			new ApiResponse(
@@ -70,7 +70,7 @@ const updateEvent = asyncHandler(async (req, res) => {
 
 	const updatedEvent = await Event.findByIdAndUpdate(id, updateFields, { new: true });
 
-	res
+	return res
 		.status(200)
 		.json(
 			new ApiResponse(
@@ -86,7 +86,7 @@ const getAllEvents = asyncHandler(async (req, res) => {
 
 	const events = await Event.find(filter).sort({ date: 1 });
 
-	res
+	return res
 		.status(200)
 		.json(
 			new ApiResponse(
@@ -108,7 +108,7 @@ const getEventById = asyncHandler(async (req, res) => {
 		throw new ApiError(404, 'Event not found');
 	}
 
-	res
+	return res
 		.status(200)
 		.json(
 			new ApiResponse(
@@ -137,7 +137,7 @@ const deleteEvent = asyncHandler(async (req, res) => {
 
 	await Event.findByIdAndDelete(id);
 
-	res
+	return res
 		.status(200)
 		.json(
 			new ApiResponse(
@@ -151,14 +151,13 @@ const getUpcomingEvents = asyncHandler(async (req, res) => {
 	const now = new Date();
 	const events = await Event.find({ date: { $gte: now }, status: { $ne: 'cancelled' } }).sort({ date: 1 });
 
-	res
-        .status(200)
-        .json
-        (
-            new ApiResponse(
-                200, 'Upcoming events fetched successfully', events
-            )
-        );
+	return res
+		.status(200)
+		.json(
+			new ApiResponse(
+				200, 'Upcoming events fetched successfully', events
+			)
+		);
 });
 
 export {
