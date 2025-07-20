@@ -37,7 +37,6 @@ const getAllContacts = asyncHandler(async (req, res) => {
 	const options = {
 		page: parseInt(req.query.page) || 1,
 		limit: parseInt(req.query.limit) || 10,
-		sort: req.query.sort || '-createdAt',
 	};
 
 	// Fetch paginated contacts

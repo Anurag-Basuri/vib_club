@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import mongoosepagination from "mongoose-paginate-v2";
+import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
 
 const contactSchema = new mongoose.Schema({
     name: {
@@ -69,11 +69,15 @@ const contactSchema = new mongoose.Schema({
 });
 
 contactSchema.index({ name: 'text', email: 'text', subject: 'text', message: 'text' });
-const Contact = mongoose.model('Contact', contactSchema);
 
-contactSchema.plugin(mongoosepagination);
+contactSchema.plugin(mongooseAggregatePaginate);
 contactSchema.statics.getPaginatedContacts = async function (options) {
-    return this.paginate({}, options);
+    const aggregate = this.aggregate([
+        { $sort: { createdAt: -1 } },
+	]);
+	return this.aggregatePaginate(aggregate, options);
 };
+
+const Contact = mongoose.model('Contact', contactSchema);
 
 export default Contact;
