@@ -2,9 +2,9 @@ import dotenv from 'dotenv';
 import connectDB from './database/index.js';
 import app from './app.js';
 
-dotenv.config({ path: './.env' });
+dotenv.config();
 
-const requiredEnvVars = ['PORT', 'MONGODB_URI', 'NODE_ENV', 'JWT_SECRET'];
+const requiredEnvVars = ['PORT', 'MONGODB_URI', 'NODE_ENV', 'ACCESS_TOKEN_SECRET'];
 for (const key of requiredEnvVars) {
 	if (!process.env[key]) {
 		console.error(`❌ Missing required env: ${key}`);
