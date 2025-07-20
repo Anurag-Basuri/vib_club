@@ -7,7 +7,6 @@ import {
     deleteTicket
 } from '../controllers/ticket.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
-import { rateLimiter } from '../middlewares/rateLimit.middleware.js';
 import { validate } from '../middlewares/validator.middleware.js';
 import { body, param } from 'express-validator';
 
@@ -16,7 +15,6 @@ const router = Router();
 // Create a new ticket (public, with rate limit)
 router.post(
     '/create',
-    rateLimiter,
     validate([
         body('fullname').notEmpty().withMessage('Full name is required'),
         body('email').isEmail().withMessage('Valid email is required'),

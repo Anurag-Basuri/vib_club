@@ -7,7 +7,6 @@ import {
     deleteEvent,
     getUpcomingEvents
 } from '../controllers/event.controller.js';
-import { rateLimiter } from '../middlewares/rateLimit.middleware.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { validate } from '../middlewares/validator.middleware.js';
 import { uploadFile } from '../middlewares/multer.middleware.js';
@@ -20,7 +19,6 @@ router.post(
     '/create',
     authMiddleware.verifyToken,
     authMiddleware.isAdmin,
-    rateLimiter,
     uploadFile('posters'), // expects field name 'posters' for file uploads
     validate([
         body('title').notEmpty().withMessage('Title is required'),
@@ -40,7 +38,6 @@ router.put(
     '/:id',
     authMiddleware.verifyToken,
     authMiddleware.isAdmin,
-    rateLimiter,
     uploadFile('posters'),
     validate([
         param('id').isMongoId().withMessage('Invalid event ID'),
@@ -59,14 +56,12 @@ router.put(
 // Get All Events (optionally filter by status)
 router.get(
     '/getallevents',
-    rateLimiter,
     getAllEvents
 );
 
 // Get Event By ID
 router.get(
     '/:id',
-    rateLimiter,
     validate([
         param('id').isMongoId().withMessage('Invalid event ID')
     ]),
@@ -78,7 +73,6 @@ router.delete(
     '/:id',
     authMiddleware.verifyToken,
     authMiddleware.isAdmin,
-    rateLimiter,
     validate([
         param('id').isMongoId().withMessage('Invalid event ID')
     ]),
@@ -88,7 +82,6 @@ router.delete(
 // Get Upcoming Events
 router.get(
     '/upcoming',
-    rateLimiter,
     getUpcomingEvents
 );
 

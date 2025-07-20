@@ -1,13 +1,9 @@
 import { Router } from 'express';
 import {
-    sendContact,
-    getAllContacts,
-    getContactById,
-    markContactAsResolved,
+    sendContact, getAllContacts, getContactById, markContactAsResolved
 } from '../controllers/contact.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { validate } from '../middlewares/validator.middleware.js';
-import { rateLimiter } from '../middlewares/rateLimit.middleware.js';
 import { body } from 'express-validator';
 
 const router = Router();
@@ -15,7 +11,6 @@ const router = Router();
 // Apply rate limiter to contact form submission
 router.post(
     '/send',
-    rateLimiter,
     validate([
         body('name')
             .notEmpty()

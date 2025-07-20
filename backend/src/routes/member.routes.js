@@ -10,7 +10,6 @@ import {
     getMemberById,
     sendResetPasswordEmail
 } from '../controllers/member.controller.js';
-import { rateLimiter } from '../middlewares/rateLimit.middleware.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { validate } from '../middlewares/validator.middleware.js';
 import { uploadFile } from '../middlewares/multer.middleware.js';
@@ -21,7 +20,6 @@ const router = Router();
 // Register Member
 router.post(
     '/register',
-    rateLimiter,
     validate([
         body('name').notEmpty().withMessage('Name is required'),
         body('LpuId').notEmpty().withMessage('LPU ID is required'),
@@ -33,7 +31,6 @@ router.post(
 // Login Member
 router.post(
     '/login',
-    rateLimiter,
     validate([
         body('LpuId').notEmpty().withMessage('LPU ID is required'),
         body('password').notEmpty().withMessage('Password is required')
@@ -44,7 +41,6 @@ router.post(
 // Logout Member
 router.post(
     '/logout',
-    rateLimiter,
     validate([
         body('refreshToken').notEmpty().withMessage('Refresh token is required')
     ]),
@@ -54,7 +50,6 @@ router.post(
 // Reset Password
 router.post(
     '/reset-password',
-    rateLimiter,
     validate([
         body('LpuId').notEmpty().withMessage('LPU ID is required'),
         body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters')
@@ -114,7 +109,6 @@ router.get(
 // Send Password Reset Email
 router.post(
     '/send-reset-email',
-    rateLimiter,
     validate([
         body('LpuId').notEmpty().withMessage('LPU ID is required')
     ]),
