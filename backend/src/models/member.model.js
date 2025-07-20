@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 const memberSchema = new mongoose.Schema({
     profilePicture: {
@@ -116,7 +117,15 @@ const memberSchema = new mongoose.Schema({
         type: String,
         select: false,
         default: null,
-    }
+    },
+    resetPasswordToken: {
+        type: String,
+        select: false
+    },
+    resetPasswordExpires: {
+        type: Date,
+        select: false
+    },
 }, {
     timestamps: true,
     toJSON: { virtuals: true },
@@ -133,6 +142,21 @@ memberSchema.pre('save', async function(next) {
 
 memberSchema.methods.comparePassword = async function(candidatePassword) {
     return await bcrypt.compare(candidatePassword, this.password);
+};
+
+memberSchema.methods.generateResetToken = function () {
+    const resetToken = crypto.randomBytes(32).toString('hex');
+
+    // Hash and store in DB (you can choose to store plain, but hashed is safer)
+    this.resetPasswordToken = crypto
+        .createHash('sha256')
+        .update(resetToken)
+        .digest('hex');
+
+    // Set expiration time (e.g., 15 mins)
+    this.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
+
+    return resetToken;
 };
 
 memberSchema.virtual('id').get(function() {
