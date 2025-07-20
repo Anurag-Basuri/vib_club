@@ -61,7 +61,7 @@ const EventSchema = new mongoose.Schema({
         min: [0, 'Ticket price cannot be negative']
     },
     registrations: {
-        type: Mongoose.Schema.Types.ObjectId,
+        type: [mongoose.Schema.Types.ObjectId],
         ref: 'Ticket',
         validate: {
             validator: function(v) {
