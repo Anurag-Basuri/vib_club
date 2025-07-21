@@ -8,6 +8,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import adminRouter from './routes/admin.routes.js';
+import applyRouter from './routes/apply.routes.js';
 import contactRouter from './routes/contact.routes.js';
 import eventRoutes from './routes/event.routes.js';
 import memberRoutes from './routes/member.routes.js';
@@ -30,6 +31,7 @@ app.use(applyCors);
 
 // API routes
 app.use('/api/admin', adminRouter);
+app.use('/api/apply', applyRouter);
 app.use('/api/contact', contactRouter);
 app.use('/api/events', eventRoutes);
 app.use('/api/members', memberRoutes);
