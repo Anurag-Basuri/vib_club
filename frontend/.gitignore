@@ -33,3 +33,7 @@ dist-ssr
 .gitignore
 .vscode
 .vscode-test
+
+.prettierrc
+.prettierrc.json
+.prettierignore
