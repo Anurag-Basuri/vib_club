@@ -41,6 +41,12 @@ const ticketSchema = new mongoose.Schema({
         required: true,
         ref: 'Event'
     },
+    eventName: {
+        type: mongoose.Schema.Types.String,
+        required: true,
+        trim: true,
+        ref: 'Event'
+    },
     isUsed: {
         type: Boolean,
         default: false,

@@ -10,9 +10,9 @@ import { deleteFile } from '../utils/cloudinary.js';
 
 // Create a new ticket
 const createTicket = asyncHandler(async (req, res) => {
-	const { fullName, email, LpuId, eventId } = req.body;
+	const { fullName, email, LpuId, eventId, eventName } = req.body;
 
-	if (!fullName || !email || !LpuId || !eventId) {
+	if (!fullName || !email || !LpuId || !eventId || !eventName) {
 		throw new ApiError(400, 'All fields are required');
 	}
 
@@ -32,6 +32,7 @@ const createTicket = asyncHandler(async (req, res) => {
 		email,
 		LpuId,
 		eventId,
+		eventName,
 		isUsed: false,
 		isCancelled: false
 	});
@@ -91,9 +92,9 @@ const createTicket = asyncHandler(async (req, res) => {
 
 // Get ticket by ID
 const getTicketById = asyncHandler(async (req, res) => {
-	const { ticketId } = req.params;
+	const { ticketId } = req.params || req.body.ticketId;
 
-	const ticket = await Ticket.findById(ticketId).populate('eventId', 'name date');
+	const ticket = await Ticket.findById(ticketId);
 	if (!ticket) {
 		throw new ApiError(404, 'Ticket not found');
 	}
