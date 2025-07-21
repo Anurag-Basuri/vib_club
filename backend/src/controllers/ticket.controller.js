@@ -40,7 +40,7 @@ const createTicket = asyncHandler(async (req, res) => {
 
 	let qrCode;
 	try {
-		qrCode = await generateTicketQR(ticket);
+		qrCode = await generateTicketQR(ticket.ticketId);
 
 		if (!qrCode || !qrCode.url || !qrCode.public_id) {
 			throw new Error('Invalid QR code generated');

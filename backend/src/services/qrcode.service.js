@@ -4,28 +4,10 @@ import { v4 as uuidv4 } from 'uuid';
 import streamifier from 'streamifier';
 import { v2 as cloudinary } from 'cloudinary';
 
-export const generateTicketQR = async (details) => {
+export const generateTicketQR = async ( ticketId ) => {
 	try {
-		const {
-			ticketId,
-			fullName,
-			email,
-			LpuId,
-			eventId,
-			isUsed,
-			isCancelled
-		} = details;
-
 		// Prepare data to encode in the QR
-		const qrData = JSON.stringify({
-			ticketId,
-			fullName,
-			email,
-			LpuId,
-			eventId,
-			isUsed,
-			isCancelled
-		});
+		const qrData = JSON.stringify({ ticketId });
 
 		const qrBuffer = await QRCode.toBuffer(qrData, { type: 'png' });
 

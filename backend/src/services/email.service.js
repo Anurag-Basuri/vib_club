@@ -54,4 +54,3 @@ export const sendPasswordResetEmail = async (email, token) => {
 		throw new ApiError(500, 'Failed to send password reset email');
 	}
 };
-
