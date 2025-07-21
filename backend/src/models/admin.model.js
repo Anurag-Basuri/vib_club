@@ -54,7 +54,7 @@ adminSchema.methods.comparePassword = async function (candidatePassword) {
 // Generate JWT token
 adminSchema.methods.generateAuthToken = function () {
 	return jwt.sign(
-		{ id: this._id, adminID: this.adminID, fullname: this.fullname },
+		{ id: this._id, adminID: this.adminID },
 		process.env.ACCESS_TOKEN_SECRET,
 		process.env.ACCESS_TOKEN_EXPIRY ? { expiresIn: process.env.ACCESS_TOKEN_EXPIRY } : {}
 	);

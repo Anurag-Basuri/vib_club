@@ -2,8 +2,15 @@ import mongoose from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
 
 const memberSchema = new mongoose.Schema({
+    memberID: {
+        type: String,
+        default: () => uuidv4(),
+        unique: true,
+    },
+
     profilePicture: {
         type: String,
         default: 'default-profile.png',
@@ -174,6 +181,14 @@ memberSchema.set('toJSON', {
 
 memberSchema.statics.findByLpuID = async function(lpuID) {
     return this.findOne({ lpuID }).exec();
+};
+
+memberSchema.methods.generateAuthToken = function() {
+    return jwt.sign(
+        { id: this._id, LpuId: this.LpuId, email: this.email },
+        process.env.ACCESS_TOKEN_SECRET,
+        process.env.ACCESS_TOKEN_EXPIRY ? { expiresIn: process.env.ACCESS_TOKEN_EXPIRY } : {}
+    );
 };
 
 const Member = mongoose.model('Member', memberSchema);
