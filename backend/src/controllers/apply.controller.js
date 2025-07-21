@@ -49,3 +49,23 @@ const applyController = asyncHandler(async (req, res) => {
 });
 
 // Get all applications
+const getAllApplications = asyncHandler(async (req, res) => {
+    const { page = 1, limit = 10 } = req.query;
+    const options = {
+        page: parseInt(page, 10),
+        limit: parseInt(limit, 10),
+        sort: { createdAt: -1 }
+    };
+
+    const applications = await Apply.paginate({}, options);
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                'Applications retrieved successfully',
+                applications
+            )
+        );
+});

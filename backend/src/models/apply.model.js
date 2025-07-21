@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { ApiError } from '../utils/apiError';
 import { validate } from 'uuid';
+import mongoosePaginate from 'mongoose-paginate-v2';
 
 const applySchema = new mongoose.Schema({
     fullName: {
@@ -101,6 +102,8 @@ applySchema.pre('save', function(next) {
     }
     next();
 });
+
+applySchema.plugin(mongoosePaginate);
 
 const Apply = mongoose.model('Apply', applySchema);
 export default Apply;
