@@ -26,6 +26,7 @@ const applySchema = new mongoose.Schema({
         type: String,
         required: [true, 'Email is required'],
         trim: true,
+        unique: true,
         validate: {
             validator: async (email) => {
                 const emailCount = await mongoose.models.Apply.countDocuments({ email });
@@ -53,7 +54,6 @@ const applySchema = new mongoose.Schema({
     gender: {
         type: String,
         enum: ['male', 'female'],
-        required: [true, 'Gender is required']
     },
     domains: {
         type: [String],
