@@ -41,22 +41,25 @@ const createTicket = asyncHandler(async (req, res) => {
 	let qrCode;
 	try {
 		qrCode = await generateTicketQR(ticket);
-		console.log(qrCode);
+
+		if (!qrCode || !qrCode.url || !qrCode.public_id) {
+			throw new Error('Invalid QR code generated');
+		}
+
+		ticket.qrCode = {
+			url: qrCode.url,
+			publicId: qrCode.public_id,
+		};
+
+		await ticket.save();
 	} catch (qrErr) {
+		// Cleanup: remove ticket and QR if QR failed
 		await Ticket.findByIdAndDelete(ticket._id);
-		// Delete QR from Cloudinary if publicId exists
-		if (qrCode && qrCode.publicId && typeof global.cloudinary !== 'undefined') {
-			await deleteFile(qrCode.publicId);
+		if (qrCode?.public_id && qrCode.url) {
+			await deleteFile({ public_id: qrCode.public_id, resource_type: 'image' });
 		}
 		throw new ApiError(500, 'Failed to generate QR code for the ticket');
 	}
-
-	ticket.qrCode = {
-		url: qrCode.url,
-		publicId: qrCode.publicId
-	};
-
-	await ticket.save();
 
 	try {
 		await sendRegistrationEmail({
@@ -64,13 +67,13 @@ const createTicket = asyncHandler(async (req, res) => {
 			name: fullName,
 			eventName: event.name,
 			eventDate: event.date,
-			qrUrl: qrCode.url
+			qrUrl: qrCode.url,
 		});
 	} catch (emailErr) {
+		// Cleanup: delete ticket and QR if email fails
 		await Ticket.findByIdAndDelete(ticket._id);
-		// Delete QR from Cloudinary if publicId exists
-		if (qrCode && qrCode.publicId && typeof global.cloudinary !== 'undefined') {
-			await deleteFile(qrCode.publicId);
+		if (qrCode?.public_id && qrCode.url) {
+			await deleteFile({ public_id: qrCode.public_id, resource_type: 'image' });
 		}
 		throw new ApiError(500, 'Failed to send registration email, ticket deleted');
 	}

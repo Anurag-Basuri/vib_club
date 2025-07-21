@@ -28,7 +28,6 @@ export const sendRegistrationEmail = async ({ to, name, eventName, eventDate, qr
 	try {
 		await transporter.sendMail(mailOptions);
 	} catch (error) {
-		console.error('Error sending registration email:', error);
 		throw new ApiError(500, 'Failed to send registration email: ' + error.message);
 	}
 };

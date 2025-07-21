@@ -73,16 +73,19 @@ const uploadFile = async (file) => {
 };
 
 // Delete file from Cloudinary
-const deleteFile = async (publicId) => {
-	if (!publicId) {
-		throw new ApiError.badRequest('Public ID is required to delete a file');
+const deleteFile = async ({ public_id, resource_type }) => {
+	console.log('Deleting file from Cloudinary:', public_id);
+	if (!public_id || !resource_type) {
+		throw new ApiError.badRequest('Public ID and resource_type are required to delete a file');
 	}
 
 	try {
-		await cloudinary.uploader.destroy(publicId, { resource_type: 'auto' });
+		await cloudinary.uploader.destroy(public_id, { resource_type });
 	} catch (error) {
+		console.error('Error deleting file:', error);
 		throw new ApiError.internal('Failed to delete file from Cloudinary', [error.message]);
 	}
 };
+
 
 export { InitializeCloudinary, uploadFile, deleteFile };
