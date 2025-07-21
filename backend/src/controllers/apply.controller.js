@@ -1,71 +1,181 @@
-import Apply from "../models/apply.model";
+import Apply from "../models/apply.model.js";
 import { ApiError } from "../utils/apiError.js";
-import { ApiResponse } from "../utils/apiResponse";
+import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import mongoose from "mongoose";
 
 // Create a new application
 const applyController = asyncHandler(async (req, res) => {
-    const {
-        fullName,
-        LpuId,
-        email,
-        phone,
-        course,
-        gender,
-        domains,
-        accommodation,
-        previousExperience,
-        anyotherorg,
-        bio
-    } = req.body;
+	const {
+		fullName,
+		LpuId,
+		email,
+		phone,
+		course,
+		gender,
+		domains,
+		accommodation,
+		previousExperience,
+		anyotherorg,
+		bio,
+	} = req.body;
 
-    if (!fullName || !LpuId || !email || !phone || !course || !domains || !accommodation) {
-        throw new ApiError(400, 'You left one required field empty');
-    }
+	if (!fullName || !LpuId || !email || !phone || !course || !domains || !accommodation) {
+		throw new ApiError(400, "You left one required field empty");
+	}
 
-    const newApplication = await Apply.create({
-        fullName,
-        LpuId,
-        email,
-        phone,
-        course,
-        gender,
-        domains,
-        accommodation,
-        previousExperience,
-        anyotherorg,
-        bio
-    });
+	const newApplication = await Apply.create({
+		fullName,
+		LpuId,
+		email,
+		phone,
+		course,
+		gender,
+		domains,
+		accommodation,
+		previousExperience,
+		anyotherorg,
+		bio,
+	});
 
-    return res
-        .status(201)
-        .json(
+	return res
+		.status(201)
+		.json(
             new ApiResponse(
                 201,
-                'Application created successfully',
+                "Application created successfully",
                 newApplication
             )
         );
 });
 
-// Get all applications
+// Get all applications (with filtering and pagination)
 const getAllApplications = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10 } = req.query;
-    const options = {
-        page: parseInt(page, 10),
-        limit: parseInt(limit, 10),
-        sort: { createdAt: -1 }
-    };
+	const {
+		page = 1,
+		limit = 10,
+		status,
+		course,
+		startDate,
+		endDate,
+		search,
+	} = req.query;
 
-    const applications = await Apply.paginate({}, options);
+	const filter = {};
 
-    return res
-        .status(200)
-        .json(
+	if (status) filter.status = status;
+	if (course) filter.course = course;
+
+	if (startDate || endDate) {
+		filter.createdAt = {};
+		if (startDate) filter.createdAt.$gte = new Date(startDate);
+		if (endDate) filter.createdAt.$lte = new Date(endDate);
+	}
+
+	if (search) {
+		filter.$or = [
+			{ fullName: { $regex: search, $options: "i" } },
+			{ LpuId: { $regex: search, $options: "i" } },
+			{ email: { $regex: search, $options: "i" } },
+		];
+	}
+
+	const options = {
+		page: parseInt(page, 10),
+		limit: parseInt(limit, 10),
+		sort: { createdAt: -1 },
+	};
+
+	const applications = await Apply.paginate(filter, options);
+
+	return res
+		.status(200)
+		.json(
             new ApiResponse(
                 200,
-                'Applications retrieved successfully',
+                "Applications retrieved successfully",
                 applications
             )
         );
 });
+
+// Get single application by ID
+const getApplicationById = asyncHandler(async (req, res) => {
+	const { id } = req.params;
+
+	if (!mongoose.Types.ObjectId.isValid(id)) {
+		throw new ApiError(400, "Invalid application ID");
+	}
+
+	const application = await Apply.findById(id);
+
+	if (!application) {
+		throw new ApiError(404, "Application not found");
+	}
+
+	return res
+		.status(200)
+		.json(
+            new ApiResponse(
+                200,
+                "Application retrieved successfully",
+                application
+            )
+        );
+});
+
+// Update status (approve/reject)
+const updateApplicationStatus = asyncHandler(async (req, res) => {
+	const { id } = req.params;
+	const { status } = req.body;
+
+	if (!["approved", "rejected", "pending"].includes(status)) {
+		throw new ApiError(400, "Invalid status value");
+	}
+
+	const updated = await Apply.findByIdAndUpdate(id, { status }, { new: true });
+
+	if (!updated) {
+		throw new ApiError(404, "Application not found");
+	}
+
+	return res
+		.status(200)
+		.json(
+            new ApiResponse(
+                200,
+                "Status updated successfully",
+                updated
+            )
+        );
+});
+
+// Delete an application
+const deleteApplication = asyncHandler(async (req, res) => {
+	const { id } = req.params;
+
+	const deleted = await Apply.findByIdAndDelete(id);
+
+	if (!deleted) {
+		throw new ApiError(404, "Application not found");
+	}
+
+	return res
+		.status(200)
+		.json(
+            new ApiResponse(
+                200,
+                "Application deleted successfully",
+                deleted
+            )
+        );
+});
+
+// Export all controller functions
+export {
+	applyController,
+	getAllApplications,
+	getApplicationById,
+	updateApplicationStatus,
+	deleteApplication
+};
