@@ -4,8 +4,8 @@ import { ApiError } from '../utils/apiError.js';
 const transporter = nodemailer.createTransport({
 	service: 'gmail',
 	auth: {
-		user: process.env.MAIL_USER, // your Gmail
-		pass: process.env.MAIL_PASS, // App Password from Gmail settings
+		user: 'vibranta.studorg@gmail.com',
+		pass: 'rptzttqyzsxwewhj',
 	},
 });
 
@@ -28,7 +28,8 @@ export const sendRegistrationEmail = async ({ to, name, eventName, eventDate, qr
 	try {
 		await transporter.sendMail(mailOptions);
 	} catch (error) {
-		throw new ApiError(500, 'Failed to send registration email');
+		console.error('Error sending registration email:', error);
+		throw new ApiError(500, 'Failed to send registration email: ' + error.message);
 	}
 };
 

@@ -4,15 +4,15 @@ import { applyCors } from './middlewares/cors.middleware.js';
 import { InitializeCloudinary } from './utils/cloudinary.js';
 import { ApiError } from './utils/apiError.js';
 
+import dotenv from 'dotenv';
+dotenv.config();
+
 import adminRouter from './routes/admin.routes.js';
 import contactRouter from './routes/contact.routes.js';
 import eventRoutes from './routes/event.routes.js';
 import memberRoutes from './routes/member.routes.js';
 import socialRouter from './routes/socials.routes.js';
 import ticketRouter from './routes/ticket.routes.js';
-
-import dotenv from 'dotenv';
-dotenv.config();
 
 const app = express();
 
