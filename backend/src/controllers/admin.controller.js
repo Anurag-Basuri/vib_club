@@ -21,10 +21,11 @@ const createAdmin = asyncHandler(async (req, res) => {
     }
 
     const admin = await Admin.create({ fullname, password });
-    const token = admin.generateAuthToken();
+    const accessToken = admin.generateAuthToken();
+    const refreshToken = admin.generateRefreshToken();
 
     // Save token in tokens array
-    admin.tokens.push({ token });
+    admin.tokens.push({ token: refreshToken });
     await admin.save();
 
     return res
@@ -33,7 +34,7 @@ const createAdmin = asyncHandler(async (req, res) => {
             new ApiResponse(
                 201,
                 "Admin created successfully",
-                { admin, token }
+                { admin, accessToken, refreshToken }
             )
         );
 });
@@ -51,10 +52,11 @@ const loginAdmin = asyncHandler(async (req, res) => {
         throw new ApiError(401, "Invalid credentials");
     }
 
-    const token = admin.generateAuthToken();
+    const accessToken = admin.generateAuthToken();
+    const refreshToken = admin.generateRefreshToken();
 
     // Save token in tokens array
-    admin.tokens.push({ token });
+    admin.tokens.push({ token: refreshToken });
     await admin.save();
 
     return res
@@ -62,7 +64,8 @@ const loginAdmin = asyncHandler(async (req, res) => {
         .json(
             new ApiResponse(200, "Login successful", {
                 admin,
-                token,
+                accessToken,
+                refreshToken,
             })
         );
 });

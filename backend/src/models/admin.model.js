@@ -60,6 +60,15 @@ adminSchema.methods.generateAuthToken = function () {
 	);
 };
 
+// Generate refresh token
+adminSchema.methods.generateRefreshToken = function () {
+	return jwt.sign(
+		{ id: this._id },
+		process.env.REFRESH_TOKEN_SECRET,
+		process.env.REFRESH_TOKEN_EXPIRY ? { expiresIn: process.env.REFRESH_TOKEN_EXPIRY } : {}
+	);
+};
+
 // Prevent password from being returned
 adminSchema.methods.toJSON = function () {
 	const admin = this.toObject();
