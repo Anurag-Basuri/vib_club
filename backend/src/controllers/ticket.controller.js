@@ -6,6 +6,7 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { generateTicketQR } from '../services/qrcode.service.js';
 import { sendRegistrationEmail } from '../services/email.service.js';
 import { v4 as uuidv4 } from 'uuid';
+import { deleteFile } from '../utils/cloudinary.js';
 
 // Create a new ticket
 const createTicket = asyncHandler(async (req, res) => {
@@ -43,6 +44,10 @@ const createTicket = asyncHandler(async (req, res) => {
 		console.log(qrCode);
 	} catch (qrErr) {
 		await Ticket.findByIdAndDelete(ticket._id);
+		// Delete QR from Cloudinary if publicId exists
+		if (qrCode && qrCode.publicId && typeof global.cloudinary !== 'undefined') {
+			await deleteFile(qrCode.publicId);
+		}
 		throw new ApiError(500, 'Failed to generate QR code for the ticket');
 	}
 
@@ -53,7 +58,6 @@ const createTicket = asyncHandler(async (req, res) => {
 
 	await ticket.save();
 
-	// Try to send email, but do not block if email fails
 	try {
 		await sendRegistrationEmail({
 			to: email,
@@ -63,7 +67,12 @@ const createTicket = asyncHandler(async (req, res) => {
 			qrUrl: qrCode.url
 		});
 	} catch (emailErr) {
-		console.error('Email sending failed:', emailErr.message);
+		await Ticket.findByIdAndDelete(ticket._id);
+		// Delete QR from Cloudinary if publicId exists
+		if (qrCode && qrCode.publicId && typeof global.cloudinary !== 'undefined') {
+			await deleteFile(qrCode.publicId);
+		}
+		throw new ApiError(500, 'Failed to send registration email, ticket deleted');
 	}
 
 	return res
