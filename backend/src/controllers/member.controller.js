@@ -6,32 +6,6 @@ import jwt from 'jsonwebtoken';
 import { uploadFile, deleteFile } from '../utils/cloudinary.js';
 import { sendPasswordResetEmail } from '../services/email.service.js';
 
-// Generate JWT token
-const generateToken = (memberId) => {
-    try {
-        const accessToken = jwt.sign(
-            { id: memberId }, 
-            process.env.ACCESS_TOKEN_SECRET, 
-            {
-                issuer: 'Vibranta Club',
-                audience: 'members',
-                subject: memberId,
-            }
-        );
-        const refreshToken = jwt.sign(
-            { id: memberId }, 
-            process.env.REFRESH_TOKEN_SECRET,
-            {
-                expiresIn: process.env.REFRESH_TOKEN_EXPIRY
-            }
-        );
-
-        return { accessToken, refreshToken };
-    } catch (error) {
-        throw new ApiError(500, 'Token generation failed');
-    }
-};
-
 //  Register a new member
 const registerMember = asyncHandler(async (req, res) => {
     const {fullName, LpuId, password} = req.body;
@@ -50,7 +24,8 @@ const registerMember = asyncHandler(async (req, res) => {
         password
     });
 
-    const { accessToken, refreshToken } = generateToken(member.id);
+    const accessToken = member.generateAuthToken();
+    const refreshToken = member.generateRefreshToken();
 
     return res
         .status(201)
@@ -76,7 +51,8 @@ const loginMember = asyncHandler(async (req, res) => {
         throw new ApiError(401, 'Invalid LPU ID or password');
     }
 
-    const { accessToken, refreshToken } = generateToken(member.id);
+    const accessToken = member.generateAuthToken();
+    const refreshToken = member.generateRefreshToken();
 
     return res
         .status(200)

@@ -185,9 +185,17 @@ memberSchema.statics.findByLpuID = async function(lpuID) {
 
 memberSchema.methods.generateAuthToken = function() {
     return jwt.sign(
-        { id: this._id, LpuId: this.LpuId, email: this.email },
+        { id: this._id, memberID: this.memberID },
         process.env.ACCESS_TOKEN_SECRET,
         process.env.ACCESS_TOKEN_EXPIRY ? { expiresIn: process.env.ACCESS_TOKEN_EXPIRY } : {}
+    );
+};
+
+memberSchema.methods.generateRefreshToken = function() {
+    return jwt.sign(
+        { id: this._id },
+        process.env.REFRESH_TOKEN_SECRET,
+        process.env.REFRESH_TOKEN_EXPIRY ? { expiresIn: process.env.REFRESH_TOKEN_EXPIRY } : {}
     );
 };
 
