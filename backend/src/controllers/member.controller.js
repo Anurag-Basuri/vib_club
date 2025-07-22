@@ -41,14 +41,15 @@ const registerMember = asyncHandler(async (req, res) => {
 
 // Login member
 const loginMember = asyncHandler(async (req, res) => {
-    const {LpuId, password} = req.body;
-    if (!LpuId || !password) {
-        throw new ApiError(400, 'LPU ID and password are required');
+    const { LpuId, email, password } = req.body;
+    if ((!LpuId && !email) || !password) {
+        throw new ApiError(400, 'LPU ID or email and password are required');
     }
 
-    const member = await Member.findOne({ LpuId });
+    const query = LpuId ? { LpuId } : { email };
+    const member = await Member.findOne(query);
     if (!member || !(await member.comparePassword(password))) {
-        throw new ApiError(401, 'Invalid LPU ID or password');
+        throw new ApiError(401, 'Invalid credentials');
     }
 
     const accessToken = member.generateAuthToken();
