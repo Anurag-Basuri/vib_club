@@ -89,4 +89,16 @@ const logoutAdmin = asyncHandler(async (req, res) => {
         );
 });
 
-export { createAdmin, loginAdmin, logoutAdmin };
+const currentAdmin = asyncHandler(async (req, res) => {
+    const admin = req.admin;
+    if (!admin) {
+        throw new ApiError(401, "Unauthorized");
+    }
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, "Current admin retrieved successfully", { admin })
+        );
+});
+
+export { createAdmin, loginAdmin, logoutAdmin, currentAdmin };

@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import { createAdmin,
     loginAdmin,
-    logoutAdmin } from '../controllers/admin.controller.js';
+    logoutAdmin,
+    currentAdmin
+} from '../controllers/admin.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { validate } from '../middlewares/validator.middleware.js';
 import { body } from 'express-validator';
@@ -30,6 +32,12 @@ router.post('/logout',
     authMiddleware.verifyToken,
     authMiddleware.isAdmin,
     logoutAdmin
+);
+
+router.get('/me',
+    authMiddleware.verifyToken,
+    authMiddleware.isAdmin,
+    currentAdmin
 );
 
 export default router;

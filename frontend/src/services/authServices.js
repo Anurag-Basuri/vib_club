@@ -69,6 +69,16 @@ export const memberLogout = async () => {
   }
 }
 
+export const getCurrentMember = async () => {
+    try {
+        const response = await apiClient.get('/api/members/me');
+        return response.data;
+    } catch (error) {
+        handleAuthError(error);
+        throw error;
+    }
+}
+
 export const adminRegister = async (data) => {
   try {
     const response = await apiClient.post('/api/admin/register', data);
