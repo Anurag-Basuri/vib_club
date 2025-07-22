@@ -113,9 +113,9 @@ const getTicketById = asyncHandler(async (req, res) => {
 // Update ticket status (used/cancelled)
 const updateTicketStatus = asyncHandler(async (req, res) => {
 	const { ticketId } = req.params;
-	const { isUsed, isCancelled } = req.body;
+	const { isUsed } = req.body;
 
-	if (isUsed === undefined && isCancelled === undefined) {
+	if (isUsed === undefined) {
 		throw new ApiError(400, 'At least one status field must be provided');
 	}
 
@@ -125,7 +125,6 @@ const updateTicketStatus = asyncHandler(async (req, res) => {
 	}
 
 	if (isUsed !== undefined) ticket.isUsed = isUsed;
-	if (isCancelled !== undefined) ticket.isCancelled = isCancelled;
 
 	await ticket.save();
 

@@ -38,11 +38,8 @@ router.get(
 router.patch(
     '/:ticketId/status',
     authMiddleware.verifyToken,
-    authMiddleware.isAdmin,
     validate([
         param('ticketId').isMongoId().withMessage('Invalid ticket ID'),
-        body('isUsed').optional().isBoolean().withMessage('isUsed must be boolean'),
-        body('isCancelled').optional().isBoolean().withMessage('isCancelled must be boolean')
     ]),
     updateTicketStatus
 );
