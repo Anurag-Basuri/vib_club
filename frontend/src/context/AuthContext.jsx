@@ -1,6 +1,6 @@
 import { createContext, useEffect, useState, useCallback } from 'react';
 import { memberLogin, memberLogout, memberRegister, adminLogin, adminLogout, adminRegister } from '../services/authServices.js';
-import { getToken, decodeToken, removeToken } from '../utils/handleToken';
+import { getToken, decodeToken, removeToken } from '../utils/handleTokens.js';
 
 export const AuthContext = createContext();
 

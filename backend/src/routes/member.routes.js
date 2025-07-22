@@ -110,7 +110,7 @@ router.get(
 router.post(
     '/send-reset-email',
     validate([
-        body('LpuId').notEmpty().withMessage('LPU ID is required')
+        body('email').notEmpty().withMessage('Email is required')
     ]),
     sendResetPasswordEmail
 );
