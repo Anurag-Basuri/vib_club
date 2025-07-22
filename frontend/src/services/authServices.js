@@ -89,16 +89,15 @@ export const updateProfile = async (data) => {
   }
 }
 
-export const uploadProfilePicture = async (file) => {
+export const uploadProfilePicture = async (file, id) => {
   try {
     const formData = new FormData();
     formData.append('profilePicture', file);
 
-    const response = await apiClient.post(`/api/members/${data.id}/profile-picture`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
+    const response = await apiClient.post(`/api/members/${id}/profile-picture`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
     });
+
     return response.data;
   } catch (error) {
     handleAuthError(error);
