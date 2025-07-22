@@ -24,5 +24,88 @@ apiClient.interceptors.response.use(
 );
 
 export const isAuthenticated = () => {
-    
+  const { accessToken } = getToken();
+  return !!accessToken;
+}
+
+export const memberRegister = async (data) => {
+  try {
+    const response = await publicApiClient.post('/api/members/register', data);
+
+    const { accessToken, refreshToken } = response.data;
+    setToken({ accessToken, refreshToken });
+
+    return response.data;
+  } catch (error) {
+    handleAuthError(error);
+    throw error;
+  }
+}
+
+export const memberLogin = async (data) => {
+  try {
+    const response = await publicApiClient.post('/api/members/login', data);
+
+    const { accessToken, refreshToken } = response.data;
+    setToken({ accessToken, refreshToken });
+
+    return response.data;
+  } catch (error) {
+    handleAuthError(error);
+    throw error;
+  }
+}
+
+export const memberLogout = async () => {
+  try {
+    const { refreshToken } = getToken();
+    const response = await apiClient.post('/api/members/logout', { refreshToken });
+
+    removeToken(); // Clear tokens on logout
+    return response.data;
+  } catch (error) {
+    handleAuthError(error);
+    throw error;
+  }
+}
+
+export const adminRegister = async (data) => {
+  try {
+    const response = await apiClient.post('/api/admin/register', data);
+
+    const { accessToken, refreshToken } = response.data;
+    setToken({ accessToken, refreshToken });
+
+    return response.data;
+  } catch (error) {
+    handleAuthError(error);
+    throw error;
+  }
+}
+
+export const adminLogin = async (data) => {
+  try {
+    const response = await apiClient.post('/api/admin/login', data);
+
+    const { accessToken, refreshToken } = response.data;
+    setToken({ accessToken, refreshToken });
+
+    return response.data;
+  } catch (error) {
+    handleAuthError(error);
+    throw error;
+  }
+}
+
+export const adminLogout = async () => {
+  try {
+    const { refreshToken } = getToken();
+    const response = await apiClient.post('/api/admin/logout', { refreshToken });
+
+    removeToken(); // Clear tokens on logout
+    return response.data;
+  } catch (error) {
+    handleAuthError(error);
+    throw error;
+  }
 }
