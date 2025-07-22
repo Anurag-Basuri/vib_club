@@ -79,6 +79,33 @@ export const getCurrentMember = async () => {
     }
 }
 
+export const updateProfile = async (data) => {
+  try {
+    const response = await apiClient.put(`/api/members/${data.id}/update`, data);
+    return response.data;
+  } catch (error) {
+    handleAuthError(error);
+    throw error;
+  }
+}
+
+export const uploadProfilePicture = async (file) => {
+  try {
+    const formData = new FormData();
+    formData.append('profilePicture', file);
+
+    const response = await apiClient.post(`/api/members/${data.id}/profile-picture`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  } catch (error) {
+    handleAuthError(error);
+    throw error;
+  }
+}
+
 export const resetPassword = async (data) => {
   try {
     const response = await apiClient.post('/api/members/reset-password', data);

@@ -59,7 +59,7 @@ router.post(
 
 // Update Profile
 router.put(
-    '/:id/profile',
+    '/:id/update',
     authMiddleware.verifyToken,
     authMiddleware.isMember,
     validate([
