@@ -79,6 +79,26 @@ export const getCurrentMember = async () => {
     }
 }
 
+export const resetPassword = async (data) => {
+  try {
+    const response = await apiClient.post('/api/members/reset-password', data);
+    return response.data;
+  } catch (error) {
+    handleAuthError(error);
+    throw error;
+  }
+}
+
+export const forgotPassword = async (data) => {
+  try {
+    const response = await publicApiClient.post('/api/members/send-reset-email', data);
+    return response.data;
+  } catch (error) {
+    handleAuthError(error);
+    throw error;
+  }
+}
+
 export const adminRegister = async (data) => {
   try {
     const response = await apiClient.post('/api/admin/register', data);
@@ -118,4 +138,14 @@ export const adminLogout = async () => {
     handleAuthError(error);
     throw error;
   }
+}
+
+export const getCurrentAdmin = async () => {
+    try {
+        const response = await apiClient.get('/api/admin/me');
+        return response.data;
+    } catch (error) {
+        handleAuthError(error);
+        throw error;
+    }
 }
