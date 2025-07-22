@@ -1,5 +1,5 @@
-import { apiClient, publicApiClient } from './api.js';
-import { setToken, getToken, removeToken } from './tokenService.js';
+import { apiClient, publicClient } from './api.js';
+import { setToken, getToken, removeToken } from '../utils/handleTokens.js';
 
 // Function to handle authentication errors globally
 const handleAuthError = error => {

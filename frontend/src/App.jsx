@@ -1,10 +1,11 @@
 import './App.css'
+import AuthPage from './pages/auth'
 
 function App() {
 
   return (
     <div className="App">
-      <h1>Hello Vite + React!</h1>
+      <AuthPage />
     </div>
   )
 }
