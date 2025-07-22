@@ -32,7 +32,7 @@ router.post(
 
 // Delete a social post (authenticated member or admin)
 router.delete(
-    '/:id',
+    '/:id/delete',
     authMiddleware.verifyToken,
     validate([
         param('id').isMongoId().withMessage('Invalid social post ID')
