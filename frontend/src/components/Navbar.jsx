@@ -2,34 +2,30 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
     Home,
     Calendar,
-    Newspaper,
-    Users,
     Mail,
-    HelpCircle,
     UserPlus,
     LogIn,
     LayoutDashboard,
     Menu,
     X,
     Sparkles,
-    Zap,
-    User as UserIcon,
+    User,
     LogOut,
-    MessageSquare,
-    Users as TeamIcon,
-    Share2 as SocialIcon,
-    Settings
+    Users,
+    Share2,
+    Settings,
+    ChevronDown,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import {useAuth} from '../hooks/useAuth.js';
 
 const navSections = [
     {
-        title: 'Navigation',
         items: [
             { name: 'Home', icon: Home, path: '/', color: '#00d9ff' },
             { name: 'Events', icon: Calendar, path: '/event', color: '#7c3aed' },
-            { name: 'Team', icon: TeamIcon, path: '/team', color: '#0ea5e9' },
-            { name: 'Social', icon: SocialIcon, path: '/social-page', color: '#06b6d4' },
+            { name: 'Team', icon: Users, path: '/team', color: '#0ea5e9' },
+            { name: 'Social', icon: Share2, path: '/social-page', color: '#06b6d4' },
             { name: 'Contact', icon: Mail, path: '/contact', color: '#0284c7' },
         ],
     },
@@ -38,10 +34,11 @@ const navSections = [
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [activeLink, setActiveLink] = useState('Home');
+    const { user, isAuthenticated, loading, logoutMember, logoutAdmin } = useAuth();
     const [isScrolled, setIsScrolled] = useState(false);
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const profileRef = useRef(null);
+    const navigate = useNavigate();
 
     // Scroll listener for navbar blur/shadow
     useEffect(() => {
@@ -65,334 +62,464 @@ const Navbar = () => {
         };
     }, []);
 
+    // Prevent body scroll when mobile menu is open
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isOpen]);
+
     const handleLinkClick = (name) => {
         setActiveLink(name);
         setIsOpen(false);
         setIsProfileOpen(false);
-    };
 
-    const handleLogin = () => {
-        setIsLoggedIn(true);
-        setIsOpen(false);
+        const found = navSections.flatMap((s) => s.items).find((item) => item.name === name);
+        if (found) {
+            navigate(found.path);
+        }
     };
 
     const handleLogout = () => {
-        setIsLoggedIn(false);
+        const accessToken = localStorage.getItem('accesstoken');
+        if (accessToken) {
+            try {
+                const tokenData = JSON.parse(atob(accessToken.split('.')[1]));
+                if (tokenData.memberId) {
+                    logoutMember();
+                } else if (tokenData.adminId) {
+                    logoutAdmin();
+                }
+            } catch {
+                // fallback if token is not a JWT
+                logoutMember();
+            }
+        } else {
+            logoutMember();
+        }
         setIsProfileOpen(false);
+        navigate('/auth');
+    };
+
+    const handleAlreadyMember = () => {
+        setIsOpen(false);
+        setIsProfileOpen(false);
+        navigate('/auth');
+    };
+
+    const handleJoinClub = () => {
+        setIsOpen(false);
+        setIsProfileOpen(false);
+        navigate('/auth');
     };
 
     return (
         <>
             <style>{`
-                @keyframes fadeSlideDown {
-                    from { opacity: 0; transform: translateY(-40px);}
-                    to { opacity: 1; transform: translateY(0);}
+                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+                * {
+                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
                 }
-                @keyframes navGlow {
-                    0%,100% { box-shadow: 0 2px 24px 0 #00d9ff33; }
-                    50% { box-shadow: 0 4px 32px 0 #2575fc44; }
+
+                @keyframes slideInFromTop {
+                    from {
+                        opacity: 0;
+                        transform: translateY(-100px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
                 }
-                .animate-fade-slide-down {
-                    animation: fadeSlideDown 0.7s cubic-bezier(.4,0,.2,1) forwards;
+
+                @keyframes slideInFromLeft {
+                    from {
+                        opacity: 0;
+                        transform: translateX(-100%);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateX(0);
+                    }
                 }
-                .animate-nav-glow {
-                    animation: navGlow 3s ease-in-out infinite;
+
+                @keyframes glowPulse {
+                    0%, 100% {
+                        box-shadow: 0 4px 32px rgba(0, 217, 255, 0.2),
+                                   0 2px 16px rgba(37, 117, 252, 0.1);
+                    }
+                    50% {
+                        box-shadow: 0 8px 40px rgba(0, 217, 255, 0.3),
+                                   0 4px 24px rgba(37, 117, 252, 0.2);
+                    }
                 }
+
+                @keyframes iconFloat {
+                    0%, 100% { transform: translateY(0px); }
+                    50% { transform: translateY(-2px); }
+                }
+
+                .navbar-enter {
+                    animation: slideInFromTop 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                }
+
+                .mobile-menu-enter {
+                    animation: slideInFromLeft 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                }
+
+                .navbar-glow {
+                    animation: glowPulse 4s ease-in-out infinite;
+                }
+
                 .nav-link {
-                    transition: all 0.2s cubic-bezier(.4,0,.2,1);
+                    position: relative;
+                    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                    overflow: hidden;
                 }
+
+                .nav-link::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: -100%;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+                    transition: left 0.5s;
+                }
+
+                .nav-link:hover::before {
+                    left: 100%;
+                }
+
                 .nav-link.active {
-                    background: linear-gradient(90deg, #00d9ff22 0%, #2575fc22 100%);
-                    color: #fff;
-                    box-shadow: 0 2px 12px #00d9ff22;
+                    background: linear-gradient(135deg, rgba(0, 217, 255, 0.15) 0%, rgba(37, 117, 252, 0.15) 100%);
+                    backdrop-filter: blur(12px);
+                    border: 1px solid rgba(0, 217, 255, 0.3);
+                    box-shadow: 0 4px 20px rgba(0, 217, 255, 0.2);
                 }
+
                 .nav-link:hover {
-                    transform: translateY(-2px) scale(1.06);
-                    background: linear-gradient(90deg, #00d9ff11 0%, #2575fc11 100%);
-                    color: #fff;
-                }
-                .icon-glow {
-                    filter: drop-shadow(0 0 8px currentColor);
-                }
-                .profile-dropdown {
-                    background: linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.95) 100%);
-                    backdrop-filter: blur(24px);
+                    transform: translateY(-1px);
+                    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+                    backdrop-filter: blur(8px);
                     border: 1px solid rgba(255, 255, 255, 0.1);
-                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 217, 255, 0.1);
+                }
+
+                .icon-float {
+                    animation: iconFloat 2s ease-in-out infinite;
+                }
+
+                .glass-effect {
+                    background: rgba(255, 255, 255, 0.05);
+                    backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                }
+
+                .mobile-nav-item {
+                    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                }
+
+                .mobile-nav-item:hover {
+                    transform: translateX(8px);
+                    background: linear-gradient(135deg, rgba(0, 217, 255, 0.1) 0%, rgba(37, 117, 252, 0.1) 100%);
+                }
+
+                .mobile-nav-item.active {
+                    background: linear-gradient(135deg, rgba(0, 217, 255, 0.2) 0%, rgba(37, 117, 252, 0.2) 100%);
+                    border-left: 3px solid #00d9ff;
+                }
+
+                .text-shadow {
+                    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+                }
+
+                @media (max-width: 640px) {
+                    .navbar-brand {
+                        font-size: 1.25rem !important;
+                    }
+
+                    .navbar-height {
+                        height: 4rem !important;
+                    }
+
+                    .mobile-drawer {
+                        width: 85vw !important;
+                        max-width: 320px !important;
+                    }
+                }
+
+                @media (max-width: 480px) {
+                    .navbar-brand {
+                        font-size: 1.125rem !important;
+                    }
+
+                    .mobile-drawer {
+                        width: 90vw !important;
+                    }
                 }
             `}</style>
+
             {/* Top Navbar */}
             <nav
-                className={`fixed top-0 left-0 w-full z-40 transition-all duration-300 animate-fade-slide-down ${
+                className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 navbar-enter ${
                     isScrolled
-                        ? 'backdrop-blur-xl bg-gradient-to-r from-[#0a0e17]/80 to-[#1a1f3a]/80 shadow-xl animate-nav-glow'
-                        : 'bg-gradient-to-r from-[#0a0e17]/60 to-[#1a1f3a]/60'
-                }`}
-                style={{
-                    borderBottom: '1.5px solid rgba(255,255,255,0.08)',
-                }}
+                        ? 'glass-effect navbar-glow shadow-2xl'
+                        : 'bg-gradient-to-r from-slate-900/70 to-slate-800/70 backdrop-blur-sm'
+                } navbar-height`}
+                style={{ height: '5rem' }}
             >
-                <div className="max-w-7xl mx-auto px-4 sm:px-8 flex items-center justify-between h-20 relative">
-                    {/* Branding */}
-                    <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-[#6a11cb] to-[#2575fc] flex items-center justify-center text-white shadow-lg">
-                            <LayoutDashboard size={26} className="icon-glow" />
+                <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between h-full">
+                    {/* Brand */}
+                    <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                        <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-cyan-500 via-blue-500 to-purple-600 flex items-center justify-center text-white shadow-lg icon-float">
+                            <LayoutDashboard size={window.innerWidth < 640 ? 20 : 26} />
                         </div>
-                        <h1 className="text-white font-bold text-2xl bg-gradient-to-r from-[#6a11cb] to-[#2575fc] bg-clip-text text-transparent tracking-wide">
+                        <h1 className="text-white font-bold text-lg sm:text-xl lg:text-2xl bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent tracking-wide text-shadow navbar-brand">
                             Vibranta
                         </h1>
                     </div>
-                    {/* Desktop Nav */}
-                    <div className="hidden lg:flex items-center gap-2">
-                        {navSections.flatMap((section, sIdx) =>
-                            section.items.map((item, i) => (
+
+                    {/* Desktop Navigation */}
+                    <div className="hidden lg:flex items-center gap-1 xl:gap-2">
+                        {navSections.flatMap((section) =>
+                            section.items.map((item) => (
                                 <button
                                     key={item.name}
                                     onClick={() => handleLinkClick(item.name)}
-                                    className={`nav-link flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-base ${
+                                    className={`nav-link flex items-center gap-2 px-3 xl:px-4 py-2.5 rounded-xl font-medium text-sm xl:text-base transition-all duration-300 ${
                                         activeLink === item.name
-                                            ? 'active'
-                                            : 'text-slate-200'
+                                            ? 'active text-white'
+                                            : 'text-slate-200 hover:text-white'
                                     }`}
-                                    style={{
-                                        border: activeLink === item.name
-                                            ? `1.5px solid ${item.color}55`
-                                            : '1.5px solid transparent',
-                                    }}
                                 >
                                     <item.icon
                                         size={18}
-                                        className={`transition-all duration-300 ${activeLink === item.name ? 'icon-glow' : ''}`}
-                                        style={{ color: activeLink === item.name ? item.color : undefined }}
+                                        className={`transition-all duration-300 ${
+                                            activeLink === item.name ? 'text-cyan-400' : ''
+                                        }`}
                                     />
-                                    <span>{item.name}</span>
+                                    <span className="whitespace-nowrap">{item.name}</span>
                                     {activeLink === item.name && (
-                                        <span
-                                            className="block h-1 w-6 rounded-full ml-2"
-                                            style={{
-                                                background: `linear-gradient(90deg, ${item.color} 0%, #2575fc 100%)`,
-                                            }}
-                                        />
+                                        <div className="w-1 h-1 bg-cyan-400 rounded-full ml-1 animate-pulse" />
                                     )}
                                 </button>
                             ))
                         )}
                     </div>
-                    
-                    {/* Right Side - Membership Section */}
-                    <div className="flex items-center gap-4">
-                        {isLoggedIn ? (
+
+                    {/* Right Side Actions */}
+                    <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                        {isAuthenticated ? (
                             <div className="relative" ref={profileRef}>
-                                <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
+                                <button
                                     onClick={() => setIsProfileOpen(!isProfileOpen)}
-                                    className="flex items-center gap-2 bg-gradient-to-r from-[#6a11cb]/20 to-[#2575fc]/20 px-4 py-2 rounded-full border border-white/10 hover:border-white/30 transition-all"
+                                    className="flex items-center gap-2 sm:gap-3 glass-effect px-2 sm:px-4 py-2 rounded-full hover:bg-white/10 transition-all duration-300 group"
                                 >
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#6a11cb] to-[#2575fc] flex items-center justify-center">
-                                        <UserIcon className="h-4 w-4 text-white" />
+                                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center shadow-lg">
+                                        <User className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                                     </div>
-                                    <span className="text-white font-medium">Admin User</span>
-                                </motion.button>
-                                
+                                    <span className="hidden sm:block text-white font-medium text-sm">
+                                        Admin
+                                    </span>
+                                    <ChevronDown
+                                        className={`h-4 w-4 text-white transition-transform duration-300 ${isProfileOpen ? 'rotate-180' : ''}`}
+                                    />
+                                </button>
+
                                 {/* Profile Dropdown */}
                                 {isProfileOpen && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        className="absolute right-0 mt-2 w-64 rounded-xl profile-dropdown overflow-hidden z-50"
-                                    >
-                                        <div className="p-4 border-b border-white/10">
+                                    <div className="absolute right-0 mt-3 w-64 sm:w-72 rounded-2xl glass-effect border border-white/20 shadow-2xl overflow-hidden z-50">
+                                        <div className="p-4 border-b border-white/10 bg-gradient-to-r from-cyan-500/10 to-purple-500/10">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#6a11cb] to-[#2575fc] flex items-center justify-center">
-                                                    <UserIcon className="h-5 w-5 text-white" />
+                                                <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center shadow-lg">
+                                                    <User className="h-6 w-6 text-white" />
                                                 </div>
                                                 <div>
-                                                    <p className="font-medium text-white">Admin User</p>
-                                                    <p className="text-sm text-slate-300">admin@vibranta.edu</p>
+                                                    <p className="font-semibold text-white">
+                                                        Admin User
+                                                    </p>
+                                                    <p className="text-sm text-slate-300">
+                                                        admin@vibranta.edu
+                                                    </p>
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="py-2">
-                                            <button 
+                                            <button
                                                 onClick={() => handleLinkClick('Dashboard')}
-                                                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors"
+                                                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-all duration-300 text-white group"
                                             >
-                                                <LayoutDashboard className="h-5 w-5 text-blue-400" />
+                                                <LayoutDashboard className="h-5 w-5 text-cyan-400 group-hover:scale-110 transition-transform" />
                                                 <span>Dashboard</span>
                                             </button>
-                                            <button 
+                                            <button
                                                 onClick={() => handleLinkClick('Settings')}
-                                                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors"
+                                                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-all duration-300 text-white group"
                                             >
-                                                <Settings className="h-5 w-5 text-purple-400" />
-                                                <span>Account Settings</span>
+                                                <Settings className="h-5 w-5 text-purple-400 group-hover:scale-110 transition-transform" />
+                                                <span>Settings</span>
                                             </button>
                                         </div>
                                         <div className="p-3 border-t border-white/10">
-                                            <button 
+                                            <button
+                                                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl hover:from-red-600 hover:to-pink-600 transition-all duration-300 font-medium"
                                                 onClick={handleLogout}
-                                                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-[#6a11cb] to-[#2575fc] text-white rounded-lg hover:opacity-90 transition-opacity"
                                             >
                                                 <LogOut className="h-4 w-4" />
                                                 <span>Log Out</span>
                                             </button>
                                         </div>
-                                    </motion.div>
+                                    </div>
                                 )}
                             </div>
                         ) : (
-                            <div className="flex items-center gap-3">
-                                <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    onClick={() => handleLinkClick('Login')}
-                                    className="px-4 py-2 rounded-lg font-medium text-base text-slate-200 border border-slate-600 hover:bg-slate-800 transition-colors"
+                            <div className="hidden sm:flex items-center gap-2">
+                                <button
+                                    className="px-3 lg:px-4 py-2 rounded-xl font-medium text-sm lg:text-base text-slate-200 border border-slate-600/50 hover:border-slate-500 hover:bg-slate-800/50 transition-all duration-300"
+                                    onClick={handleAlreadyMember}
                                 >
                                     Already a member
-                                </motion.button>
-                                <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    onClick={() => handleLinkClick('Register')}
-                                    className="px-4 py-2 rounded-lg font-medium text-base bg-gradient-to-tr from-[#6a11cb] to-[#2575fc] text-white hover:opacity-90 transition-opacity"
+                                </button>
+                                <button
+                                    onClick={handleJoinClub}
+                                    className="px-3 lg:px-4 py-2 rounded-xl font-medium text-sm lg:text-base bg-gradient-to-r from-cyan-500 to-purple-600 text-white hover:from-cyan-600 hover:to-purple-700 transition-all duration-300 shadow-lg"
                                 >
                                     Join Club
-                                </motion.button>
+                                </button>
                             </div>
                         )}
-                        
-                        {/* Mobile Hamburger */}
+
+                        {/* Mobile Menu Button */}
                         <button
-                            className="lg:hidden p-3 rounded-xl bg-gradient-to-tr from-[#6a11cb] to-[#2575fc] text-white shadow-lg"
+                            className="lg:hidden p-2.5 sm:p-3 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                             onClick={() => setIsOpen(true)}
-                            aria-label="Open navbar"
+                            aria-label="Open menu"
                         >
-                            <Menu size={24} />
+                            <Menu size={window.innerWidth < 640 ? 20 : 24} />
                         </button>
                     </div>
                 </div>
             </nav>
-            
+
             {/* Mobile Drawer */}
             {isOpen && (
                 <div className="fixed inset-0 z-50 lg:hidden">
                     {/* Backdrop */}
                     <div
-                        className="absolute inset-0 backdrop-blur-md transition-opacity duration-300"
-                        style={{
-                            background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%)',
-                        }}
+                        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
                         onClick={() => setIsOpen(false)}
                     />
+
                     {/* Drawer */}
-                    <div
-                        className="absolute top-0 left-0 h-full w-72 max-w-full z-50 overflow-hidden animate-fade-slide-down"
-                        style={{
-                            background: `linear-gradient(135deg, 
-                                rgba(15, 23, 42, 0.98) 0%,
-                                rgba(30, 41, 59, 0.95) 50%,
-                                rgba(15, 23, 42, 0.98) 100%)`,
-                            backdropFilter: 'blur(24px)',
-                            borderRight: '1px solid rgba(255, 255, 255, 0.1)',
-                            boxShadow: '0 0 80px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 217, 255, 0.1)',
-                        }}
-                    >
-                        <div className="h-full w-full p-6 flex flex-col relative">
+                    <div className="absolute top-0 left-0 h-full mobile-drawer w-80 max-w-sm mobile-menu-enter glass-effect border-r border-white/20 shadow-2xl overflow-hidden">
+                        <div className="h-full flex flex-col">
                             {/* Header */}
-                            <div className="flex justify-between items-center mb-8">
+                            <div className="flex justify-between items-center p-4 sm:p-6 border-b border-white/10 bg-gradient-to-r from-cyan-500/10 to-purple-500/10">
                                 <div className="flex items-center gap-3">
-                                    <div
-                                        className="w-12 h-12 rounded-xl flex items-center justify-center text-white border"
-                                        style={{
-                                            background:
-                                                'linear-gradient(135deg, rgba(0, 217, 255, 0.2) 0%, rgba(59, 130, 246, 0.3) 100%)',
-                                            borderColor: 'rgba(0, 217, 255, 0.2)',
-                                        }}
-                                    >
-                                        <LayoutDashboard size={24} />
+                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center text-white shadow-lg">
+                                        <LayoutDashboard size={22} />
                                     </div>
-                                    <h1
-                                        className="text-white font-bold text-2xl"
-                                        style={{
-                                            background: 'linear-gradient(135deg, #00d9ff 0%, #3b82f6 100%)',
-                                            WebkitBackgroundClip: 'text',
-                                            WebkitTextFillColor: 'transparent',
-                                        }}
-                                    >
+                                    <h1 className="text-white font-bold text-xl bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
                                         Vibranta
                                     </h1>
                                 </div>
                                 <button
-                                    className="p-3 rounded-xl backdrop-blur-xl border border-white/10 text-white transition-all duration-300 hover:scale-105 hover:bg-white/10 hover:shadow-lg"
-                                    style={{
-                                        background:
-                                            'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
-                                    }}
+                                    className="p-2 rounded-xl glass-effect border border-white/20 text-white hover:bg-white/10 transition-all duration-300"
                                     onClick={() => setIsOpen(false)}
-                                    aria-label="Close navbar"
+                                    aria-label="Close menu"
                                 >
                                     <X size={20} />
                                 </button>
                             </div>
-                            {/* Nav */}
-                            <div className="space-y-8 overflow-y-auto flex-1">
-                                {navSections.map((section, sIdx) => (
-                                    <div key={section.title}>
-                                        <h3 className="text-slate-300 text-sm font-semibold tracking-widest uppercase mb-4 flex items-center gap-2">
-                                            {section.title}
-                                            <div className="flex-1 h-px bg-gradient-to-r from-slate-600 to-transparent" />
-                                        </h3>
-                                        <ul className="space-y-3">
-                                            {section.items.map((item) => (
-                                                <li key={item.name} className="relative">
-                                                    <button
-                                                        onClick={() => handleLinkClick(item.name)}
-                                                        className={`nav-link w-full flex items-center gap-4 p-4 rounded-xl text-left transition-all duration-300 ${
-                                                            activeLink === item.name
-                                                                ? 'active'
-                                                                : 'text-slate-300 hover:text-white hover:bg-white/5'
-                                                        }`}
-                                                        style={{
-                                                            border: activeLink === item.name
-                                                                ? `1.5px solid ${item.color}55`
-                                                                : '1.5px solid transparent',
-                                                        }}
-                                                    >
-                                                        <div
-                                                            className={`w-10 h-10 rounded-lg flex items-center justify-center border ${
+
+                            {/* Navigation */}
+                            <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+                                <div className="space-y-6">
+                                    {navSections.map((section) => (
+                                        <div key={section.title}>
+                                            <h3 className="text-slate-300 text-xs font-semibold tracking-wider uppercase mb-4 flex items-center gap-2">
+                                                {section.title}
+                                                <div className="flex-1 h-px bg-gradient-to-r from-slate-600 to-transparent" />
+                                            </h3>
+                                            <ul className="space-y-2">
+                                                {section.items.map((item) => (
+                                                        <button
+                                                            onClick={() =>
+                                                                handleLinkClick(item.name)
+                                                            }
+                                                            className={`mobile-nav-item w-full flex items-center gap-4 p-4 rounded-xl text-left transition-all duration-300 ${
                                                                 activeLink === item.name
-                                                                    ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border-cyan-500/30'
-                                                                    : 'bg-white/5 border-white/10'
+                                                                    ? 'active text-white'
+                                                                    : 'text-slate-300 hover:text-white'
                                                             }`}
                                                         >
-                                                            <item.icon
-                                                                size={20}
-                                                                style={{
-                                                                    color: activeLink === item.name ? item.color : undefined,
-                                                                }}
-                                                            />
-                                                        </div>
-                                                        <span className="font-medium">{item.name}</span>
-                                                    </button>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                ))}
+                                                            <div
+                                                                className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 ${
+                                                                    activeLink === item.name
+                                                                        ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/30'
+                                                                        : 'bg-white/5 border border-white/10'
+                                                                }`}
+                                                            >
+                                                                <item.icon
+                                                                    size={20}
+                                                                    className={
+                                                                        activeLink === item.name
+                                                                            ? 'text-cyan-400'
+                                                                            : ''
+                                                                    }
+                                                                />
+                                                            </div>
+                                                            <span className="font-medium">
+                                                                {item.name}
+                                                            </span>
+                                                        </button>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
+
+                            {/* Auth Section for Mobile */}
+                            {!isAuthenticated && (
+                                <div className="p-4 sm:p-6 border-t border-white/10 space-y-3">
+                                    <button
+                                        onClick={handleAlreadyMember}
+                                        className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-slate-600/50 rounded-xl text-white font-medium hover:bg-slate-800/50 transition-all duration-300"
+                                    >
+                                        <LogIn className="h-4 w-4" />
+                                        <span>Already a member</span>
+                                    </button>
+                                    <button
+                                        onClick={handleJoinClub}
+                                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-cyan-500 to-purple-600 text-white rounded-xl font-medium hover:from-cyan-600 hover:to-purple-700 transition-all duration-300"
+                                    >
+                                        <UserPlus className="h-4 w-4" />
+                                        <span>Join Club</span>
+                                    </button>
+                                </div>
+                            )}
+
                             {/* Footer */}
-                            <div
-                                className="mt-6 p-4 rounded-xl text-center border"
-                                style={{
-                                    background:
-                                        'linear-gradient(135deg, rgba(0, 217, 255, 0.05) 0%, rgba(59, 130, 246, 0.08) 100%)',
-                                    borderColor: 'rgba(0, 217, 255, 0.1)',
-                                }}
-                            >
-                                <div className="flex items-center gap-2 justify-center">
-                                    <Sparkles size={16} className="text-cyan-400 animate-pulse" />
-                                    <p className="text-slate-200 text-sm font-medium">
+                            <div className="p-4 sm:p-6 border-t border-white/10">
+                                <div className="glass-effect p-4 rounded-xl text-center border border-cyan-500/20">
+                                    <div className="flex items-center gap-2 justify-center mb-2">
+                                        <Sparkles
+                                            size={16}
+                                            className="text-cyan-400 animate-pulse"
+                                        />
+                                        <p className="text-cyan-400 text-sm font-semibold">
+                                            Vibranta Club
+                                        </p>
+                                    </div>
+                                    <p className="text-slate-300 text-xs">
                                         "Code. Create. Collaborate."
                                     </p>
                                 </div>
