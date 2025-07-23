@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { ChevronDown, Users, Code, Briefcase, Palette, Megaphone, Mail, Linkedin, Github } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ChevronDown, Users, Code, Briefcase, Palette, Megaphone, Mail, Linkedin, Github, Sparkles } from 'lucide-react';
 
 // Team data structure
 const teamData = {
@@ -391,66 +391,73 @@ const Modal = ({ leader, isOpen, onClose }) => {
 const TeamsPage = () => {
   const [selectedLeader, setSelectedLeader] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
-  
+
   useSmoothScroll();
   const revealed = useScrollReveal();
-  
+
   const handleLeaderClick = (leader) => {
     setSelectedLeader(leader);
     setModalOpen(true);
   };
-  
+
   const closeModal = () => {
     setModalOpen(false);
     setSelectedLeader(null);
   };
-  
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-black text-white overflow-x-hidden">
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center">
-        {/* Animated background */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse delay-1000" />
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse delay-2000" />
+      {/* Creative Introduction */}
+      <section className="relative w-full pt-20 pb-10 px-4 flex flex-col items-center justify-center text-center">
+        {/* Animated background orbs */}
+        <div className="absolute inset-0 pointer-events-none z-0">
+          <div className="absolute top-10 left-1/4 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl animate-pulse-slow" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse-slow" />
+          <div className="absolute top-1/2 left-1/2 w-72 h-72 bg-cyan-400/20 rounded-full blur-3xl animate-pulse-slow" style={{ transform: 'translate(-50%, -50%)' }} />
         </div>
-        
-        <div className="relative z-10 text-center max-w-4xl mx-auto px-6">
-          <h1 className="text-6xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
-            Meet Our Team
-          </h1>
-          <p className="text-xl md:text-2xl text-gray-300 mb-12 leading-relaxed">
-            Fueling Innovation with Passion & Purpose
+        <div className="relative z-10 max-w-3xl mx-auto">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <span className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-[#6a11cb] to-[#2575fc] shadow-lg">
+              <Users size={32} className="text-white drop-shadow-lg" />
+            </span>
+            <h1 className="text-5xl md:text-6xl font-extrabold bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent tracking-tight">
+              Meet the Vibranta Team
+            </h1>
+          </div>
+          <p className="text-lg md:text-2xl text-gray-200 font-light mb-6">
+            <Sparkles className="inline-block text-cyan-300 animate-pulse mr-2" size={20} />
+            <span>
+              Where <span className="font-semibold text-blue-300">creativity</span> meets <span className="font-semibold text-purple-300">technology</span> and <span className="font-semibold text-cyan-300">collaboration</span> sparks innovation.
+            </span>
           </p>
-          
-          {/* Scroll indicator */}
-          <a href="#leadership" className="inline-flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors">
-            <span>Discover Our Leaders</span>
-            <ChevronDown className="animate-bounce" size={24} />
-          </a>
+          <p className="text-base md:text-lg text-gray-400 max-w-2xl mx-auto mb-2">
+            Our diverse team brings together visionaries, builders, designers, and connectors. Scroll down to discover the people powering our journey!
+          </p>
+          <div className="flex justify-center mt-6">
+            <a href="#leadership" className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold shadow-lg hover:scale-105 transition-transform">
+              Explore Our Leaders <ChevronDown className="animate-bounce" size={20} />
+            </a>
+          </div>
         </div>
       </section>
-      
+
       {/* Leadership Section */}
-      <section id="leadership" className="py-20 px-6">
+      <section id="leadership" className="py-16 px-4">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl font-bold text-center mb-16 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          <h2 className="text-4xl font-bold text-center mb-14 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
             Leadership Team
           </h2>
-          
           <div className="relative">
             {/* CEO */}
-            <div className="flex justify-center mb-8">
+            <div className="flex justify-center mb-10">
               <LeadershipCard
                 leader={teamData.leadership[0]}
                 index={0}
                 onClick={handleLeaderClick}
               />
             </div>
-            
             {/* C-Suite */}
-            <div className="flex justify-center items-start space-x-8 flex-wrap">
+            <div className="flex flex-wrap justify-center gap-8">
               {teamData.leadership.slice(1).map((leader, index) => (
                 <LeadershipCard
                   key={leader.id}
@@ -463,33 +470,44 @@ const TeamsPage = () => {
           </div>
         </div>
       </section>
-      
+
       {/* Departments Section */}
-      <section id="departments" className="py-20 px-6">
+      <section id="departments" className="py-16 px-4">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-4xl font-bold text-center mb-16 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+          <h2 className="text-4xl font-bold text-center mb-14 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
             Our Departments
           </h2>
-          
-          {Object.entries(teamData.departments).map(([key, department]) => (
-            <DepartmentSection
-              key={key}
-              department={department}
-              departmentKey={key}
-              revealed={revealed}
-            />
-          ))}
+          <div className="space-y-20">
+            {Object.entries(teamData.departments).map(([key, department]) => (
+              <DepartmentSection
+                key={key}
+                department={department}
+                departmentKey={key}
+                revealed={revealed}
+              />
+            ))}
+          </div>
         </div>
       </section>
-      
-      {/* Footer */}
-      <footer className="py-12 text-center border-t border-white/10">
-        <p className="text-gray-400">
-          Ready to join our amazing team? 
-          <a href="#contact" className="text-blue-400 hover:text-blue-300 ml-2">Get in touch!</a>
-        </p>
+
+      {/* Call to Action Footer */}
+      <footer className="py-14 text-center border-t border-white/10 bg-gradient-to-t from-blue-900/30 to-transparent">
+        <div className="max-w-xl mx-auto">
+          <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+            Ready to join our amazing team?
+          </h3>
+          <p className="text-gray-300 mb-4">
+            We’re always looking for passionate innovators and collaborators.
+          </p>
+          <a
+            href="#contact"
+            className="inline-block px-8 py-3 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold shadow-lg hover:scale-105 transition-transform"
+          >
+            Get in Touch!
+          </a>
+        </div>
       </footer>
-      
+
       {/* Modal */}
       <Modal
         leader={selectedLeader}

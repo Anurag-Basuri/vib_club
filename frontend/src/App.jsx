@@ -10,9 +10,9 @@ function App() {
 	return (
 		 <Lenis root options={{ lerp: 0.1, smoothWheel: true }}>
 			{/* <Home /> */}
-			{/* <Event /> */}
+			<Event />
 
-			<Team />
+			{/* <Team /> */}
 		</Lenis>
 	);
 }
