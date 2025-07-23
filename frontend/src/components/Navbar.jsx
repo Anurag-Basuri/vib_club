@@ -17,7 +17,8 @@ import {
     ChevronDown,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import {useAuth} from '../hooks/useAuth.js';
+import { useAuth } from '../hooks/useAuth.js';
+import { getToken, decodeToken } from '../utils/handleTokens.js';
 
 const navSections = [
     {
@@ -36,8 +37,8 @@ const Navbar = () => {
     const [activeLink, setActiveLink] = useState('Home');
     const { user, isAuthenticated, loading, logoutMember, logoutAdmin } = useAuth();
     const [isScrolled, setIsScrolled] = useState(false);
-    const [isProfileOpen, setIsProfileOpen] = useState(false);
-    const profileRef = useRef(null);
+    const [isUserOpen, setIsUserOpen] = useState(false);
+    const userRef = useRef(null);
     const navigate = useNavigate();
 
     // Scroll listener for navbar blur/shadow
@@ -49,11 +50,11 @@ const Navbar = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    // Close profile dropdown when clicking outside
+    // Close user dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (profileRef.current && !profileRef.current.contains(event.target)) {
-                setIsProfileOpen(false);
+            if (userRef.current && !userRef.current.contains(event.target)) {
+                setIsUserOpen(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
@@ -77,7 +78,7 @@ const Navbar = () => {
     const handleLinkClick = (name) => {
         setActiveLink(name);
         setIsOpen(false);
-        setIsProfileOpen(false);
+        setIsUserOpen(false);
 
         const found = navSections.flatMap((s) => s.items).find((item) => item.name === name);
         if (found) {
@@ -86,37 +87,39 @@ const Navbar = () => {
     };
 
     const handleLogout = () => {
-        const accessToken = localStorage.getItem('accesstoken');
+        const { accessToken } = getToken();
         if (accessToken) {
             try {
-                const tokenData = JSON.parse(atob(accessToken.split('.')[1]));
+                const tokenData = decodeToken(accessToken);
                 if (tokenData.memberId) {
                     logoutMember();
                 } else if (tokenData.adminId) {
                     logoutAdmin();
                 }
             } catch {
-                // fallback if token is not a JWT
                 logoutMember();
             }
         } else {
             logoutMember();
         }
-        setIsProfileOpen(false);
+        setIsUserOpen(false);
         navigate('/auth');
     };
 
     const handleAlreadyMember = () => {
         setIsOpen(false);
-        setIsProfileOpen(false);
+        setIsUserOpen(false);
         navigate('/auth');
     };
 
     const handleJoinClub = () => {
         setIsOpen(false);
-        setIsProfileOpen(false);
+        setIsUserOpen(false);
         navigate('/auth');
     };
+
+    // Prevent flicker: don't render navbar until auth check is done
+    if (loading) return null;
 
     return (
         <>
@@ -317,24 +320,24 @@ const Navbar = () => {
                     {/* Right Side Actions */}
                     <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                         {isAuthenticated ? (
-                            <div className="relative" ref={profileRef}>
+                            <div className="relative" ref={userRef}>
                                 <button
-                                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+                                    onClick={() => setIsUserOpen(!isUserOpen)}
                                     className="flex items-center gap-2 sm:gap-3 glass-effect px-2 sm:px-4 py-2 rounded-full hover:bg-white/10 transition-all duration-300 group"
                                 >
                                     <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center shadow-lg">
                                         <User className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                                     </div>
                                     <span className="hidden sm:block text-white font-medium text-sm">
-                                        Admin
+                                        {user?.name || 'User'}
                                     </span>
                                     <ChevronDown
-                                        className={`h-4 w-4 text-white transition-transform duration-300 ${isProfileOpen ? 'rotate-180' : ''}`}
+                                        className={`h-4 w-4 text-white transition-transform duration-300 ${isUserOpen ? 'rotate-180' : ''}`}
                                     />
                                 </button>
 
-                                {/* Profile Dropdown */}
-                                {isProfileOpen && (
+                                {/* User Dropdown */}
+                                {isUserOpen && (
                                     <div className="absolute right-0 mt-3 w-64 sm:w-72 rounded-2xl glass-effect border border-white/20 shadow-2xl overflow-hidden z-50">
                                         <div className="p-4 border-b border-white/10 bg-gradient-to-r from-cyan-500/10 to-purple-500/10">
                                             <div className="flex items-center gap-3">
@@ -343,10 +346,10 @@ const Navbar = () => {
                                                 </div>
                                                 <div>
                                                     <p className="font-semibold text-white">
-                                                        Admin User
+                                                        {user?.name || 'User'}
                                                     </p>
                                                     <p className="text-sm text-slate-300">
-                                                        admin@vibranta.edu
+                                                        {user?.email || 'user@vibranta.edu'}
                                                     </p>
                                                 </div>
                                             </div>
@@ -450,36 +453,37 @@ const Navbar = () => {
                                             </h3>
                                             <ul className="space-y-2">
                                                 {section.items.map((item) => (
-                                                        <button
-                                                            onClick={() =>
-                                                                handleLinkClick(item.name)
-                                                            }
-                                                            className={`mobile-nav-item w-full flex items-center gap-4 p-4 rounded-xl text-left transition-all duration-300 ${
+                                                    <button
+                                                        key={item.name}
+                                                        onClick={() =>
+                                                            handleLinkClick(item.name)
+                                                        }
+                                                        className={`mobile-nav-item w-full flex items-center gap-4 p-4 rounded-xl text-left transition-all duration-300 ${
+                                                            activeLink === item.name
+                                                                ? 'active text-white'
+                                                                : 'text-slate-300 hover:text-white'
+                                                        }`}
+                                                    >
+                                                        <div
+                                                            className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 ${
                                                                 activeLink === item.name
-                                                                    ? 'active text-white'
-                                                                    : 'text-slate-300 hover:text-white'
+                                                                    ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/30'
+                                                                    : 'bg-white/5 border border-white/10'
                                                             }`}
                                                         >
-                                                            <div
-                                                                className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 ${
+                                                            <item.icon
+                                                                size={20}
+                                                                className={
                                                                     activeLink === item.name
-                                                                        ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/30'
-                                                                        : 'bg-white/5 border border-white/10'
-                                                                }`}
-                                                            >
-                                                                <item.icon
-                                                                    size={20}
-                                                                    className={
-                                                                        activeLink === item.name
-                                                                            ? 'text-cyan-400'
-                                                                            : ''
-                                                                    }
-                                                                />
-                                                            </div>
-                                                            <span className="font-medium">
-                                                                {item.name}
-                                                            </span>
-                                                        </button>
+                                                                        ? 'text-cyan-400'
+                                                                        : ''
+                                                                }
+                                                            />
+                                                        </div>
+                                                        <span className="font-medium">
+                                                            {item.name}
+                                                        </span>
+                                                    </button>
                                                 ))}
                                             </ul>
                                         </div>
