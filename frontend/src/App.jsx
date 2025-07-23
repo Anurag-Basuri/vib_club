@@ -1,14 +1,14 @@
 import './App.css';
 import useLenis from './hooks/useLenis.js';
-import { Lenis as ReactLenis } from '@studio-freight/react-lenis';
+import { Lenis } from '@studio-freight/react-lenis';
 import Home from './pages/home.jsx';
 
 function App() {
 	useLenis(); // Initialize smooth scrolling
 	return (
-		<ReactLenis>
+		 <Lenis root options={{ lerp: 0.1, smoothWheel: true }}>
 			<Home />
-		</ReactLenis>
+		</Lenis>
 	);
 }
 
