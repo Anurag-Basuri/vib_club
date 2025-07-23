@@ -13,31 +13,24 @@ import {
     X,
     Sparkles,
     Zap,
+    User as UserIcon,
+    LogOut,
+    MessageSquare,
+    Users as TeamIcon,
+    Share2 as SocialIcon,
+    Settings
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const navSections = [
     {
         title: 'Navigation',
         items: [
             { name: 'Home', icon: Home, path: '/', color: '#00d9ff' },
-            { name: 'Events', icon: Calendar, path: '/events', color: '#7c3aed' },
-            { name: 'Blog', icon: Newspaper, path: '/blog', color: '#06b6d4' },
-        ],
-    },
-    {
-        title: 'Account',
-        items: [
-            { name: 'Register', icon: UserPlus, path: '/register', color: '#3b82f6' },
-            { name: 'Login', icon: LogIn, path: '/login', color: '#1e40af' },
-            { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', color: '#1d4ed8' },
-        ],
-    },
-    {
-        title: 'Explore',
-        items: [
-            { name: 'About Club', icon: Users, path: '/about', color: '#0ea5e9' },
+            { name: 'Events', icon: Calendar, path: '/event', color: '#7c3aed' },
+            { name: 'Team', icon: TeamIcon, path: '/team', color: '#0ea5e9' },
+            { name: 'Social', icon: SocialIcon, path: '/social-page', color: '#06b6d4' },
             { name: 'Contact', icon: Mail, path: '/contact', color: '#0284c7' },
-            { name: 'FAQs', icon: HelpCircle, path: '/faqs', color: '#0369a1' },
         ],
     },
 ];
@@ -46,6 +39,9 @@ const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [activeLink, setActiveLink] = useState('Home');
     const [isScrolled, setIsScrolled] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const profileRef = useRef(null);
 
     // Scroll listener for navbar blur/shadow
     useEffect(() => {
@@ -56,10 +52,33 @@ const Navbar = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+    // Close profile dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (profileRef.current && !profileRef.current.contains(event.target)) {
+                setIsProfileOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
     const handleLinkClick = (name) => {
         setActiveLink(name);
         setIsOpen(false);
-        // Add navigation logic here if using react-router
+        setIsProfileOpen(false);
+    };
+
+    const handleLogin = () => {
+        setIsLoggedIn(true);
+        setIsOpen(false);
+    };
+
+    const handleLogout = () => {
+        setIsLoggedIn(false);
+        setIsProfileOpen(false);
     };
 
     return (
@@ -95,6 +114,12 @@ const Navbar = () => {
                 .icon-glow {
                     filter: drop-shadow(0 0 8px currentColor);
                 }
+                .profile-dropdown {
+                    background: linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.95) 100%);
+                    backdrop-filter: blur(24px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 217, 255, 0.1);
+                }
             `}</style>
             {/* Top Navbar */}
             <nav
@@ -116,10 +141,6 @@ const Navbar = () => {
                         <h1 className="text-white font-bold text-2xl bg-gradient-to-r from-[#6a11cb] to-[#2575fc] bg-clip-text text-transparent tracking-wide">
                             Vibranta
                         </h1>
-                        <span className="ml-2 text-xs text-cyan-300 font-semibold flex items-center gap-1">
-                            <Sparkles size={14} className="animate-pulse" />
-                            PREMIUM
-                        </span>
                     </div>
                     {/* Desktop Nav */}
                     <div className="hidden lg:flex items-center gap-2">
@@ -157,16 +178,102 @@ const Navbar = () => {
                             ))
                         )}
                     </div>
-                    {/* Mobile Hamburger */}
-                    <button
-                        className="lg:hidden p-3 rounded-xl bg-gradient-to-tr from-[#6a11cb] to-[#2575fc] text-white shadow-lg"
-                        onClick={() => setIsOpen(true)}
-                        aria-label="Open navbar"
-                    >
-                        <Menu size={24} />
-                    </button>
+                    
+                    {/* Right Side - Membership Section */}
+                    <div className="flex items-center gap-4">
+                        {isLoggedIn ? (
+                            <div className="relative" ref={profileRef}>
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+                                    className="flex items-center gap-2 bg-gradient-to-r from-[#6a11cb]/20 to-[#2575fc]/20 px-4 py-2 rounded-full border border-white/10 hover:border-white/30 transition-all"
+                                >
+                                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#6a11cb] to-[#2575fc] flex items-center justify-center">
+                                        <UserIcon className="h-4 w-4 text-white" />
+                                    </div>
+                                    <span className="text-white font-medium">Admin User</span>
+                                </motion.button>
+                                
+                                {/* Profile Dropdown */}
+                                {isProfileOpen && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="absolute right-0 mt-2 w-64 rounded-xl profile-dropdown overflow-hidden z-50"
+                                    >
+                                        <div className="p-4 border-b border-white/10">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#6a11cb] to-[#2575fc] flex items-center justify-center">
+                                                    <UserIcon className="h-5 w-5 text-white" />
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-white">Admin User</p>
+                                                    <p className="text-sm text-slate-300">admin@vibranta.edu</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="py-2">
+                                            <button 
+                                                onClick={() => handleLinkClick('Dashboard')}
+                                                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors"
+                                            >
+                                                <LayoutDashboard className="h-5 w-5 text-blue-400" />
+                                                <span>Dashboard</span>
+                                            </button>
+                                            <button 
+                                                onClick={() => handleLinkClick('Settings')}
+                                                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-colors"
+                                            >
+                                                <Settings className="h-5 w-5 text-purple-400" />
+                                                <span>Account Settings</span>
+                                            </button>
+                                        </div>
+                                        <div className="p-3 border-t border-white/10">
+                                            <button 
+                                                onClick={handleLogout}
+                                                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-[#6a11cb] to-[#2575fc] text-white rounded-lg hover:opacity-90 transition-opacity"
+                                            >
+                                                <LogOut className="h-4 w-4" />
+                                                <span>Log Out</span>
+                                            </button>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-3">
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => handleLinkClick('Login')}
+                                    className="px-4 py-2 rounded-lg font-medium text-base text-slate-200 border border-slate-600 hover:bg-slate-800 transition-colors"
+                                >
+                                    Already a member
+                                </motion.button>
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => handleLinkClick('Register')}
+                                    className="px-4 py-2 rounded-lg font-medium text-base bg-gradient-to-tr from-[#6a11cb] to-[#2575fc] text-white hover:opacity-90 transition-opacity"
+                                >
+                                    Join Club
+                                </motion.button>
+                            </div>
+                        )}
+                        
+                        {/* Mobile Hamburger */}
+                        <button
+                            className="lg:hidden p-3 rounded-xl bg-gradient-to-tr from-[#6a11cb] to-[#2575fc] text-white shadow-lg"
+                            onClick={() => setIsOpen(true)}
+                            aria-label="Open navbar"
+                        >
+                            <Menu size={24} />
+                        </button>
+                    </div>
                 </div>
             </nav>
+            
             {/* Mobile Drawer */}
             {isOpen && (
                 <div className="fixed inset-0 z-50 lg:hidden">
