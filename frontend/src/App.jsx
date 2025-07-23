@@ -1,6 +1,6 @@
 import './App.css';
 import AuthPage from './pages/auth';
-import { useLenis } from './hooks/useLenis.jsx';
+import useLenis from './hooks/useLenis.js';
 
 function App() {
 	useLenis(); // Initialize smooth scrolling
