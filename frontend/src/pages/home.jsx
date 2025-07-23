@@ -2,9 +2,9 @@ import React, { useRef } from 'react';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import Hero from '../components/Hero';
 import ClubDescription from '../components/ClubDescription.jsx';
-import EventsPreview from '../components/EventsPreview';
-import TeamPreview from '../components/TeamPreview.jsx/index.js';
-import Testimonials from '../components/Testimonials.jsx/index.js';
+import EventsPreview from '../components/EventsPreview.jsx';
+import TeamPreview from '../components/TeamPreview.jsx';
+import Testimonials from '../components/Testimonials.jsx';
 import Footer from '../components/Footer';
 
 const Home = () => {
