@@ -7,12 +7,7 @@ function App() {
 	useLenis(); // Initialize smooth scrolling
 	return (
 		<ReactLenis>
-			<div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100">
-				
-
-				{/* Render the sidebar */}
-				<Sidebar />
-			</div>
+			
 		</ReactLenis>
 	);
 }
