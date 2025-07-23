@@ -1,8 +1,9 @@
+// src/components/TeamPreview.jsx
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 
-const EventsPreview = () => {
+const TeamPreview = () => {
   const [ref, inView] = useInView({
     triggerOnce: true,
     threshold: 0.1,
@@ -13,19 +14,20 @@ const EventsPreview = () => {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.2
+        staggerChildren: 0.1
       }
     }
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
+    hidden: { opacity: 0, scale: 0.8 },
     visible: { 
       opacity: 1, 
-      y: 0, 
+      scale: 1,
       transition: { 
-        duration: 0.6,
-        ease: "easeOut"
+        duration: 0.5,
+        type: "spring",
+        stiffness: 300
       } 
     }
   };
@@ -38,6 +40,29 @@ const EventsPreview = () => {
     }
   };
 
+  const teamMembers = [
+    { 
+      name: "Alex Johnson", 
+      role: "President",
+      bio: "Computer Science Senior with a passion for AI and community building."
+    },
+    { 
+      name: "Maya Rodriguez", 
+      role: "VP of Events",
+      bio: "Organizes our flagship events and workshops. UX Design expert."
+    },
+    { 
+      name: "Chris Thompson", 
+      role: "Tech Lead",
+      bio: "Full-stack developer and mentor for our project teams."
+    },
+    { 
+      name: "Taylor Kim", 
+      role: "Outreach Director",
+      bio: "Connects students with industry opportunities and partnerships."
+    }
+  ];
+
   return (
     <section className="py-24 px-4 relative z-10">
       <div className="max-w-6xl mx-auto">
@@ -48,7 +73,7 @@ const EventsPreview = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            Upcoming Events
+            Meet Our Core Team
           </motion.h2>
           <motion.p 
             className="text-xl text-blue-200 max-w-2xl mx-auto"
@@ -56,7 +81,7 @@ const EventsPreview = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            Join our next gatherings to learn, network, and grow with fellow tech enthusiasts.
+            Passionate students driving innovation and community growth.
           </motion.p>
         </div>
 
@@ -65,57 +90,31 @@ const EventsPreview = () => {
           variants={containerVariants}
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
-          className="grid grid-cols-1 md:grid-cols-2 gap-8"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"
         >
-          {[
-            {
-              title: "AI Hackathon 2023",
-              date: "Oct 15-16, 2023",
-              desc: "24-hour hackathon focused on building AI solutions for real-world problems.",
-              tags: ["AI", "Hackathon", "Beginner Friendly"]
-            },
-            {
-              title: "Web3 Workshop",
-              date: "Nov 3, 2023",
-              desc: "Hands-on workshop exploring blockchain development and decentralized applications.",
-              tags: ["Blockchain", "Workshop", "Intermediate"]
-            }
-          ].map((event, index) => (
+          {teamMembers.map((member, index) => (
             <motion.div
               key={index}
               variants={itemVariants}
               whileHover="hover"
               variants={cardVariants}
-              className="bg-gradient-to-br from-blue-900/30 to-purple-900/30 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden"
+              className="bg-gradient-to-br from-blue-900/30 to-purple-900/30 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden flex flex-col"
             >
-              <div className="p-8">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-2xl font-bold text-white">{event.title}</h3>
-                  <div className="px-3 py-1 bg-blue-500/20 rounded-full text-blue-300 text-sm">
-                    {event.date}
-                  </div>
+              <div className="p-6 flex-grow">
+                <div className="mb-4">
+                  <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16" />
                 </div>
-                <p className="text-blue-100 mb-6">{event.desc}</p>
-                
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {event.tags.map((tag, i) => (
-                    <span 
-                      key={i}
-                      className="px-3 py-1 bg-white/5 rounded-full text-blue-200 text-sm"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <button className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-lg text-sm font-medium">
-                    Register Now
-                  </button>
-                  <div className="flex items-center text-blue-300 text-sm">
-                    <span>48 spots left</span>
-                  </div>
-                </div>
+                <h3 className="text-xl font-bold text-white mb-1">{member.name}</h3>
+                <div className="text-blue-400 mb-4">{member.role}</div>
+                <p className="text-blue-100 text-sm">{member.bio}</p>
+              </div>
+              <div className="p-4 bg-black/20 border-t border-white/10">
+                <button className="text-blue-300 hover:text-white text-sm font-medium flex items-center gap-2">
+                  View Profile
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
               </div>
             </motion.div>
           ))}
@@ -136,7 +135,7 @@ const EventsPreview = () => {
             whileTap={{ scale: 0.95 }}
             className="px-8 py-4 bg-indigo-700/30 backdrop-blur-sm border border-indigo-500/30 rounded-xl font-medium text-lg"
           >
-            View All Events
+            Meet Full Team
           </motion.button>
         </motion.div>
       </div>
@@ -144,4 +143,4 @@ const EventsPreview = () => {
   );
 };
 
-export default EventsPreview;
+export default TeamPreview;
