@@ -19,7 +19,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
 import { getToken, decodeToken } from '../utils/handleTokens.js';
-import logo from '../assets/png_logo_1.png';
+import logo from '../assets/logo.png';
 
 const navSections = [
     {

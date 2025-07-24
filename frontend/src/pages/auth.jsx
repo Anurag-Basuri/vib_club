@@ -1,4 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useAuth } from '../hooks/useAuth.js';
+import logo from '../assets/logo.png';
+import axios from 'axios';
 
 const TechBackground = () => {
 	const bgRef = useRef(null);
@@ -161,10 +164,29 @@ const FloatingOrbs = () => {
 	);
 };
 
+const initialRegisterState = {
+	fullName: '',
+	LpuId: '',
+	email: '',
+	phone: '',
+	course: '',
+	gender: '',
+	domains: [],
+	accommodation: '',
+	previousExperience: false,
+	anyotherorg: false,
+	bio: '',
+};
+
 const AuthPage = () => {
 	const [activeTab, setActiveTab] = useState('login');
 	const [showPassword, setShowPassword] = useState(false);
+	const [registerData, setRegisterData] = useState(initialRegisterState);
+	const [registerError, setRegisterError] = useState('');
+	const [registerSuccess, setRegisterSuccess] = useState('');
+	const [registerLoading, setRegisterLoading] = useState(false);
 	const formContainerRef = useRef(null);
+	const { loginMember } = useAuth();
 
 	useEffect(() => {
 		const handleScroll = () => {
@@ -179,6 +201,63 @@ const AuthPage = () => {
 		return () => window.removeEventListener('scroll', handleScroll);
 	}, []);
 
+	const handleRegisterChange = (e) => {
+		const { name, value, type, checked, multiple, options } = e.target;
+		if (type === 'checkbox') {
+			setRegisterData((prev) => ({ ...prev, [name]: checked }));
+		} else if (multiple) {
+			const selected = Array.from(options).filter((o) => o.selected).map((o) => o.value);
+			setRegisterData((prev) => ({ ...prev, [name]: selected }));
+		} else {
+			setRegisterData((prev) => ({ ...prev, [name]: value }));
+		}
+	};
+
+	const handleRegisterSubmit = async (e) => {
+		e.preventDefault();
+		setRegisterError('');
+		setRegisterSuccess('');
+		setRegisterLoading(true);
+
+		// Validation (client-side, basic)
+		if (
+			!registerData.fullName ||
+			!registerData.LpuId ||
+			!registerData.email ||
+			!registerData.phone ||
+			!registerData.course ||
+			!registerData.gender ||
+			!registerData.domains.length ||
+			!registerData.accommodation
+		) {
+			setRegisterError('Please fill all required fields.');
+			setRegisterLoading(false);
+			return;
+		}
+
+		try {
+			const payload = {
+				...registerData,
+				// Map accommodation to backend enum
+				accommodation:
+					registerData.accommodation === 'hostel'
+						? 'hostler'
+						: registerData.accommodation === 'day-scholar'
+						? 'non-hostler'
+						: '',
+			};
+			await axios.post('/api/apply', payload);
+			setRegisterSuccess('Registration successful! We will contact you soon.');
+			setRegisterData(initialRegisterState);
+		} catch (err) {
+			setRegisterError(
+				err?.response?.data?.message ||
+					'Registration failed. Please check your details or try again.'
+			);
+		}
+		setRegisterLoading(false);
+	};
+
 	return (
 		<div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0a0e17] to-[#1a1f3a] font-poppins overflow-x-hidden">
 			<TechBackground />
@@ -188,94 +267,115 @@ const AuthPage = () => {
 				{/* Branding Header */}
 				<div className="text-center py-4 animate-fade-in-down">
 					<div className="flex justify-center items-center gap-4 mb-2">
-						<div className="w-12 h-12 bg-gradient-to-br from-[#6a11cb] to-[#2575fc] rounded-full flex items-center justify-center text-white text-2xl shadow-lg animate-pulse-slow">
-							<i className="fas fa-atom" />
-						</div>
-						<h1 className="text-4xl font-bold bg-gradient-to-r from-[#6a11cb] to-[#2575fc] bg-clip-text text-transparent tracking-wide animate-text-glow">
+						<div
+													className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shadow-xl logo-float overflow-hidden border border-cyan-700/30"
+													style={{
+														background: 'linear-gradient(135deg, #0a0e17 80%, #232946 100%)',
+														boxShadow: '0 6px 32px 0 #0ff2, 0 2px 12px 0 #6366f133',
+													}}
+												>
+													<img
+														src={logo}
+														alt="Vibranta Logo"
+														className="w-9 h-9 sm:w-12 sm:h-12 rounded-full object-cover"
+														loading="lazy"
+														decoding="async"
+														style={{
+															background:
+																'linear-gradient(135deg, #06b6d4 0%, #2563eb 50%, #a21caf 100%)',
+															border: '2.5px solid #0ff',
+															boxShadow: '0 0 0 2px #232946',
+														}}
+													/>
+												</div>
+						<h1 className="text-5xl font-extrabold bg-gradient-to-r from-[#6a11cb] to-[#2575fc] bg-clip-text text-transparent tracking-wide animate-text-glow drop-shadow-lg">
 							Vibranta
 						</h1>
 					</div>
-					<p className="text-base font-light max-w-xl mx-auto leading-relaxed text-white/80 animate-fade-in-down delay-100">
-						"Empowering student innovation through technology, community, and
-						creativity."
+					<p className="text-lg font-light max-w-xl mx-auto leading-relaxed text-white/80 animate-fade-in-down delay-100">
+						Empowering student innovation through <span className="font-semibold text-[#8e2de2]">technology</span>, <span className="font-semibold text-[#2575fc]">community</span>, and <span className="font-semibold text-[#6a11cb]">creativity</span>.
 					</p>
 				</div>
 
 				{/* Form Container */}
 				<div
 					ref={formContainerRef}
-					className="w-full max-w-md bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-xl overflow-hidden relative transition-all duration-500 ease-out animate-float"
+					className="w-full max-w-2xl bg-white/10 backdrop-blur-2xl rounded-3xl border border-white/20 shadow-2xl overflow-hidden relative transition-all duration-500 ease-out animate-float"
 				>
-					<div className="flex border-b border-white/20">
+					<div className="flex border-b border-white/20 bg-gradient-to-r from-[#6a11cb]/10 to-[#2575fc]/10">
 						<button
-							className={`flex-1 py-4 text-center font-medium cursor-pointer transition-all relative ${activeTab === 'login' ? 'text-white' : 'text-white/70 hover:text-white/90'}`}
+							className={`flex-1 py-5 text-center font-semibold text-lg cursor-pointer transition-all relative ${activeTab === 'login' ? 'text-white' : 'text-white/70 hover:text-white/90'}`}
 							onClick={() => setActiveTab('login')}
 						>
 							Login
 							{activeTab === 'login' && (
-								<span className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-[#6a11cb] to-[#2575fc] animate-tab-indicator" />
+								<span className="absolute bottom-0 left-1/4 w-1/2 h-1 rounded-full bg-gradient-to-r from-[#6a11cb] to-[#2575fc] animate-tab-indicator" />
 							)}
 						</button>
 						<button
-							className={`flex-1 py-4 text-center font-medium cursor-pointer transition-all relative ${activeTab === 'register' ? 'text-white' : 'text-white/70 hover:text-white/90'}`}
+							className={`flex-1 py-5 text-center font-semibold text-lg cursor-pointer transition-all relative ${activeTab === 'register' ? 'text-white' : 'text-white/70 hover:text-white/90'}`}
 							onClick={() => setActiveTab('register')}
 						>
 							Join Club
 							{activeTab === 'register' && (
-								<span className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-[#6a11cb] to-[#2575fc] animate-tab-indicator" />
+								<span className="absolute bottom-0 left-1/4 w-1/2 h-1 rounded-full bg-gradient-to-r from-[#6a11cb] to-[#2575fc] animate-tab-indicator" />
 							)}
 						</button>
 					</div>
-					<div className="p-6 md:p-8">
+					<div className="p-8 md:p-12 bg-gradient-to-br from-white/5 via-[#0a0e17]/10 to-[#1a1f3a]/10">
 						{/* Login Form */}
 						{activeTab === 'login' && (
-							<form className="animate-fade-in">
-								<h2 className="text-2xl mb-6 text-center font-semibold bg-gradient-to-r from-[#6a11cb] to-[#2575fc] bg-clip-text text-transparent animate-text-glow">
+							<form className="animate-fade-in flex flex-col gap-6">
+								<h2 className="text-3xl mb-2 text-center font-bold bg-gradient-to-r from-[#6a11cb] to-[#2575fc] bg-clip-text text-transparent animate-text-glow">
 									Welcome Back
 								</h2>
-								<div className="mb-6 relative">
+								<div className="mb-2 relative">
 									<label
 										htmlFor="login-id"
 										className="block mb-2 font-medium text-white/90"
 									>
 										LPU ID or Email
 									</label>
-									<i className="fas fa-user absolute left-4 top-10 text-[#8e2de2]" />
-									<input
-										type="text"
-										id="login-id"
-										placeholder="Enter your LPU ID or email"
-										required
-										className="w-full pl-12 pr-4 py-3 rounded-lg border border-white/10 bg-black/20 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/30"
-									/>
+									<div className="relative">
+										<i className="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-[#8e2de2]" />
+										<input
+											type="text"
+											id="login-id"
+											placeholder="Enter your LPU ID or email"
+											required
+											className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/40"
+										/>
+									</div>
 								</div>
-								<div className="mb-6 relative">
+								<div className="mb-2 relative">
 									<label
 										htmlFor="login-password"
 										className="block mb-2 font-medium text-white/90"
 									>
 										Password
 									</label>
-									<i className="fas fa-lock absolute left-4 top-10 text-[#8e2de2]" />
-									<input
-										type={showPassword ? 'text' : 'password'}
-										id="login-password"
-										placeholder="Enter your password"
-										required
-										className="w-full pl-12 pr-12 py-3 rounded-lg border border-white/10 bg-black/20 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/30"
-									/>
-									<i
-										className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'} absolute right-4 top-10 text-white/60 cursor-pointer transition-all hover:text-[#8e2de2]`}
-										onClick={() => setShowPassword((v) => !v)}
-									/>
+									<div className="relative">
+										<i className="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-[#8e2de2]" />
+										<input
+											type={showPassword ? 'text' : 'password'}
+											id="login-password"
+											placeholder="Enter your password"
+											required
+											className="w-full pl-12 pr-12 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/40"
+										/>
+										<i
+											className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'} absolute right-4 top-1/2 -translate-y-1/2 text-white/60 cursor-pointer transition-all hover:text-[#8e2de2]`}
+											onClick={() => setShowPassword((v) => !v)}
+										/>
+									</div>
 								</div>
 								<button
 									type="submit"
-									className="w-full py-3 rounded-lg bg-gradient-to-r from-[#6a11cb] to-[#2575fc] text-white font-poppins text-lg font-medium cursor-pointer transition-all mt-2 shadow-md hover:-translate-y-0.5 hover:shadow-lg transform transition-transform duration-300 hover:scale-[1.02]"
+									className="w-full py-3 rounded-xl bg-gradient-to-r from-[#6a11cb] to-[#2575fc] text-white font-poppins text-lg font-semibold cursor-pointer transition-all mt-2 shadow-lg hover:-translate-y-0.5 hover:shadow-xl transform transition-transform duration-300 hover:scale-[1.03]"
 								>
 									Login
 								</button>
-								<div className="mt-4 text-center text-sm">
+								<div className="mt-2 text-center text-sm">
 									<a
 										href="#"
 										className="text-[#8e2de2] font-medium hover:underline transition-all"
@@ -288,104 +388,120 @@ const AuthPage = () => {
 
 						{/* Registration Form */}
 						{activeTab === 'register' && (
-							<form className="animate-fade-in">
-								<h2 className="text-2xl mb-6 text-center font-semibold bg-gradient-to-r from-[#6a11cb] to-[#2575fc] bg-clip-text text-transparent animate-text-glow">
+							<form className="animate-fade-in flex flex-col gap-6" onSubmit={handleRegisterSubmit}>
+								<h2 className="text-3xl mb-2 text-center font-bold bg-gradient-to-r from-[#6a11cb] to-[#2575fc] bg-clip-text text-transparent animate-text-glow">
 									Join Our Community
 								</h2>
-								<div className="mb-6 relative">
-									<label
-										htmlFor="full-name"
-										className="block mb-2 font-medium text-white/90"
-									>
+								{registerError && (
+									<div className="text-red-400 text-center font-medium">{registerError}</div>
+								)}
+								{registerSuccess && (
+									<div className="text-green-400 text-center font-medium">{registerSuccess}</div>
+								)}
+								<div className="mb-2 relative">
+									<label htmlFor="fullName" className="block mb-2 font-medium text-white/90">
 										Full Name
 									</label>
-									<i className="fas fa-user absolute left-4 top-10 text-[#8e2de2]" />
-									<input
-										type="text"
-										id="full-name"
-										placeholder="Enter your full name"
-										required
-										className="w-full pl-12 pr-4 py-3 rounded-lg border border-white/10 bg-black/20 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/30"
-									/>
-								</div>
-								<div className="flex gap-4 mb-6 flex-col md:flex-row">
-									<div className="relative flex-1">
-										<label
-											htmlFor="lpu-id"
-											className="block mb-2 font-medium text-white/90"
-										>
-											LPU ID
-										</label>
-										<i className="fas fa-id-card absolute left-4 top-10 text-[#8e2de2]" />
+									<div className="relative">
+										<i className="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-[#8e2de2]" />
 										<input
 											type="text"
-											id="lpu-id"
-											placeholder="Enter LPU ID"
+											id="fullName"
+											name="fullName"
+											placeholder="Enter your full name"
 											required
-											className="w-full pl-12 pr-4 py-3 rounded-lg border border-white/10 bg-black/20 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/30"
+											value={registerData.fullName}
+											onChange={handleRegisterChange}
+											className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/40"
 										/>
 									</div>
+								</div>
+								<div className="flex gap-4 mb-2 flex-col md:flex-row">
 									<div className="relative flex-1">
-										<label
-											htmlFor="email"
-											className="block mb-2 font-medium text-white/90"
-										>
+										<label htmlFor="LpuId" className="block mb-2 font-medium text-white/90">
+											LPU ID
+										</label>
+										<div className="relative">
+											<i className="fas fa-id-card absolute left-4 top-1/2 -translate-y-1/2 text-[#8e2de2]" />
+											<input
+												type="text"
+												id="LpuId"
+												name="LpuId"
+												placeholder="Enter LPU ID"
+												required
+												value={registerData.LpuId}
+												onChange={handleRegisterChange}
+												className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/40"
+											/>
+										</div>
+									</div>
+									<div className="relative flex-1">
+										<label htmlFor="email" className="block mb-2 font-medium text-white/90">
 											Email
 										</label>
-										<i className="fas fa-envelope absolute left-4 top-10 text-[#8e2de2]" />
-										<input
-											type="email"
-											id="email"
-											placeholder="Enter your email"
-											required
-											className="w-full pl-12 pr-4 py-3 rounded-lg border border-white/10 bg-black/20 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/30"
-										/>
+										<div className="relative">
+											<i className="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-[#8e2de2]" />
+											<input
+												type="email"
+												id="email"
+												name="email"
+												placeholder="Enter your email"
+												required
+												value={registerData.email}
+												onChange={handleRegisterChange}
+												className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/40"
+											/>
+										</div>
 									</div>
 								</div>
-								<div className="flex gap-4 mb-6 flex-col md:flex-row">
+								<div className="flex gap-4 mb-2 flex-col md:flex-row">
 									<div className="relative flex-1">
-										<label
-											htmlFor="phone"
-											className="block mb-2 font-medium text-white/90"
-										>
+										<label htmlFor="phone" className="block mb-2 font-medium text-white/90">
 											Phone
 										</label>
-										<i className="fas fa-phone absolute left-4 top-10 text-[#8e2de2]" />
-										<input
-											type="tel"
-											id="phone"
-											placeholder="Enter phone number"
-											required
-											className="w-full pl-12 pr-4 py-3 rounded-lg border border-white/10 bg-black/20 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/30"
-										/>
+										<div className="relative">
+											<i className="fas fa-phone absolute left-4 top-1/2 -translate-y-1/2 text-[#8e2de2]" />
+											<input
+												type="tel"
+												id="phone"
+												name="phone"
+												placeholder="Enter phone number"
+												required
+												value={registerData.phone}
+												onChange={handleRegisterChange}
+												className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/40"
+											/>
+										</div>
 									</div>
 									<div className="relative flex-1">
-										<label
-											htmlFor="course"
-											className="block mb-2 font-medium text-white/90"
-										>
+										<label htmlFor="course" className="block mb-2 font-medium text-white/90">
 											Course
 										</label>
-										<i className="fas fa-graduation-cap absolute left-4 top-10 text-[#8e2de2]" />
-										<select
-											id="course"
-											required
-											className="w-full pl-12 pr-4 py-3 rounded-lg border border-white/10 bg-black/20 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/30"
-										>
-											<option value="" disabled>
-												Select your course
-											</option>
-											<option value="btech">B.Tech</option>
-											<option value="mtech">M.Tech</option>
-											<option value="bca">BCA</option>
-											<option value="mca">MCA</option>
-											<option value="bsc">B.Sc</option>
-											<option value="msc">M.Sc</option>
-											<option value="other">Other</option>
-										</select>
+										<div className="relative">
+											<i className="fas fa-graduation-cap absolute left-4 top-1/2 -translate-y-1/2 text-[#8e2de2]" />
+											<select
+												id="course"
+												name="course"
+												required
+												value={registerData.course}
+												onChange={handleRegisterChange}
+												className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/40"
+											>
+												<option value="" disabled>
+													Select your course
+												</option>
+												<option value="btech">B.Tech</option>
+												<option value="mtech">M.Tech</option>
+												<option value="bca">BCA</option>
+												<option value="mca">MCA</option>
+												<option value="bsc">B.Sc</option>
+												<option value="msc">M.Sc</option>
+												<option value="other">Other</option>
+											</select>
+										</div>
 									</div>
 								</div>
-								<div className="flex gap-4 mb-6 flex-col md:flex-row">
+								<div className="flex gap-4 mb-2 flex-col md:flex-row">
 									<div className="flex-1">
 										<label className="block mb-2 font-medium text-white/90">
 											Gender
@@ -397,6 +513,8 @@ const AuthPage = () => {
 													name="gender"
 													value="male"
 													required
+													checked={registerData.gender === 'male'}
+													onChange={handleRegisterChange}
 													className="accent-[#8e2de2]"
 												/>{' '}
 												Male
@@ -406,56 +524,51 @@ const AuthPage = () => {
 													type="radio"
 													name="gender"
 													value="female"
+													checked={registerData.gender === 'female'}
+													onChange={handleRegisterChange}
 													className="accent-[#8e2de2]"
 												/>{' '}
 												Female
 											</label>
-											<label className="flex items-center gap-2 transition-all hover:text-[#8e2de2]">
-												<input
-													type="radio"
-													name="gender"
-													value="other"
-													className="accent-[#8e2de2]"
-												/>{' '}
-												Other
-											</label>
 										</div>
 									</div>
 									<div className="relative flex-1">
-										<label
-											htmlFor="accommodation"
-											className="block mb-2 font-medium text-white/90"
-										>
+										<label htmlFor="accommodation" className="block mb-2 font-medium text-white/90">
 											Accommodation
 										</label>
-										<i className="fas fa-home absolute left-4 top-10 text-[#8e2de2]" />
-										<select
-											id="accommodation"
-											required
-											className="w-full pl-12 pr-4 py-3 rounded-lg border border-white/10 bg-black/20 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/30"
-										>
-											<option value="" disabled>
-												Select accommodation
-											</option>
-											<option value="hostel">Hostel</option>
-											<option value="day-scholar">Day Scholar</option>
-										</select>
+										<div className="relative">
+											<i className="fas fa-home absolute left-4 top-1/2 -translate-y-1/2 text-[#8e2de2]" />
+											<select
+												id="accommodation"
+												name="accommodation"
+												required
+												value={registerData.accommodation}
+												onChange={handleRegisterChange}
+												className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/40"
+											>
+												<option value="" disabled>
+													Select accommodation
+												</option>
+												<option value="hostel">Hostel</option>
+												<option value="day-scholar">Day Scholar</option>
+											</select>
+										</div>
 									</div>
 								</div>
-								<div className="mb-6 relative">
-									<label
-										htmlFor="domains"
-										className="block mb-2 font-medium text-white/90"
-									>
+								<div className="mb-2 relative">
+									<label htmlFor="domains" className="block mb-2 font-medium text-white/90">
 										Areas of Interest (Domains)
 									</label>
 									<div className="relative">
 										<i className="fas fa-code absolute left-4 top-4 text-[#8e2de2]" />
 										<select
 											id="domains"
+											name="domains"
 											multiple
 											required
-											className="w-full pl-12 pr-4 py-3 rounded-lg border border-white/10 bg-black/20 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 h-24 hover:bg-black/30"
+											value={registerData.domains}
+											onChange={handleRegisterChange}
+											className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 h-24 hover:bg-black/40"
 										>
 											<option value="web-dev">Web Development</option>
 											<option value="app-dev">App Development</option>
@@ -471,59 +584,54 @@ const AuthPage = () => {
 										Hold Ctrl/Cmd to select multiple
 									</p>
 								</div>
-								<div className="mb-6 relative">
-									<label
-										htmlFor="experience"
-										className="block mb-2 font-medium text-white/90"
-									>
+								<div className="mb-2 relative flex gap-4">
+									<label className="flex items-center gap-2 text-white/90">
+										<input
+											type="checkbox"
+											name="previousExperience"
+											checked={registerData.previousExperience}
+											onChange={handleRegisterChange}
+											className="accent-[#8e2de2]"
+										/>
 										Previous Experience
 									</label>
-									<i className="fas fa-briefcase absolute left-4 top-10 text-[#8e2de2]" />
-									<textarea
-										id="experience"
-										placeholder="Describe your previous experience (if any)"
-										rows={3}
-										className="w-full pl-12 pr-4 py-3 rounded-lg border border-white/10 bg-black/20 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/30"
-									/>
-								</div>
-								<div className="mb-6 relative">
-									<label
-										htmlFor="other-org"
-										className="block mb-2 font-medium text-white/90"
-									>
-										Other Organizations
+									<label className="flex items-center gap-2 text-white/90">
+										<input
+											type="checkbox"
+											name="anyotherorg"
+											checked={registerData.anyotherorg}
+											onChange={handleRegisterChange}
+											className="accent-[#8e2de2]"
+										/>
+										Member of Other Organizations
 									</label>
-									<i className="fas fa-users absolute left-4 top-10 text-[#8e2de2]" />
-									<input
-										type="text"
-										id="other-org"
-										placeholder="Other clubs/organizations you're part of"
-										className="w-full pl-12 pr-4 py-3 rounded-lg border border-white/10 bg-black/20 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/30"
-									/>
 								</div>
-								<div className="mb-6 relative">
-									<label
-										htmlFor="bio"
-										className="block mb-2 font-medium text-white/90"
-									>
+								<div className="mb-2 relative">
+									<label htmlFor="bio" className="block mb-2 font-medium text-white/90">
 										Bio
 									</label>
-									<i className="fas fa-comment absolute left-4 top-10 text-[#8e2de2]" />
-									<textarea
-										id="bio"
-										placeholder="Tell us about yourself..."
-										rows={3}
-										required
-										className="w-full pl-12 pr-4 py-3 rounded-lg border border-white/10 bg-black/20 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/30"
-									/>
+									<div className="relative">
+										<i className="fas fa-comment absolute left-4 top-4 text-[#8e2de2]" />
+										<textarea
+											id="bio"
+											name="bio"
+											placeholder="Tell us about yourself..."
+											rows={3}
+											required
+											value={registerData.bio}
+											onChange={handleRegisterChange}
+											className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/40"
+										/>
+									</div>
 								</div>
 								<button
 									type="submit"
-									className="w-full py-3 rounded-lg bg-gradient-to-r from-[#6a11cb] to-[#2575fc] text-white font-poppins text-lg font-medium cursor-pointer transition-all mt-2 shadow-md hover:-translate-y-0.5 hover:shadow-lg transform transition-transform duration-300 hover:scale-[1.02]"
+									disabled={registerLoading}
+									className="w-full py-3 rounded-xl bg-gradient-to-r from-[#6a11cb] to-[#2575fc] text-white font-poppins text-lg font-semibold cursor-pointer transition-all mt-2 shadow-lg hover:-translate-y-0.5 hover:shadow-xl transform transition-transform duration-300 hover:scale-[1.03] disabled:opacity-60"
 								>
-									Register Now
+									{registerLoading ? 'Registering...' : 'Register Now'}
 								</button>
-								<div className="mt-4 text-center text-sm">
+								<div className="mt-2 text-center text-sm">
 									<p>
 										Already a member?{' '}
 										<button
