@@ -39,13 +39,26 @@ const Navbar = () => {
 	const { user, isAuthenticated, loading, logoutMember, logoutAdmin } = useAuth();
 	const [isScrolled, setIsScrolled] = useState(false);
 	const [isUserOpen, setIsUserOpen] = useState(false);
+	const [showNavbar, setShowNavbar] = useState(true);
 	const userRef = useRef(null);
+	const lastScrollY = useRef(window.scrollY);
 	const navigate = useNavigate();
 
 	// Scroll listener for navbar blur/shadow
 	useEffect(() => {
 		const handleScroll = () => {
-			setIsScrolled(window.scrollY > 20);
+			const currentScrollY = window.scrollY;
+			if (currentScrollY < 20) {
+				setShowNavbar(true);
+			} else if (currentScrollY > lastScrollY.current) {
+				// Scrolling down
+				setShowNavbar(false);
+			} else {
+				// Scrolling up
+				setShowNavbar(true);
+			}
+			lastScrollY.current = currentScrollY;
+			setIsScrolled(currentScrollY > 20);
 		};
 		window.addEventListener('scroll', handleScroll);
 		return () => window.removeEventListener('scroll', handleScroll);
@@ -276,8 +289,8 @@ const Navbar = () => {
 					isScrolled
 						? 'glass-effect navbar-glow shadow-2xl'
 						: 'bg-gradient-to-r from-slate-900/70 to-slate-800/70 backdrop-blur-sm'
-				} navbar-height`}
-				style={{ height: '5rem' }}
+				} navbar-height ${showNavbar ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+				style={{ height: '5rem', transform: showNavbar ? 'translateY(0)' : 'translateY(-100%)', transition: 'transform 0.4s, opacity 0.4s' }}
 			>
 				<div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between h-full">
 					{/* Brand with animated background */}
