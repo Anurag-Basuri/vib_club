@@ -1,5 +1,5 @@
-// src/components/TeamPreview.jsx
-import React from 'react';
+import React, {useEffect, useCallback} from 'react';
+import axios from 'axios';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 

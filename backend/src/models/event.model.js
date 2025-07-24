@@ -25,6 +25,13 @@ const EventSchema = new mongoose.Schema({
             message: 'Event date must be in the future'
         }
     },
+    time: {
+        type: String,
+        required: [true, 'Time is required'],
+        trim: true,
+        minlength: [2, 'Time must be at least 2 characters'],
+        maxlength: [20, 'Time cannot exceed 20 characters']
+    },
     venue: {
         type: String,
         required: [true, 'Venue is required'],
@@ -55,7 +62,15 @@ const EventSchema = new mongoose.Schema({
             message: 'All posters must be valid image URLs'
         }
     },
+    tags: {
+        type: [String],
+        trim: true,
+    },
 
+    totalSpots: {
+        type: Number,
+        min: [0, 'Total spots cannot be negative']
+    },
     ticketPrice: {
         type: Number,
         min: [0, 'Ticket price cannot be negative']
