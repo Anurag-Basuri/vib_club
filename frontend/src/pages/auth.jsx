@@ -164,29 +164,29 @@ const FloatingOrbs = () => {
 	);
 };
 
-const initialRegisterState = {
-	fullName: '',
-	LpuId: '',
-	email: '',
-	phone: '',
-	course: '',
-	gender: '',
-	domains: [],
-	accommodation: '',
-	previousExperience: false,
-	anyotherorg: false,
-	bio: '',
-};
-
 const AuthPage = () => {
 	const [activeTab, setActiveTab] = useState('login');
 	const [showPassword, setShowPassword] = useState(false);
-	const [registerData, setRegisterData] = useState(initialRegisterState);
 	const [registerError, setRegisterError] = useState('');
 	const [registerSuccess, setRegisterSuccess] = useState('');
 	const [registerLoading, setRegisterLoading] = useState(false);
 	const formContainerRef = useRef(null);
 	const { loginMember } = useAuth();
+
+	const initialRegisterState = {
+		fullName: '',
+		LpuId: '',
+		email: '',
+		phone: '',
+		course: '',
+		gender: '',
+		domains: [],
+		accommodation: '',
+		previousExperience: false,
+		anyotherorg: false,
+		bio: '',
+	};
+	const [registerData, setRegisterData] = useState(initialRegisterState);
 
 	useEffect(() => {
 		const handleScroll = () => {
@@ -264,40 +264,36 @@ const AuthPage = () => {
 			<FloatingOrbs />
 
 			<div className="w-full max-w-4xl mx-auto flex flex-col items-center gap-8 z-10 px-4">
-				{/* Branding Header */}
-				<div className="text-center py-4 animate-fade-in-down">
-					<div className="flex justify-center items-center gap-4 mb-2">
-						<div
-													className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shadow-xl logo-float overflow-hidden border border-cyan-700/30"
-													style={{
-														background: 'linear-gradient(135deg, #0a0e17 80%, #232946 100%)',
-														boxShadow: '0 6px 32px 0 #0ff2, 0 2px 12px 0 #6366f133',
-													}}
-												>
-													<img
-														src={logo}
-														alt="Vibranta Logo"
-														className="w-9 h-9 sm:w-12 sm:h-12 rounded-full object-cover"
-														loading="lazy"
-														decoding="async"
-														style={{
-															background:
-																'linear-gradient(135deg, #06b6d4 0%, #2563eb 50%, #a21caf 100%)',
-															border: '2.5px solid #0ff',
-															boxShadow: '0 0 0 2px #232946',
-														}}
-													/>
-												</div>
-						<h1 className="text-5xl font-extrabold bg-gradient-to-r from-[#6a11cb] to-[#2575fc] bg-clip-text text-transparent tracking-wide animate-text-glow drop-shadow-lg">
+				{/* Branding Header with creative animation */}
+				<div className="relative text-center py-10 animate-fade-in-down select-none">
+					<div className="absolute inset-0 flex justify-center items-center pointer-events-none z-0">
+						<div className="w-80 h-80 bg-gradient-to-br from-[#0a0e17] via-[#6a11cb]/40 to-[#2575fc]/30 rounded-full blur-3xl opacity-60 animate-spin-slow" />
+						<div className="w-40 h-40 bg-gradient-to-tr from-[#8e2de2]/30 to-[#2575fc]/20 rounded-full blur-2xl opacity-40 animate-pulse-slow absolute left-1/4 top-1/4" />
+						<div className="w-24 h-24 bg-gradient-to-br from-[#2575fc]/40 to-[#6a11cb]/30 rounded-full blur-2xl opacity-30 animate-bounce-slow absolute right-1/4 bottom-1/4" />
+					</div>
+					<div className="relative flex justify-center items-center gap-4 mb-2 z-10">
+						<div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-2xl logo-float overflow-hidden border-2 border-cyan-400/40 bg-black/70 animate-logo-pop relative">
+							<img
+								src={logo}
+								alt="Vibranta Club Logo"
+								className="w-12 h-12 rounded-full object-cover animate-spin-slow"
+								loading="lazy"
+								decoding="async"
+							/>
+							<span className="absolute inset-0 rounded-2xl border-4 border-cyan-400/30 animate-glow-ring pointer-events-none" aria-hidden="true" />
+						</div>
+						<h1 className="text-5xl font-extrabold bg-gradient-to-r from-[#6a11cb] via-[#2575fc] to-[#8e2de2] bg-clip-text text-transparent tracking-wide animate-text-glow drop-shadow-xl">
 							Vibranta
 						</h1>
 					</div>
-					<p className="text-lg font-light max-w-xl mx-auto leading-relaxed text-white/80 animate-fade-in-down delay-100">
-						Empowering student innovation through <span className="font-semibold text-[#8e2de2]">technology</span>, <span className="font-semibold text-[#2575fc]">community</span>, and <span className="font-semibold text-[#6a11cb]">creativity</span>.
+					<p className="relative text-lg font-light max-w-xl mx-auto leading-relaxed text-white/80 animate-fade-in-down delay-100 z-10">
+						Empowering student innovation through{' '}
+						<span className="font-semibold text-[#8e2de2]">technology</span>,{' '}
+						<span className="font-semibold text-[#2575fc]">community</span>, and{' '}
+						<span className="font-semibold text-[#6a11cb]">creativity</span>.
 					</p>
 				</div>
 
-				{/* Form Container */}
 				<div
 					ref={formContainerRef}
 					className="w-full max-w-2xl bg-white/10 backdrop-blur-2xl rounded-3xl border border-white/20 shadow-2xl overflow-hidden relative transition-all duration-500 ease-out animate-float"
@@ -322,6 +318,7 @@ const AuthPage = () => {
 							)}
 						</button>
 					</div>
+
 					<div className="p-8 md:p-12 bg-gradient-to-br from-white/5 via-[#0a0e17]/10 to-[#1a1f3a]/10">
 						{/* Login Form */}
 						{activeTab === 'login' && (
@@ -534,7 +531,7 @@ const AuthPage = () => {
 									</div>
 									<div className="relative flex-1">
 										<label htmlFor="accommodation" className="block mb-2 font-medium text-white/90">
-											Accommodation
+											Accommodation type
 										</label>
 										<div className="relative">
 											<i className="fas fa-home absolute left-4 top-1/2 -translate-y-1/2 text-[#8e2de2]" />
@@ -546,18 +543,15 @@ const AuthPage = () => {
 												onChange={handleRegisterChange}
 												className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/40"
 											>
-												<option value="" disabled>
-													Select accommodation
-												</option>
-												<option value="hostel">Hostel</option>
-												<option value="day-scholar">Day Scholar</option>
+												<option value="hostler">Hostler</option>
+												<option value="non-hostler">Non-Hostler</option>
 											</select>
 										</div>
 									</div>
 								</div>
 								<div className="mb-2 relative">
 									<label htmlFor="domains" className="block mb-2 font-medium text-white/90">
-										Areas of Interest (Domains)
+										Interested Domains
 									</label>
 									<div className="relative">
 										<i className="fas fa-code absolute left-4 top-4 text-[#8e2de2]" />
@@ -570,14 +564,15 @@ const AuthPage = () => {
 											onChange={handleRegisterChange}
 											className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 h-24 hover:bg-black/40"
 										>
-											<option value="web-dev">Web Development</option>
-											<option value="app-dev">App Development</option>
-											<option value="ai-ml">AI & Machine Learning</option>
-											<option value="cybersecurity">Cybersecurity</option>
-											<option value="cloud-computing">Cloud Computing</option>
-											<option value="iot">Internet of Things</option>
-											<option value="data-science">Data Science</option>
-											<option value="blockchain">Blockchain</option>
+											<option value="technical">Technical</option>
+											<option value="data-management">Data Management</option>
+											<option value="event-management">Event Management</option>
+											<option value="marketing">Marketing</option>
+											<option value="media">Media</option>
+											<option value="content-creation">Content Creation</option>
+											<option value="content-writing">Content Writing</option>
+											<option value="arts-and-culture">Arts and Culture</option>
+											<option value="design">Design</option>
 										</select>
 									</div>
 									<p className="mt-1 text-xs text-white/60">

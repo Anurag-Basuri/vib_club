@@ -1,5 +1,5 @@
-import axios from 'axios';
 import { useState, useEffect, useCallback } from 'react';
+import { publicClient } from '../services/api';
 
 const useApply = (applicationId) => {
     const [application, setApplication] = useState(null);
@@ -11,11 +11,11 @@ const useApply = (applicationId) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.get(`/api/applications/${applicationId}`);
+            const response = await publicClient.get(`/api/applications/${applicationId}`);
             setApplication(response.data.application);
             setStatus(response.data.application.status);
         } catch (err) {
-            setError(err);
+            setError(err?.message || err);
             setApplication(null);
             setStatus(null);
         } finally {

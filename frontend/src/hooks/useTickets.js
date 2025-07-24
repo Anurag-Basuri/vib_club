@@ -1,5 +1,5 @@
-import axios from 'axios';
 import { useState, useEffect, useCallback } from 'react';
+import { apiClient } from '../services/api';
 
 // Hook to toggle ticket status
 export const useToggleTicketStatus = () => {
@@ -10,12 +10,11 @@ export const useToggleTicketStatus = () => {
         setLoading(true);
         setError(null);
         try {
-            // Get current ticket status
-            const { data } = await axios.get(`/api/tickets/${ticketId}`);
+            const { data } = await apiClient.get(`/api/tickets/${ticketId}`);
             const newStatus = data.isUsed === true ? false : true;
-            await axios.put(`/api/tickets/${ticketId}/status`, { isUsed: newStatus });
+            await apiClient.put(`/api/tickets/${ticketId}/status`, { isUsed: newStatus });
         } catch (err) {
-            setError(err);
+            setError(err?.message || err);
         } finally {
             setLoading(false);
         }
@@ -35,10 +34,10 @@ export const useTicketById = (ticketId) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await axios.get(`/api/tickets/${ticketId}`);
+            const response = await apiClient.get(`/api/tickets/${ticketId}`);
             setTicket(response.data);
         } catch (err) {
-            setError(err);
+            setError(err?.message || err);
         } finally {
             setLoading(false);
         }
