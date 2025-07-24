@@ -97,9 +97,6 @@ const applySchema = new mongoose.Schema({
 });
 
 applySchema.pre('save', function(next) {
-    if (this.isNew && !validate(this._id)) {
-        return next(new ApiError(400, 'Invalid UUID format'));
-    }
     next();
 });
 
