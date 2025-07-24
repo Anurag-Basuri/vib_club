@@ -146,10 +146,10 @@ const deleteEvent = asyncHandler(async (req, res) => {
 		);
 });
 
-// Get Upcoming Events
-const getUpcomingEvents = asyncHandler(async (req, res) => {
+// Get Upcoming Event
+const getUpcomingEvent = asyncHandler(async (req, res) => {
 	const now = new Date();
-	const events = await Event.find({ date: { $gte: now }, status: { $ne: 'cancelled' } }).sort({ date: 1 });
+	const event = await Event.findOne({ date: { $gte: now }, status: { $ne: 'cancelled' } }).sort({ date: 1 });
 
 	return res
 		.status(200)
@@ -166,5 +166,5 @@ export {
 	getAllEvents,
 	getEventById,
 	deleteEvent,
-	getUpcomingEvents
+	getUpcomingEvent
 };

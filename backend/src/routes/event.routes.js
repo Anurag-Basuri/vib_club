@@ -5,7 +5,7 @@ import {
     getAllEvents,
     getEventById,
     deleteEvent,
-    getUpcomingEvents
+    getUpcomingEvent
 } from '../controllers/event.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { validate } from '../middlewares/validator.middleware.js';
@@ -76,8 +76,8 @@ router.delete(
 
 // Get Upcoming Events
 router.get(
-    '/upcoming-events',
-    getUpcomingEvents
+    '/upcoming-event',
+    getUpcomingEvent
 );
 
 export default router;
