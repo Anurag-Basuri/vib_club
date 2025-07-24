@@ -26,7 +26,7 @@ const navSections = [
             { name: 'Home', icon: Home, path: '/', color: '#00d9ff' },
             { name: 'Events', icon: Calendar, path: '/event', color: '#7c3aed' },
             { name: 'Team', icon: Users, path: '/team', color: '#0ea5e9' },
-            { name: 'Social', icon: Share2, path: '/social-page', color: '#06b6d4' },
+            { name: 'Social', icon: Sparkles, path: '/social-page', color: '#06b6d4' }, // Changed icon to Sparkles
             { name: 'Contact', icon: Mail, path: '/contact', color: '#0284c7' },
         ],
     },
@@ -361,13 +361,6 @@ const Navbar = () => {
                                             >
                                                 <LayoutDashboard className="h-5 w-5 text-cyan-400 group-hover:scale-110 transition-transform" />
                                                 <span>Dashboard</span>
-                                            </button>
-                                            <button
-                                                onClick={() => handleLinkClick('Settings')}
-                                                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-all duration-300 text-white group"
-                                            >
-                                                <Settings className="h-5 w-5 text-purple-400 group-hover:scale-110 transition-transform" />
-                                                <span>Settings</span>
                                             </button>
                                         </div>
                                         <div className="p-3 border-t border-white/10">

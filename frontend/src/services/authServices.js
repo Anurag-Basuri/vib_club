@@ -30,7 +30,7 @@ export const isAuthenticated = () => {
 
 export const memberRegister = async (data) => {
   try {
-    const response = await publicApiClient.post('/api/members/register', data);
+    const response = await publicClient.post('/api/members/register', data);
 
     const { accessToken, refreshToken } = response.data;
     setToken({ accessToken, refreshToken });
@@ -44,7 +44,7 @@ export const memberRegister = async (data) => {
 
 export const memberLogin = async (data) => {
   try {
-    const response = await publicApiClient.post('/api/members/login', data);
+    const response = await publicClient.post('/api/members/login', data);
 
     const { accessToken, refreshToken } = response.data;
     setToken({ accessToken, refreshToken });
