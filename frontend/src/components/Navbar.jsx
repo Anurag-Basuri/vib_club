@@ -48,7 +48,8 @@ const Navbar = () => {
 	useEffect(() => {
 		const handleScroll = () => {
 			const currentScrollY = window.scrollY;
-			if (currentScrollY < 20) {
+			if (currentScrollY <= 0) {
+				// Always show at the very top
 				setShowNavbar(true);
 			} else if (currentScrollY > lastScrollY.current) {
 				// Scrolling down

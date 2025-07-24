@@ -12,7 +12,9 @@ function AppContent() {
     return (
         <Lenis root options={{ lerp: 0.1, smoothWheel: true }}>
             {!hideNavbar && <Navbar />}
-            <AppRoutes />
+            <div style={!hideNavbar ? { paddingTop: '5rem' } : {}}>
+                <AppRoutes />
+            </div>
         </Lenis>
     );
 }
