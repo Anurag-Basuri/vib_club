@@ -1,5 +1,5 @@
-import axios from 'axios';
 import { useState, useEffect, useCallback } from 'react';
+import { publicClient } from '../services/api';
 
 const useSocials = () => {
     const [socials, setSocials] = useState([]);
@@ -9,10 +9,10 @@ const useSocials = () => {
     const fetchSocials = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await axios.get('/api/socials/getall');
+            const response = await publicClient.get('/api/socials/getall');
             setSocials(response.data);
         } catch (err) {
-            setError(err);
+            setError(err?.message || err);
         } finally {
             setLoading(false);
         }

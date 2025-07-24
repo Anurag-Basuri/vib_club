@@ -1,5 +1,5 @@
-import axios from 'axios';
 import { useState, useEffect, useCallback } from 'react';
+import { apiClient } from '../services/api';
 
 const useProfile = (memberId) => {
     const [profile, setProfile] = useState(null);
@@ -9,10 +9,10 @@ const useProfile = (memberId) => {
     const fetchProfile = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`/api/members/${memberId}`);
+            const response = await apiClient.get(`/api/members/${memberId}`);
             setProfile(response.data);
         } catch (err) {
-            setError(err);
+            setError(err?.message || err);
         } finally {
             setLoading(false);
         }

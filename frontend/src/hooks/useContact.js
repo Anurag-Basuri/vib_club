@@ -1,5 +1,5 @@
-import axios from 'axios';
 import { useState, useEffect, useCallback } from 'react';
+import { apiClient } from '../services/api';
 
 const useContact = (contactId) => {
     const [contact, setContact] = useState(null);
@@ -11,10 +11,10 @@ const useContact = (contactId) => {
         setLoading(true);
         setError(null);
         try {
-            await axios.post(`/api/contacts/${contactId}/resolve`);
+            await apiClient.post(`/api/contacts/${contactId}/resolve`);
             setResolved(true);
         } catch (err) {
-            setError(err);
+            setError(err?.message || err);
         } finally {
             setLoading(false);
         }
@@ -25,11 +25,11 @@ const useContact = (contactId) => {
             setLoading(true);
             setError(null);
             try {
-                const response = await axios.get(`/api/contacts/${contactId}`);
+                const response = await apiClient.get(`/api/contacts/${contactId}`);
                 setContact(response.data.contact);
                 setResolved(response.data.contact?.resolved || false);
             } catch (err) {
-                setError(err);
+                setError(err?.message || err);
                 setContact(null);
             } finally {
                 setLoading(false);
