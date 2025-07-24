@@ -1,667 +1,775 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth.js';
-import logo from '../assets/logo.png';
-import axios from 'axios';
-
-const TechBackground = () => {
-	const bgRef = useRef(null);
-
-	useEffect(() => {
-		const bg = bgRef.current;
-		if (!bg) return;
-		bg.innerHTML = '';
-
-		// Circuit lines (SVG)
-		for (let i = 0; i < 15; i++) {
-			const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-			svg.classList.add('absolute', 'w-full', 'h-full', 'pointer-events-none');
-			svg.style.left = 0;
-			svg.style.top = 0;
-			svg.style.zIndex = -1;
-			const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-			const complexity = Math.floor(Math.random() * 10) + 5;
-			let d = `M${Math.random() * 100} ${Math.random() * 100}`;
-			for (let j = 0; j < complexity; j++) {
-				d += ` L${Math.random() * 100} ${Math.random() * 100}`;
-			}
-			path.setAttribute('d', d);
-			path.setAttribute(
-				'stroke',
-				`rgba(${Math.floor(Math.random() * 100) + 100}, ${Math.floor(Math.random() * 100)}, 200, 0.1)`
-			);
-			path.setAttribute('stroke-width', '1');
-			path.setAttribute('fill', 'none');
-			path.setAttribute('stroke-dasharray', '10,5');
-			path.setAttribute('stroke-dashoffset', '1000');
-			svg.appendChild(path);
-			bg.appendChild(svg);
-
-			// Animate the circuit path
-			path.animate([{ strokeDashoffset: 1000 }, { strokeDashoffset: 0 }], {
-				duration: 30000 + Math.random() * 20000,
-				iterations: Infinity,
-			});
-		}
-
-		// Glow nodes
-		for (let i = 0; i < 20; i++) {
-			const node = document.createElement('div');
-			node.className = 'absolute rounded-full animate-pulse';
-			const size = Math.random() * 10 + 5;
-			node.style.width = `${size}px`;
-			node.style.height = `${size}px`;
-			const colors = ['#6a11cb', '#2575fc', '#8e2de2', '#00c6ff'];
-			const color = colors[Math.floor(Math.random() * colors.length)];
-			node.style.background = color;
-			node.style.boxShadow = `0 0 15px ${color}, 0 0 30px ${color}`;
-			node.style.left = `${Math.random() * 100}%`;
-			node.style.top = `${Math.random() * 100}%`;
-			node.style.animationDuration = `${Math.random() * 4 + 2}s`;
-
-			// Add floating animation
-			node.animate(
-				[
-					{ transform: 'translate(0, 0)' },
-					{
-						transform: `translate(${Math.random() * 40 - 20}px, ${Math.random() * 40 - 20}px)`,
-					},
-					{ transform: 'translate(0, 0)' },
-				],
-				{
-					duration: 8000 + Math.random() * 8000,
-					iterations: Infinity,
-					easing: 'ease-in-out',
-				}
-			);
-
-			bg.appendChild(node);
-		}
-
-		// Code snippets
-		const codeLines = [
-			'function innovate() {',
-			'  const tech = new Technology();',
-			'  let solution = tech.createSolution();',
-			'  return solution.implement();',
-			'}',
-			'class Developer {',
-			'  constructor(name, skills) {',
-			'    this.name = name;',
-			'    this.skills = skills;',
-			'  }',
-			'  buildProject() {',
-			'    // Create amazing things',
-			'  }',
-			'}',
-			'const club = {',
-			'  name: "Vibranta",',
-			'  members: [],',
-			'  addMember(member) {',
-			'    this.members.push(member);',
-			'  }',
-			'};',
-			'const domains = ["Web", "AI", "IoT", "Cloud"];',
-			'for (const d of domains) {',
-			'  console.log("Exploring", d);',
-			'}',
-			'async function joinClub(user) {',
-			'  await club.addMember(user);',
-			'  return "Welcome!";',
-			'}',
-			'let idea = "Innovation";',
-			'if (idea) {',
-			'  develop(idea);',
-			'}',
-			'// Empowering students through code',
-			'export default Developer;',
-			'const inspire = () => "Dream. Build. Inspire.";',
-			'console.log(inspire());',
-		];
-		for (let i = 0; i < 20; i++) {
-			const code = document.createElement('div');
-			code.className = 'absolute text-white opacity-10 font-mono select-none -rotate-12';
-			code.textContent = codeLines[Math.floor(Math.random() * codeLines.length)];
-			code.style.left = `${Math.random() * 100}%`;
-			code.style.top = `${Math.random() * 100}%`;
-			code.style.fontSize = `${Math.random() * 6 + 10}px`;
-			code.style.opacity = Math.random() * 0.1 + 0.03;
-
-			// Animate floating code
-			code.animate(
-				[
-					{ transform: 'translate(0, 0) rotate(-12deg)' },
-					{
-						transform: `translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px) rotate(-12deg)`,
-					},
-					{ transform: 'translate(0, 0) rotate(-12deg)' },
-				],
-				{
-					duration: 20000 + Math.random() * 20000,
-					iterations: Infinity,
-					easing: 'ease-in-out',
-				}
-			);
-
-			bg.appendChild(code);
-		}
-	}, []);
-
-	return (
-		<div
-			ref={bgRef}
-			className="fixed inset-0 w-full h-full z-0 overflow-hidden pointer-events-none"
-		/>
-	);
-};
-
-const FloatingOrbs = () => {
-	return (
-		<>
-			<div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-purple-500/10 filter blur-3xl animate-pulse-slow" />
-			<div className="absolute top-1/3 right-1/4 w-48 h-48 rounded-full bg-blue-500/15 filter blur-3xl animate-pulse-slow" />
-			<div className="absolute bottom-1/4 left-1/3 w-56 h-56 rounded-full bg-indigo-500/12 filter blur-3xl animate-pulse-slow" />
-		</>
-	);
-};
+import { publicClient } from '../services/api.js';
 
 const AuthPage = () => {
-	const [activeTab, setActiveTab] = useState('login');
-	const [showPassword, setShowPassword] = useState(false);
-	const [registerError, setRegisterError] = useState('');
-	const [registerSuccess, setRegisterSuccess] = useState('');
-	const [registerLoading, setRegisterLoading] = useState(false);
-	const formContainerRef = useRef(null);
-	const { loginMember } = useAuth();
+  const [activeTab, setActiveTab] = useState('login');
+  const [showPassword, setShowPassword] = useState(false);
+  const [registerError, setRegisterError] = useState('');
+  const [registerSuccess, setRegisterSuccess] = useState('');
+  const [registerLoading, setRegisterLoading] = useState(false);
+  const [loginError, setLoginError] = useState('');
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [loginData, setLoginData] = useState({ identifier: '', password: '' });
+  const { loginMember } = useAuth();
+  
+  const initialRegisterState = {
+    fullName: '',
+    LpuId: '',
+    email: '',
+    phone: '',
+    course: '',
+    gender: '',
+    domains: [],
+    accommodation: '',
+    previousExperience: false,
+    anyotherorg: false,
+    bio: '',
+  };
+  
+  const [registerData, setRegisterData] = useState(initialRegisterState);
+  const containerRef = useRef(null);
 
-	const initialRegisterState = {
-		fullName: '',
-		LpuId: '',
-		email: '',
-		phone: '',
-		course: '',
-		gender: '',
-		domains: [],
-		accommodation: '',
-		previousExperience: false,
-		anyotherorg: false,
-		bio: '',
-	};
-	const [registerData, setRegisterData] = useState(initialRegisterState);
+  // Floating particles background
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    
+    const particles = [];
+    const colors = ['#6a11cb', '#2575fc', '#8e2de2', '#00c6ff'];
+    
+    // Create particles
+    for (let i = 0; i < 30; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'absolute rounded-full';
+      const size = Math.random() * 8 + 3;
+      particle.style.width = `${size}px`;
+      particle.style.height = `${size}px`;
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      particle.style.background = color;
+      particle.style.boxShadow = `0 0 10px ${color}, 0 0 20px ${color}`;
+      particle.style.left = `${Math.random() * 100}%`;
+      particle.style.top = `${Math.random() * 100}%`;
+      particle.style.opacity = `${Math.random() * 0.4 + 0.1}`;
+      container.appendChild(particle);
+      particles.push(particle);
+      
+      // Animate particles
+      const duration = 8000 + Math.random() * 8000;
+      particle.animate(
+        [
+          { transform: 'translate(0, 0)' },
+          { transform: `translate(${Math.random() * 200 - 100}px, ${Math.random() * 200 - 100}px)` },
+          { transform: 'translate(0, 0)' }
+        ],
+        {
+          duration,
+          iterations: Infinity,
+          easing: 'ease-in-out'
+        }
+      );
+    }
+    
+    return () => {
+      particles.forEach(p => p.remove());
+    };
+  }, []);
+  
+  const handleLoginChange = (e) => {
+    const { name, value } = e.target;
+    setLoginData(prev => ({ ...prev, [name]: value }));
+  };
+  
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault();
+    setLoginError('');
+    setLoginLoading(true);
+    
+    try {
+      await loginMember({
+        identifier: loginData.identifier,
+        password: loginData.password
+      });
+    } catch (err) {
+      setLoginError(err.message || 'Invalid credentials. Please try again.');
+    }
+    
+    setLoginLoading(false);
+  };
+  
+  const handleRegisterChange = (e) => {
+    const { name, value, type, checked, multiple, options } = e.target;
+    if (type === 'checkbox') {
+      setRegisterData(prev => ({ ...prev, [name]: checked }));
+    } else if (multiple) {
+      const selected = Array.from(options).filter(o => o.selected).map(o => o.value);
+      setRegisterData(prev => ({ ...prev, [name]: selected }));
+    } else {
+      setRegisterData(prev => ({ ...prev, [name]: value }));
+    }
+  };
+  
+  const handleRegisterSubmit = async (e) => {
+    e.preventDefault();
+    setRegisterError('');
+    setRegisterSuccess('');
+    setRegisterLoading(true);
 
-	useEffect(() => {
-		const handleScroll = () => {
-			if (formContainerRef.current) {
-				const scrollY = window.scrollY || window.pageYOffset;
-				const opacity = Math.min(0.2, scrollY / 1000);
-				formContainerRef.current.style.backgroundColor = `rgba(255, 255, 255, ${0.1 + opacity})`;
-			}
-		};
+    // Validation
+    if (
+        !registerData.fullName ||
+        !registerData.LpuId ||
+        !registerData.email ||
+        !registerData.phone ||
+        !registerData.course ||
+        !registerData.gender ||
+        !registerData.domains.length ||
+        !registerData.accommodation
+    ) {
+        setRegisterError('Please fill all required fields.');
+        setRegisterLoading(false);
+        return;
+    }
 
-		window.addEventListener('scroll', handleScroll);
-		return () => window.removeEventListener('scroll', handleScroll);
-	}, []);
+    // LPU ID must be 8 digits (matches backend model)
+    if (!/^\d{8}$/.test(registerData.LpuId)) {
+        setRegisterError('LPU ID must be exactly 8 digits.');
+        setRegisterLoading(false);
+        return;
+    }
 
-	const handleRegisterChange = (e) => {
-		const { name, value, type, checked, multiple, options } = e.target;
-		if (type === 'checkbox') {
-			setRegisterData((prev) => ({ ...prev, [name]: checked }));
-		} else if (multiple) {
-			const selected = Array.from(options).filter((o) => o.selected).map((o) => o.value);
-			setRegisterData((prev) => ({ ...prev, [name]: selected }));
-		} else {
-			setRegisterData((prev) => ({ ...prev, [name]: value }));
-		}
-	};
+    // Bio max length validation (matches backend model)
+    if (registerData.bio.length > 500) {
+        setRegisterError('Bio cannot exceed 500 characters.');
+        setRegisterLoading(false);
+        return;
+    }
 
-	const handleRegisterSubmit = async (e) => {
-		e.preventDefault();
-		setRegisterError('');
-		setRegisterSuccess('');
-		setRegisterLoading(true);
+    try {
+        const payload = {
+            ...registerData,
+            accommodation:
+                registerData.accommodation === 'hostel' ? 'hostler' : 'non-hostler'
+        };
+        await publicClient.post('/api/apply/apply', payload);
+        setRegisterSuccess('Registration successful! We will contact you soon.');
+        setRegisterData(initialRegisterState);
+    } catch (err) {
+        setRegisterError(
+            err?.response?.data?.message ||
+            'Registration failed. Please check your details or try again.'
+        );
+    }
+    setRegisterLoading(false);
+  };
 
-		// Validation (client-side, basic)
-		if (
-			!registerData.fullName ||
-			!registerData.LpuId ||
-			!registerData.email ||
-			!registerData.phone ||
-			!registerData.course ||
-			!registerData.gender ||
-			!registerData.domains.length ||
-			!registerData.accommodation
-		) {
-			setRegisterError('Please fill all required fields.');
-			setRegisterLoading(false);
-			return;
-		}
+  const handlePasswordResetEmail = async(e) => {
+	e.preventDefault();
+	setLoginError('');
 
-		try {
-			const payload = {
-				...registerData,
-				// Map accommodation to backend enum
-				accommodation:
-					registerData.accommodation === 'hostel'
-						? 'hostler'
-						: registerData.accommodation === 'day-scholar'
-						? 'non-hostler'
-						: '',
-			};
-			await axios.post('/api/apply', payload);
-			setRegisterSuccess('Registration successful! We will contact you soon.');
-			setRegisterData(initialRegisterState);
-		} catch (err) {
-			setRegisterError(
-				err?.response?.data?.message ||
-					'Registration failed. Please check your details or try again.'
-			);
-		}
-		setRegisterLoading(false);
-	};
+	if (!loginData.identifier) {
+	  setLoginError('Please enter your LPU ID or email.');
+	  return;
+	}
 
-	return (
-		<div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0a0e17] to-[#1a1f3a] font-poppins overflow-x-hidden">
-			<TechBackground />
-			<FloatingOrbs />
+	try {
+	  await publicClient.post('/api/members/reset-password', { email: email });
+	  setLoginError('Password reset email sent successfully. Please check your inbox.');
+	} catch (err) {
+	  setLoginError(err?.response?.data?.message || 'Failed to send reset password email.');
+	}
+  }
 
-			<div className="w-full max-w-4xl mx-auto flex flex-col items-center gap-8 z-10 px-4">
-				{/* Branding Header with creative animation */}
-				<div className="relative text-center py-10 animate-fade-in-down select-none">
-					<div className="absolute inset-0 flex justify-center items-center pointer-events-none z-0">
-						<div className="w-80 h-80 bg-gradient-to-br from-[#0a0e17] via-[#6a11cb]/40 to-[#2575fc]/30 rounded-full blur-3xl opacity-60 animate-spin-slow" />
-						<div className="w-40 h-40 bg-gradient-to-tr from-[#8e2de2]/30 to-[#2575fc]/20 rounded-full blur-2xl opacity-40 animate-pulse-slow absolute left-1/4 top-1/4" />
-						<div className="w-24 h-24 bg-gradient-to-br from-[#2575fc]/40 to-[#6a11cb]/30 rounded-full blur-2xl opacity-30 animate-bounce-slow absolute right-1/4 bottom-1/4" />
-					</div>
-					<div className="relative flex justify-center items-center gap-4 mb-2 z-10">
-						<div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-2xl logo-float overflow-hidden border-2 border-cyan-400/40 bg-black/70 animate-logo-pop relative">
-							<img
-								src={logo}
-								alt="Vibranta Club Logo"
-								className="w-12 h-12 rounded-full object-cover animate-spin-slow"
-								loading="lazy"
-								decoding="async"
-							/>
-							<span className="absolute inset-0 rounded-2xl border-4 border-cyan-400/30 animate-glow-ring pointer-events-none" aria-hidden="true" />
-						</div>
-						<h1 className="text-5xl font-extrabold bg-gradient-to-r from-[#6a11cb] via-[#2575fc] to-[#8e2de2] bg-clip-text text-transparent tracking-wide animate-text-glow drop-shadow-xl">
-							Vibranta
-						</h1>
-					</div>
-					<p className="relative text-lg font-light max-w-xl mx-auto leading-relaxed text-white/80 animate-fade-in-down delay-100 z-10">
-						Empowering student innovation through{' '}
-						<span className="font-semibold text-[#8e2de2]">technology</span>,{' '}
-						<span className="font-semibold text-[#2575fc]">community</span>, and{' '}
-						<span className="font-semibold text-[#6a11cb]">creativity</span>.
-					</p>
-				</div>
+  return (
+    <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0a0e17] to-[#1a1f3a] overflow-hidden p-4">
+      {/* Background elements */}
+      <div ref={containerRef} className="absolute inset-0 w-full h-full z-0 overflow-hidden pointer-events-none" />
+      
+      <div className="absolute inset-0 z-0">
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-purple-500/10 blur-3xl animate-pulse-slow" />
+        <div className="absolute top-1/3 right-1/4 w-48 h-48 rounded-full bg-blue-500/15 blur-3xl animate-pulse-slow" />
+        <div className="absolute bottom-1/4 left-1/3 w-56 h-56 rounded-full bg-indigo-500/12 blur-3xl animate-pulse-slow" />
+      </div>
+      
+      {/* Floating decorative elements */}
+      <div className="absolute top-0 left-0 w-full h-full z-1 overflow-hidden pointer-events-none">
+        {[...Array(8)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute rounded-lg bg-gradient-to-r from-[#6a11cb]/10 to-[#2575fc]/10"
+            style={{
+              width: `${Math.random() * 200 + 50}px`,
+              height: `${Math.random() * 200 + 50}px`,
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              rotate: `${Math.random() * 360}deg`,
+            }}
+            animate={{
+              x: [0, Math.random() * 100 - 50, 0],
+              y: [0, Math.random() * 100 - 50, 0],
+            }}
+            transition={{
+              duration: Math.random() * 20 + 20,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+        ))}
+      </div>
+      
+      <div className="w-full max-w-4xl mx-auto flex flex-col items-center gap-8 z-10">
+        {/* Branding Header */}
+        <motion.div 
+          className="text-center py-10 select-none"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+        >
+          <div className="flex justify-center items-center gap-4 mb-4">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-2xl overflow-hidden border-2 border-cyan-400/40 bg-black/70 relative">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#6a11cb] to-[#2575fc] flex items-center justify-center">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#8e2de2] to-[#00c6ff] animate-pulse" />
+              </div>
+              <span className="absolute inset-0 rounded-2xl border-4 border-cyan-400/30 animate-ping pointer-events-none" />
+            </div>
+            <motion.h1 
+              className="text-5xl font-extrabold bg-gradient-to-r from-[#6a11cb] via-[#2575fc] to-[#8e2de2] bg-clip-text text-transparent tracking-wide"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              Vibranta
+            </motion.h1>
+          </div>
+          <motion.p 
+            className="text-lg font-light max-w-xl mx-auto leading-relaxed text-white/80"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+          >
+            Empowering student innovation through <span className="font-semibold text-[#8e2de2]">technology</span>,{' '}
+            <span className="font-semibold text-[#2575fc]">community</span>, and{' '}
+            <span className="font-semibold text-[#6a11cb]">creativity</span>
+          </motion.p>
+        </motion.div>
 
-				<div
-					ref={formContainerRef}
-					className="w-full max-w-2xl bg-white/10 backdrop-blur-2xl rounded-3xl border border-white/20 shadow-2xl overflow-hidden relative transition-all duration-500 ease-out animate-float"
-				>
-					<div className="flex border-b border-white/20 bg-gradient-to-r from-[#6a11cb]/10 to-[#2575fc]/10">
-						<button
-							className={`flex-1 py-5 text-center font-semibold text-lg cursor-pointer transition-all relative ${activeTab === 'login' ? 'text-white' : 'text-white/70 hover:text-white/90'}`}
-							onClick={() => setActiveTab('login')}
-						>
-							Login
-							{activeTab === 'login' && (
-								<span className="absolute bottom-0 left-1/4 w-1/2 h-1 rounded-full bg-gradient-to-r from-[#6a11cb] to-[#2575fc] animate-tab-indicator" />
-							)}
-						</button>
-						<button
-							className={`flex-1 py-5 text-center font-semibold text-lg cursor-pointer transition-all relative ${activeTab === 'register' ? 'text-white' : 'text-white/70 hover:text-white/90'}`}
-							onClick={() => setActiveTab('register')}
-						>
-							Join Club
-							{activeTab === 'register' && (
-								<span className="absolute bottom-0 left-1/4 w-1/2 h-1 rounded-full bg-gradient-to-r from-[#6a11cb] to-[#2575fc] animate-tab-indicator" />
-							)}
-						</button>
-					</div>
+        <motion.div 
+          className="w-full max-w-2xl bg-white/10 backdrop-blur-2xl rounded-3xl border border-white/20 shadow-2xl overflow-hidden relative"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.6, duration: 0.5 }}
+        >
+          <div className="flex border-b border-white/20 bg-gradient-to-r from-[#6a11cb]/10 to-[#2575fc]/10">
+            <button
+              className={`flex-1 py-5 text-center font-semibold text-lg cursor-pointer transition-all relative ${activeTab === 'login' ? 'text-white' : 'text-white/70 hover:text-white/90'}`}
+              onClick={() => setActiveTab('login')}
+            >
+              Login
+              {activeTab === 'login' && (
+                <span className="absolute bottom-0 left-1/4 w-1/2 h-1 rounded-full bg-gradient-to-r from-[#6a11cb] to-[#2575fc] animate-pulse" />
+              )}
+            </button>
+            <button
+              className={`flex-1 py-5 text-center font-semibold text-lg cursor-pointer transition-all relative ${activeTab === 'register' ? 'text-white' : 'text-white/70 hover:text-white/90'}`}
+              onClick={() => setActiveTab('register')}
+            >
+              Join Club
+              {activeTab === 'register' && (
+                <span className="absolute bottom-0 left-1/4 w-1/2 h-1 rounded-full bg-gradient-to-r from-[#6a11cb] to-[#2575fc] animate-pulse" />
+              )}
+            </button>
+          </div>
 
-					<div className="p-8 md:p-12 bg-gradient-to-br from-white/5 via-[#0a0e17]/10 to-[#1a1f3a]/10">
-						{/* Login Form */}
-						{activeTab === 'login' && (
-							<form className="animate-fade-in flex flex-col gap-6">
-								<h2 className="text-3xl mb-2 text-center font-bold bg-gradient-to-r from-[#6a11cb] to-[#2575fc] bg-clip-text text-transparent animate-text-glow">
-									Welcome Back
-								</h2>
-								<div className="mb-2 relative">
-									<label
-										htmlFor="login-id"
-										className="block mb-2 font-medium text-white/90"
-									>
-										LPU ID or Email
-									</label>
-									<div className="relative">
-										<i className="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-[#8e2de2]" />
-										<input
-											type="text"
-											id="login-id"
-											placeholder="Enter your LPU ID or email"
-											required
-											className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/40"
-										/>
-									</div>
-								</div>
-								<div className="mb-2 relative">
-									<label
-										htmlFor="login-password"
-										className="block mb-2 font-medium text-white/90"
-									>
-										Password
-									</label>
-									<div className="relative">
-										<i className="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-[#8e2de2]" />
-										<input
-											type={showPassword ? 'text' : 'password'}
-											id="login-password"
-											placeholder="Enter your password"
-											required
-											className="w-full pl-12 pr-12 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/40"
-										/>
-										<i
-											className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'} absolute right-4 top-1/2 -translate-y-1/2 text-white/60 cursor-pointer transition-all hover:text-[#8e2de2]`}
-											onClick={() => setShowPassword((v) => !v)}
-										/>
-									</div>
-								</div>
-								<button
-									type="submit"
-									className="w-full py-3 rounded-xl bg-gradient-to-r from-[#6a11cb] to-[#2575fc] text-white font-poppins text-lg font-semibold cursor-pointer transition-all mt-2 shadow-lg hover:-translate-y-0.5 hover:shadow-xl transform transition-transform duration-300 hover:scale-[1.03]"
-								>
-									Login
-								</button>
-								<div className="mt-2 text-center text-sm">
-									<a
-										href="#"
-										className="text-[#8e2de2] font-medium hover:underline transition-all"
-									>
-										Forgot Password?
-									</a>
-								</div>
-							</form>
-						)}
-
-						{/* Registration Form */}
-						{activeTab === 'register' && (
-							<form className="animate-fade-in flex flex-col gap-6" onSubmit={handleRegisterSubmit}>
-								<h2 className="text-3xl mb-2 text-center font-bold bg-gradient-to-r from-[#6a11cb] to-[#2575fc] bg-clip-text text-transparent animate-text-glow">
-									Join Our Community
-								</h2>
-								{registerError && (
-									<div className="text-red-400 text-center font-medium">{registerError}</div>
-								)}
-								{registerSuccess && (
-									<div className="text-green-400 text-center font-medium">{registerSuccess}</div>
-								)}
-								<div className="mb-2 relative">
-									<label htmlFor="fullName" className="block mb-2 font-medium text-white/90">
-										Full Name
-									</label>
-									<div className="relative">
-										<i className="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-[#8e2de2]" />
-										<input
-											type="text"
-											id="fullName"
-											name="fullName"
-											placeholder="Enter your full name"
-											required
-											value={registerData.fullName}
-											onChange={handleRegisterChange}
-											className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/40"
-										/>
-									</div>
-								</div>
-								<div className="flex gap-4 mb-2 flex-col md:flex-row">
-									<div className="relative flex-1">
-										<label htmlFor="LpuId" className="block mb-2 font-medium text-white/90">
-											LPU ID
-										</label>
-										<div className="relative">
-											<i className="fas fa-id-card absolute left-4 top-1/2 -translate-y-1/2 text-[#8e2de2]" />
-											<input
-												type="text"
-												id="LpuId"
-												name="LpuId"
-												placeholder="Enter LPU ID"
-												required
-												value={registerData.LpuId}
-												onChange={handleRegisterChange}
-												className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/40"
-											/>
-										</div>
-									</div>
-									<div className="relative flex-1">
-										<label htmlFor="email" className="block mb-2 font-medium text-white/90">
-											Email
-										</label>
-										<div className="relative">
-											<i className="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-[#8e2de2]" />
-											<input
-												type="email"
-												id="email"
-												name="email"
-												placeholder="Enter your email"
-												required
-												value={registerData.email}
-												onChange={handleRegisterChange}
-												className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/40"
-											/>
-										</div>
-									</div>
-								</div>
-								<div className="flex gap-4 mb-2 flex-col md:flex-row">
-									<div className="relative flex-1">
-										<label htmlFor="phone" className="block mb-2 font-medium text-white/90">
-											Phone
-										</label>
-										<div className="relative">
-											<i className="fas fa-phone absolute left-4 top-1/2 -translate-y-1/2 text-[#8e2de2]" />
-											<input
-												type="tel"
-												id="phone"
-												name="phone"
-												placeholder="Enter phone number"
-												required
-												value={registerData.phone}
-												onChange={handleRegisterChange}
-												className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/40"
-											/>
-										</div>
-									</div>
-									<div className="relative flex-1">
-										<label htmlFor="course" className="block mb-2 font-medium text-white/90">
-											Course
-										</label>
-										<div className="relative">
-											<i className="fas fa-graduation-cap absolute left-4 top-1/2 -translate-y-1/2 text-[#8e2de2]" />
-											<select
-												id="course"
-												name="course"
-												required
-												value={registerData.course}
-												onChange={handleRegisterChange}
-												className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/40"
-											>
-												<option value="" disabled>
-													Select your course
-												</option>
-												<option value="btech">B.Tech</option>
-												<option value="mtech">M.Tech</option>
-												<option value="bca">BCA</option>
-												<option value="mca">MCA</option>
-												<option value="bsc">B.Sc</option>
-												<option value="msc">M.Sc</option>
-												<option value="other">Other</option>
-											</select>
-										</div>
-									</div>
-								</div>
-								<div className="flex gap-4 mb-2 flex-col md:flex-row">
-									<div className="flex-1">
-										<label className="block mb-2 font-medium text-white/90">
-											Gender
-										</label>
-										<div className="flex gap-4 mt-2">
-											<label className="flex items-center gap-2 transition-all hover:text-[#8e2de2]">
-												<input
-													type="radio"
-													name="gender"
-													value="male"
-													required
-													checked={registerData.gender === 'male'}
-													onChange={handleRegisterChange}
-													className="accent-[#8e2de2]"
-												/>{' '}
-												Male
-											</label>
-											<label className="flex items-center gap-2 transition-all hover:text-[#8e2de2]">
-												<input
-													type="radio"
-													name="gender"
-													value="female"
-													checked={registerData.gender === 'female'}
-													onChange={handleRegisterChange}
-													className="accent-[#8e2de2]"
-												/>{' '}
-												Female
-											</label>
-										</div>
-									</div>
-									<div className="relative flex-1">
-										<label htmlFor="accommodation" className="block mb-2 font-medium text-white/90">
-											Accommodation type
-										</label>
-										<div className="relative">
-											<i className="fas fa-home absolute left-4 top-1/2 -translate-y-1/2 text-[#8e2de2]" />
-											<select
-												id="accommodation"
-												name="accommodation"
-												required
-												value={registerData.accommodation}
-												onChange={handleRegisterChange}
-												className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/40"
-											>
-												<option value="hostler">Hostler</option>
-												<option value="non-hostler">Non-Hostler</option>
-											</select>
-										</div>
-									</div>
-								</div>
-								<div className="mb-2 relative">
-									<label htmlFor="domains" className="block mb-2 font-medium text-white/90">
-										Interested Domains
-									</label>
-									<div className="relative">
-										<i className="fas fa-code absolute left-4 top-4 text-[#8e2de2]" />
-										<select
-											id="domains"
-											name="domains"
-											multiple
-											required
-											value={registerData.domains}
-											onChange={handleRegisterChange}
-											className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 h-24 hover:bg-black/40"
-										>
-											<option value="technical">Technical</option>
-											<option value="data-management">Data Management</option>
-											<option value="event-management">Event Management</option>
-											<option value="marketing">Marketing</option>
-											<option value="media">Media</option>
-											<option value="content-creation">Content Creation</option>
-											<option value="content-writing">Content Writing</option>
-											<option value="arts-and-culture">Arts and Culture</option>
-											<option value="design">Design</option>
-										</select>
-									</div>
-									<p className="mt-1 text-xs text-white/60">
-										Hold Ctrl/Cmd to select multiple
-									</p>
-								</div>
-								<div className="mb-2 relative flex gap-4">
-									<label className="flex items-center gap-2 text-white/90">
-										<input
-											type="checkbox"
-											name="previousExperience"
-											checked={registerData.previousExperience}
-											onChange={handleRegisterChange}
-											className="accent-[#8e2de2]"
-										/>
-										Previous Experience
-									</label>
-									<label className="flex items-center gap-2 text-white/90">
-										<input
-											type="checkbox"
-											name="anyotherorg"
-											checked={registerData.anyotherorg}
-											onChange={handleRegisterChange}
-											className="accent-[#8e2de2]"
-										/>
-										Member of Other Organizations
-									</label>
-								</div>
-								<div className="mb-2 relative">
-									<label htmlFor="bio" className="block mb-2 font-medium text-white/90">
-										Bio
-									</label>
-									<div className="relative">
-										<i className="fas fa-comment absolute left-4 top-4 text-[#8e2de2]" />
-										<textarea
-											id="bio"
-											name="bio"
-											placeholder="Tell us about yourself..."
-											rows={3}
-											required
-											value={registerData.bio}
-											onChange={handleRegisterChange}
-											className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/40"
-										/>
-									</div>
-								</div>
-								<button
-									type="submit"
-									disabled={registerLoading}
-									className="w-full py-3 rounded-xl bg-gradient-to-r from-[#6a11cb] to-[#2575fc] text-white font-poppins text-lg font-semibold cursor-pointer transition-all mt-2 shadow-lg hover:-translate-y-0.5 hover:shadow-xl transform transition-transform duration-300 hover:scale-[1.03] disabled:opacity-60"
-								>
-									{registerLoading ? 'Registering...' : 'Register Now'}
-								</button>
-								<div className="mt-2 text-center text-sm">
-									<p>
-										Already a member?{' '}
-										<button
-											type="button"
-											className="text-[#8e2de2] font-medium hover:underline transition-all"
-											onClick={() => setActiveTab('login')}
-										>
-											Login
-										</button>
-									</p>
-								</div>
-							</form>
-						)}
-					</div>
-				</div>
-			</div>
-
-			{/* Floating particles */}
-			<div className="absolute inset-0 overflow-hidden pointer-events-none">
-				{[...Array(15)].map((_, i) => (
-					<div
-						key={i}
-						className="absolute rounded-full bg-white/5"
-						style={{
-							width: `${Math.random() * 10 + 2}px`,
-							height: `${Math.random() * 10 + 2}px`,
-							left: `${Math.random() * 100}%`,
-							top: `${Math.random() * 100}%`,
-							animation: `float ${15 + Math.random() * 15}s infinite ease-in-out`,
-						}}
-					/>
-				))}
-			</div>
-		</div>
-	);
+          <div className="p-8 md:p-12 bg-gradient-to-br from-white/5 via-[#0a0e17]/10 to-[#1a1f3a]/10">
+            <AnimatePresence mode="wait">
+              {activeTab === 'login' ? (
+                <motion.form 
+                  key="login"
+                  className="flex flex-col gap-6"
+                  onSubmit={handleLoginSubmit}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <motion.h2 
+                    className="text-3xl mb-2 text-center font-bold bg-gradient-to-r from-[#6a11cb] to-[#2575fc] bg-clip-text text-transparent"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.1 }}
+                  >
+                    Welcome Back
+                  </motion.h2>
+                  
+                  {loginError && (
+                    <motion.div 
+                      className="text-red-400 text-center font-medium py-2 px-4 rounded-lg bg-red-900/20"
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                    >
+                      {loginError}
+                    </motion.div>
+                  )}
+                  
+                  <div className="mb-2 relative">
+                    <label
+                      htmlFor="login-id"
+                      className="block mb-2 font-medium text-white/90"
+                    >
+                      LPU ID or Email
+                    </label>
+                    <div className="relative">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8e2de2]">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <input
+                        type="text"
+                        id="login-id"
+                        name="identifier"
+                        placeholder="Enter your LPU ID or email"
+                        required
+                        value={loginData.identifier}
+                        onChange={handleLoginChange}
+                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/40"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="mb-2 relative">
+                    <label
+                      htmlFor="login-password"
+                      className="block mb-2 font-medium text-white/90"
+                    >
+                      Password
+                    </label>
+                    <div className="relative">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8e2de2]">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        id="login-password"
+                        name="password"
+                        placeholder="Enter your password"
+                        required
+                        value={loginData.password}
+                        onChange={handleLoginChange}
+                        className="w-full pl-12 pr-12 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/40"
+                      />
+                      <button
+                        type="button"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-white/60 transition-all hover:text-[#8e2de2]"
+                        onClick={() => setShowPassword(v => !v)}
+                      >
+                        {showPassword ? (
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                            <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                          </svg>
+                        ) : (
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clipRule="evenodd" />
+                            <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <motion.button
+                    type="submit"
+                    disabled={loginLoading}
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-[#6a11cb] to-[#2575fc] text-white font-poppins text-lg font-semibold cursor-pointer shadow-lg relative overflow-hidden"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {loginLoading ? (
+                      <span className="flex items-center justify-center">
+                        <svg className="animate-spin h-5 w-5 mr-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Authenticating...
+                      </span>
+                    ) : (
+                      'Login'
+                    )}
+                  </motion.button>
+                  
+                  <div className="mt-2 text-center text-sm">
+                    <a
+                      href="#"
+                      className="text-[#8e2de2] font-medium hover:underline transition-all"
+                    >
+                      Forgot Password?
+                    </a>
+                  </div>
+                </motion.form>
+              ) : (
+                <motion.form 
+                  key="register"
+                  className="flex flex-col gap-6"
+                  onSubmit={handleRegisterSubmit}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <motion.h2 
+                    className="text-3xl mb-2 text-center font-bold bg-gradient-to-r from-[#6a11cb] to-[#2575fc] bg-clip-text text-transparent"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.1 }}
+                  >
+                    Join Our Community
+                  </motion.h2>
+                  
+                  {registerError && (
+                    <motion.div 
+                      className="text-red-400 text-center font-medium py-2 px-4 rounded-lg bg-red-900/20"
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                    >
+                      {registerError}
+                    </motion.div>
+                  )}
+                  
+                  {registerSuccess && (
+                    <motion.div 
+                      className="text-green-400 text-center font-medium py-2 px-4 rounded-lg bg-green-900/20"
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                    >
+                      {registerSuccess}
+                    </motion.div>
+                  )}
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label htmlFor="fullName" className="block mb-2 font-medium text-white/90">
+                        Full Name
+                      </label>
+                      <div className="relative">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8e2de2]">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <input
+                          type="text"
+                          id="fullName"
+                          name="fullName"
+                          placeholder="Enter your full name"
+                          required
+                          value={registerData.fullName}
+                          onChange={handleRegisterChange}
+                          className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/40"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="LpuId" className="block mb-2 font-medium text-white/90">
+                        LPU ID
+                      </label>
+                      <div className="relative">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8e2de2]">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1.323l3.954.985a1 1 0 01.585 1.63l-2.84 3.08 1.1 4.44a1 1 0 01-1.517 1.106L10 13.678l-3.182 1.886a1 1 0 01-1.517-1.106l1.1-4.44-2.84-3.08a1 1 0 01.585-1.63L9 4.323V3a1 1 0 011-1zm-4.768 8.2a.5.5 0 01.585-.366l3.101.773-1.462 5.91a.5.5 0 01-.758.294l-2.382-1.41a.5.5 0 01-.171-.17l-1.41-2.382a.5.5 0 01.294-.758l5.91-1.462a.5.5 0 01.366.585l-.773 3.101a.5.5 0 01-.97 0l-.773-3.1a.5.5 0 01.366-.586z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <input
+                          type="text"
+                          id="LpuId"
+                          name="LpuId"
+                          placeholder="Enter LPU ID"
+                          required
+                          value={registerData.LpuId}
+                          onChange={handleRegisterChange}
+                          className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/40"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="email" className="block mb-2 font-medium text-white/90">
+                        Email
+                      </label>
+                      <div className="relative">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8e2de2]">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                            <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                          </svg>
+                        </div>
+                        <input
+                          type="email"
+                          id="email"
+                          name="email"
+                          placeholder="Enter your email"
+                          required
+                          value={registerData.email}
+                          onChange={handleRegisterChange}
+                          className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/40"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="phone" className="block mb-2 font-medium text-white/90">
+                        Phone
+                      </label>
+                      <div className="relative">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8e2de2]">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                          </svg>
+                        </div>
+                        <input
+                          type="tel"
+                          id="phone"
+                          name="phone"
+                          placeholder="Enter phone number"
+                          required
+                          value={registerData.phone}
+                          onChange={handleRegisterChange}
+                          className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/40"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="course" className="block mb-2 font-medium text-white/90">
+                        Course
+                      </label>
+                      <div className="relative">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8e2de2]">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
+                          </svg>
+                        </div>
+                        <select
+                          id="course"
+                          name="course"
+                          required
+                          value={registerData.course}
+                          onChange={handleRegisterChange}
+                          className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/40"
+                        >
+                          <option value="" disabled>Select your course</option>
+                          <option value="btech">B.Tech</option>
+                          <option value="mtech">M.Tech</option>
+                          <option value="bca">BCA</option>
+                          <option value="mca">MCA</option>
+                          <option value="bsc">B.Sc</option>
+                          <option value="msc">M.Sc</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="block mb-2 font-medium text-white/90">
+                        Gender
+                      </label>
+                      <div className="flex gap-4 mt-2">
+                        <label className="flex items-center gap-2 transition-all hover:text-[#8e2de2]">
+                          <input
+                            type="radio"
+                            name="gender"
+                            value="male"
+                            required
+                            checked={registerData.gender === 'male'}
+                            onChange={handleRegisterChange}
+                            className="h-4 w-4 text-[#8e2de2] focus:ring-[#8e2de2] border-gray-300"
+                          />
+                          Male
+                        </label>
+                        <label className="flex items-center gap-2 transition-all hover:text-[#8e2de2]">
+                          <input
+                            type="radio"
+                            name="gender"
+                            value="female"
+                            checked={registerData.gender === 'female'}
+                            onChange={handleRegisterChange}
+                            className="h-4 w-4 text-[#8e2de2] focus:ring-[#8e2de2] border-gray-300"
+                          />
+                          Female
+                        </label>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="accommodation" className="block mb-2 font-medium text-white/90">
+                        Accommodation type
+                      </label>
+                      <div className="relative">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8e2de2]">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                          </svg>
+                        </div>
+                        <select
+                          id="accommodation"
+                          name="accommodation"
+                          required
+                          value={registerData.accommodation}
+                          onChange={handleRegisterChange}
+                          className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/40"
+                        >
+                          <option value="" disabled>Select accommodation</option>
+                          <option value="hostel">Hostel</option>
+                          <option value="day-scholar">Day Scholar</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mb-2 relative">
+                    <label htmlFor="domains" className="block mb-2 font-medium text-white/90">
+                      Interested Domains
+                    </label>
+                    <div className="relative">
+                      <div className="absolute left-4 top-4 text-[#8e2de2]">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <select
+                        id="domains"
+                        name="domains"
+                        multiple
+                        required
+                        value={registerData.domains}
+                        onChange={handleRegisterChange}
+                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 h-32 hover:bg-black/40"
+                      >
+                        <option value="technical">Technical</option>
+                        <option value="data-management">Data Management</option>
+                        <option value="event-management">Event Management</option>
+                        <option value="marketing">Marketing</option>
+                        <option value="media">Media</option>
+                        <option value="content-creation">Content Creation</option>
+                        <option value="content-writing">Content Writing</option>
+                        <option value="arts-and-culture">Arts and Culture</option>
+                        <option value="design">Design</option>
+                      </select>
+                    </div>
+                    <p className="mt-1 text-xs text-white/60">
+                      Hold Ctrl/Cmd to select multiple
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+                    <label className="flex items-center gap-3 p-3 rounded-xl border border-white/10 bg-black/30 hover:bg-black/40 transition-colors cursor-pointer">
+                      <div className="relative">
+                        <input
+                          type="checkbox"
+                          name="previousExperience"
+                          checked={registerData.previousExperience}
+                          onChange={handleRegisterChange}
+                          className="sr-only"
+                        />
+                        <div className={`w-6 h-6 rounded flex items-center justify-center ${registerData.previousExperience ? 'bg-[#8e2de2]' : 'bg-white/10'}`}>
+                          {registerData.previousExperience && (
+                            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                      <span className="text-white/90">Previous Experience</span>
+                    </label>
+                    
+                    <label className="flex items-center gap-3 p-3 rounded-xl border border-white/10 bg-black/30 hover:bg-black/40 transition-colors cursor-pointer">
+                      <div className="relative">
+                        <input
+                          type="checkbox"
+                          name="anyotherorg"
+                          checked={registerData.anyotherorg}
+                          onChange={handleRegisterChange}
+                          className="sr-only"
+                        />
+                        <div className={`w-6 h-6 rounded flex items-center justify-center ${registerData.anyotherorg ? 'bg-[#8e2de2]' : 'bg-white/10'}`}>
+                          {registerData.anyotherorg && (
+                            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                      <span className="text-white/90">Member of Other Organizations</span>
+                    </label>
+                  </div>
+                  
+                  <div className="mb-2 relative">
+                    <label htmlFor="bio" className="block mb-2 font-medium text-white/90">
+                      Bio
+                    </label>
+                    <div className="relative">
+                      <div className="absolute left-4 top-4 text-[#8e2de2]">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <textarea
+                        id="bio"
+                        name="bio"
+                        placeholder="Tell us about yourself, your interests, and why you want to join..."
+                        rows={4}
+                        required
+                        value={registerData.bio}
+                        onChange={handleRegisterChange}
+                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 bg-black/30 text-white font-poppins text-base transition-all focus:outline-none focus:border-[#8e2de2] focus:ring-2 focus:ring-[#8e2de2]/30 hover:bg-black/40"
+                      />
+                    </div>
+                  </div>
+                  
+                  <motion.button
+                    type="submit"
+                    disabled={registerLoading}
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-[#6a11cb] to-[#2575fc] text-white font-poppins text-lg font-semibold cursor-pointer shadow-lg relative overflow-hidden"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {registerLoading ? (
+                      <span className="flex items-center justify-center">
+                        <svg className="animate-spin h-5 w-5 mr-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Registering...
+                      </span>
+                    ) : (
+                      'Register Now'
+                    )}
+                  </motion.button>
+                  
+                  <div className="mt-2 text-center text-sm">
+                    <p className="text-white/80">
+                      Already a member?{' '}
+                      <button
+                        type="button"
+                        className="text-[#8e2de2] font-medium hover:underline transition-all"
+                        onClick={() => setActiveTab('login')}
+                      >
+                        Login
+                      </button>
+                    </p>
+                  </div>
+                </motion.form>
+              )}
+            </AnimatePresence>
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
 };
 
 export default AuthPage;

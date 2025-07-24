@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { ApiError } from '../utils/ApiError.js';
+import { ApiError } from '../utils/apiError.js';
 import { validate } from 'uuid';
 import mongoosePaginate from 'mongoose-paginate-v2';
 

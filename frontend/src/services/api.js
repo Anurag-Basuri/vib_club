@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getToken, removeToken } from '../utils/handleTokens.js';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 
 // Create an Axios instance with default settings

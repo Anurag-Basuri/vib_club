@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 
 // Create a new application
 const applyController = asyncHandler(async (req, res) => {
+	console.log("Received application data:", req.body);
 	const {
 		fullName,
 		LpuId,
@@ -37,6 +38,7 @@ const applyController = asyncHandler(async (req, res) => {
 		anyotherorg,
 		bio,
 	});
+	console.log("New application created:", newApplication);
 
 	return res
 		.status(201)
