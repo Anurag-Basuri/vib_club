@@ -2,7 +2,6 @@ import Member from '../models/member.model.js';
 import {asyncHandler} from '../utils/asyncHandler.js';
 import {ApiError} from '../utils/apiError.js';
 import {ApiResponse} from '../utils/apiResponse.js';
-import jwt from 'jsonwebtoken';
 import { uploadFile, deleteFile } from '../utils/cloudinary.js';
 import { sendPasswordResetEmail } from '../services/email.service.js';
 
@@ -47,7 +46,7 @@ const loginMember = asyncHandler(async (req, res) => {
     }
 
     const query = LpuId ? { LpuId } : { email };
-    const member = await Member.findOne(query);
+    const member = await Member.findOne(query).select('+password');
     if (!member) {
         throw new ApiError(404, 'Member not found');
     }
@@ -56,8 +55,8 @@ const loginMember = asyncHandler(async (req, res) => {
         throw new ApiError(401, 'Incorrect Password');
     }
 
-    const accessToken = member.generateAuthToken();
-    const refreshToken = member.generateRefreshToken();
+    const accessToken = await member.generateAuthToken();
+    const refreshToken = await member.generateRefreshToken();
 
     return res
         .status(200)

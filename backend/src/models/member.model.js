@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 
 const memberSchema = new mongoose.Schema({
@@ -147,8 +148,8 @@ memberSchema.pre('save', async function(next) {
     next();
 });
 
-memberSchema.methods.comparePassword = async function(candidatePassword) {
-    const check = await bcrypt.compare(candidatePassword, this.password);
+memberSchema.methods.comparePassword = async function(password) {
+    const check = await bcrypt.compare(password, this.password);
     return check;
 };
 
