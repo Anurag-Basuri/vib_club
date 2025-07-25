@@ -46,7 +46,7 @@ const loginMember = asyncHandler(async (req, res) => {
     }
 
     const query = LpuId ? { LpuId } : { email };
-    const member = await Member.findOne(query).select('+password');
+    const member = await Member.findOne(query).select('');
     if (!member) {
         throw new ApiError(404, 'Member not found');
     }
@@ -58,13 +58,18 @@ const loginMember = asyncHandler(async (req, res) => {
     const accessToken = await member.generateAuthToken();
     const refreshToken = await member.generateRefreshToken();
 
+    const user = await Member.findById(member._id).select('-password -refreshToken');
+    if (!user) {
+        throw new ApiError(404, 'User not found');
+    }
+
     return res
         .status(200)
         .json(
             new ApiResponse(
                 200,
                 'Login successful',
-                { member: member.toJSON() },
+                { member: user.toJSON() },
                 { accessToken, refreshToken }
             )
         );
