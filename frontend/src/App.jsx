@@ -22,13 +22,7 @@ function AppContent() {
 
     return (
         <Lenis root options={{ lerp: 0.1, smoothWheel: true }}>
-            {/* Navbar with dynamic background */}
-            {!hideNavbar && (
-                <div className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white shadow-md' : 'bg-transparent'}`}>
-                    <Navbar />
-                </div>
-            )}
-            
+            {!hideNavbar && <Navbar />}
             {/* Content area with dynamic padding */}
             <div className={!hideNavbar ? "pt-20" : ""}>
                 <AppRoutes />

@@ -1,20 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-	Home,
-	Calendar,
-	Mail,
-	UserPlus,
-	LogIn,
-	LayoutDashboard,
-	Menu,
-	X,
-	Sparkles,
-	User,
-	LogOut,
-	Users,
-	Share2,
-	Settings,
-	ChevronDown,
+    Home,
+    Calendar,
+    Mail,
+    UserPlus,
+    LogIn,
+    LayoutDashboard,
+    Menu,
+    X,
+    Sparkles,
+    User,
+    LogOut,
+    Users,
+    Share2,
+    Settings,
+    ChevronDown,
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
@@ -22,118 +22,132 @@ import { getToken, decodeToken } from '../utils/handleTokens.js';
 import logo from '../assets/logo.png';
 
 const navSections = [
-	{
-		items: [
-			{ name: 'Home', icon: Home, path: '/', color: '#00d9ff' },
-			{ name: 'Events', icon: Calendar, path: '/event', color: '#7c3aed' },
-			{ name: 'Team', icon: Users, path: '/team', color: '#0ea5e9' },
-			{ name: 'Social', icon: Sparkles, path: '/social-page', color: '#06b6d4' },
-			{ name: 'Contact', icon: Mail, path: '/contact', color: '#0284c7' },
-		],
-	},
+    {
+        items: [
+            { name: 'Home', icon: Home, path: '/', color: '#00d9ff' },
+            { name: 'Events', icon: Calendar, path: '/event', color: '#7c3aed' },
+            { name: 'Team', icon: Users, path: '/team', color: '#0ea5e9' },
+            { name: 'Social', icon: Sparkles, path: '/social-page', color: '#06b6d4' },
+            { name: 'Contact', icon: Mail, path: '/contact', color: '#0284c7' },
+        ],
+    },
 ];
 
+const pathToNavName = (pathname) => {
+    if (pathname === '/') return 'Home';
+    if (pathname.startsWith('/event')) return 'Events';
+    if (pathname.startsWith('/team')) return 'Team';
+    if (pathname.startsWith('/social-page')) return 'Social';
+    if (pathname.startsWith('/contact')) return 'Contact';
+    return 'Home';
+};
+
 const Navbar = () => {
-	const [isOpen, setIsOpen] = useState(false);
-	const [activeLink, setActiveLink] = useState('Home');
-	const { user, isAuthenticated, loading, logoutMember, logoutAdmin } = useAuth();
-	const [isScrolled, setIsScrolled] = useState(false);
-	const [isUserOpen, setIsUserOpen] = useState(false);
-	const [showNavbar, setShowNavbar] = useState(true);
-	const userRef = useRef(null);
-	const lastScrollY = useRef(window.scrollY);
-	const navigate = useNavigate();
-	const location = useLocation();
+    const [isOpen, setIsOpen] = useState(false);
+    const [activeLink, setActiveLink] = useState('Home');
+    const { user, isAuthenticated, loading, logoutMember, logoutAdmin } = useAuth();
+    const [isScrolled, setIsScrolled] = useState(false);
+    const [isUserOpen, setIsUserOpen] = useState(false);
+    const [showNavbar, setShowNavbar] = useState(true);
+    const userRef = useRef(null);
+    const lastScrollY = useRef(window.scrollY);
+    const navigate = useNavigate();
+    const location = useLocation();
 
-	// Improved scroll logic: No transition/flicker at the top, always show at top
-	useEffect(() => {
-		const handleScroll = () => {
-			const currentScrollY = window.scrollY;
-			if (currentScrollY <= 0) {
-				setShowNavbar(true);
-			} else if (currentScrollY > lastScrollY.current) {
-				setShowNavbar(false);
-			} else if (currentScrollY < lastScrollY.current) {
-				setShowNavbar(true);
-			}
-			lastScrollY.current = currentScrollY;
-			setIsScrolled(currentScrollY > 20);
-		};
-		window.addEventListener('scroll', handleScroll);
-		return () => window.removeEventListener('scroll', handleScroll);
-	}, []);
+    // Sync active link with route
+    useEffect(() => {
+        setActiveLink(pathToNavName(location.pathname));
+    }, [location.pathname]);
 
-	useEffect(() => {
-		const handleClickOutside = (event) => {
-			if (userRef.current && !userRef.current.contains(event.target)) {
-				setIsUserOpen(false);
-			}
-		};
-		document.addEventListener('mousedown', handleClickOutside);
-		return () => {
-			document.removeEventListener('mousedown', handleClickOutside);
-		};
-	}, []);
+    // Improved scroll logic
+    useEffect(() => {
+        const handleScroll = () => {
+            const currentScrollY = window.scrollY;
+            if (currentScrollY <= 0) {
+                setShowNavbar(true);
+            } else if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
+                setShowNavbar(false);
+            } else if (currentScrollY < lastScrollY.current) {
+                setShowNavbar(true);
+            }
+            lastScrollY.current = currentScrollY;
+            setIsScrolled(currentScrollY > 20);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
-	useEffect(() => {
-		if (isOpen) {
-			document.body.style.overflow = 'hidden';
-		} else {
-			document.body.style.overflow = 'unset';
-		}
-		return () => {
-			document.body.style.overflow = 'unset';
-		};
-	}, [isOpen]);
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (userRef.current && !userRef.current.contains(event.target)) {
+                setIsUserOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
-	const handleLinkClick = (name) => {
-		setActiveLink(name);
-		setIsOpen(false);
-		setIsUserOpen(false);
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isOpen]);
 
-		const found = navSections.flatMap((s) => s.items).find((item) => item.name === name);
-		if (found) {
-			navigate(found.path);
-		}
-	};
+    const handleLinkClick = (name) => {
+        setActiveLink(name);
+        setIsOpen(false);
+        setIsUserOpen(false);
 
-	const handleLogout = () => {
-		const { accessToken } = getToken();
-		if (accessToken) {
-			try {
-				const tokenData = decodeToken(accessToken);
-				if (tokenData.memberId) {
-					logoutMember();
-				} else if (tokenData.adminId) {
-					logoutAdmin();
-				}
-			} catch {
-				logoutMember();
-			}
-		} else {
-			logoutMember();
-		}
-		setIsUserOpen(false);
-		navigate('/auth');
-	};
+        const found = navSections.flatMap((s) => s.items).find((item) => item.name === name);
+        if (found) {
+            navigate(found.path);
+        }
+    };
 
-	const handleAlreadyMember = () => {
-		setIsOpen(false);
-		setIsUserOpen(false);
-		navigate('/auth', { state: { tab: 'login' } });
-	};
+    const handleLogout = () => {
+        const { accessToken } = getToken();
+        if (accessToken) {
+            try {
+                const tokenData = decodeToken(accessToken);
+                if (tokenData.memberId) {
+                    logoutMember();
+                } else if (tokenData.adminId) {
+                    logoutAdmin();
+                }
+            } catch {
+                logoutMember();
+            }
+        } else {
+            logoutMember();
+        }
+        setIsUserOpen(false);
+        navigate('/auth');
+    };
 
-	const handleJoinClub = () => {
-		setIsOpen(false);
-		setIsUserOpen(false);
-		navigate('/auth', { state: { tab: 'register' } });
-	};
+    const handleAlreadyMember = () => {
+        setIsOpen(false);
+        setIsUserOpen(false);
+        navigate('/auth', { state: { tab: 'login' } });
+    };
 
-	if (loading) return null;
+    const handleJoinClub = () => {
+        setIsOpen(false);
+        setIsUserOpen(false);
+        navigate('/auth', { state: { tab: 'register' } });
+    };
 
-	return (
-		<>
-			<style>{`
+    if (loading) return null;
+
+    return (
+        <>
+            <style>{`
                 @keyframes float {
                     0%, 100% { transform: translateY(0); }
                     50% { transform: translateY(-5px); }
@@ -147,7 +161,7 @@ const Navbar = () => {
                     to { transform: translateX(0); }
                 }
                 .navbar {
-                    transition: background 0.4s, box-shadow 0.4s, backdrop-filter 0.4s;
+                    transition: transform 0.4s ease, background 0.4s, box-shadow 0.4s, backdrop-filter 0.4s;
                 }
                 .nav-link {
                     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -186,139 +200,121 @@ const Navbar = () => {
                 }
             `}</style>
 
-			<nav
-				className={`fixed top-0 left-0 w-full z-50 navbar ${
-					isScrolled
-						? 'glass-effect shadow-2xl'
-						: 'bg-gradient-to-r from-slate-900/80 to-slate-800/80 backdrop-blur-md'
-				} ${showNavbar ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
-				style={{
-					height: '5rem',
-					transform: showNavbar ? 'translateY(0)' : 'translateY(-100%)',
-					transition: showNavbar
-						? 'background 0.4s, box-shadow 0.4s, backdrop-filter 0.4s, opacity 0.4s'
-						: 'transform 0.4s, opacity 0.4s',
-					boxShadow: isScrolled
-						? '0 8px 32px 0 rgba(0,217,255,0.10), 0 1.5px 8px 0 #06b6d4'
-						: '0 2px 8px 0 #23294622',
-				}}
-			>
-				<div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between h-full">
-					{/* Brand with animated background */}
-					<div className="flex items-center gap-3 sm:gap-4 flex-shrink-0 relative select-none">
-						{/* Animated, layered glowing background */}
-						<div className="absolute left-0 top-0 w-16 h-16 sm:w-20 sm:h-20 -z-10 pointer-events-none">
-							<div
-								className="absolute inset-0 rounded-full"
-								style={{
-									background:
-										'radial-gradient(circle at 60% 40%, #06b6d4 0%, #6366f1 60%, transparent 100%)',
-									filter: 'blur(18px)',
-									opacity: 0.5,
-									animation: 'pulse-slow 4s ease-in-out infinite',
-								}}
-							/>
-							<svg
-								width="100%"
-								height="100%"
-								viewBox="0 0 64 64"
-								className="animate-spin-slow"
-								style={{
-									filter: 'blur(2.5px)',
-									position: 'absolute',
-									top: 0,
-									left: 0,
-									zIndex: 1,
-								}}
-							>
-								<defs>
-									<radialGradient id="glow2" cx="50%" cy="50%" r="50%">
-										<stop offset="0%" stopColor="#0ff" stopOpacity="0.7" />
-										<stop offset="60%" stopColor="#6366f1" stopOpacity="0.3" />
-										<stop offset="100%" stopColor="#000" stopOpacity="0" />
-									</radialGradient>
-								</defs>
-								<circle cx="32" cy="32" r="28" fill="url(#glow2)" />
-							</svg>
-						</div>
-						<div
-							className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shadow-xl logo-float overflow-hidden border border-cyan-700/30"
-							style={{
-								background: 'linear-gradient(135deg, #0a0e17 80%, #232946 100%)',
-								boxShadow: '0 6px 32px 0 #0ff2, 0 2px 12px 0 #6366f133',
-							}}
-						>
-							<img
-								src={logo}
-								alt="Vibranta Logo"
-								className="w-9 h-9 sm:w-12 sm:h-12 rounded-full object-cover"
-								loading="lazy"
-								decoding="async"
-								style={{
-									background:
-										'linear-gradient(135deg, #06b6d4 0%, #2563eb 50%, #a21caf 100%)',
-									border: '2.5px solid #0ff',
-									boxShadow: '0 0 0 2px #232946',
-								}}
-							/>
-						</div>
-						<h1
-							className="text-white font-extrabold text-xl sm:text-2xl lg:text-3xl bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent tracking-wide text-shadow navbar-brand"
-							style={{ letterSpacing: '0.04em', textShadow: '0 2px 12px #0ff4' }}
-						>
-							Vibranta
-						</h1>
-					</div>
+            <nav
+                className={`fixed top-0 left-0 w-full z-50 navbar ${
+                    isScrolled
+                        ? 'bg-slate-900/90 backdrop-blur-md shadow-2xl'
+                        : 'bg-slate-900/80 backdrop-blur-md'
+                } ${showNavbar ? 'translate-y-0' : '-translate-y-full'}`}
+                style={{
+                    height: '5rem',
+                    boxShadow: isScrolled
+                        ? '0 8px 32px 0 rgba(0,217,255,0.10), 0 1.5px 8px 0 #06b6d4'
+                        : 'none',
+                }}
+            >
+                <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between h-full">
+                    {/* Brand with animated background */}
+                    <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0 relative select-none">
+                        {/* Animated, layered glowing background */}
+                        <div className="absolute left-0 top-0 w-16 h-16 sm:w-20 sm:h-20 -z-10 pointer-events-none">
+                            <div
+                                className="absolute inset-0 rounded-full"
+                                style={{
+                                    background:
+                                        'radial-gradient(circle at 60% 40%, #06b6d4 0%, #6366f1 60%, transparent 100%)',
+                                    filter: 'blur(18px)',
+                                    opacity: 0.5,
+                                    animation: 'pulse-slow 4s ease-in-out infinite',
+                                }}
+                            />
+                            <svg
+                                width="100%"
+                                height="100%"
+                                viewBox="0 0 64 64"
+                                className="animate-spin-slow"
+                                style={{
+                                    filter: 'blur(2.5px)',
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    zIndex: 1,
+                                }}
+                            >
+                                <defs>
+                                    <radialGradient id="glow2" cx="50%" cy="50%" r="50%">
+                                        <stop offset="0%" stopColor="#0ff" stopOpacity="0.7" />
+                                        <stop offset="60%" stopColor="#6366f1" stopOpacity="0.3" />
+                                        <stop offset="100%" stopColor="#000" stopOpacity="0" />
+                                    </radialGradient>
+                                </defs>
+                                <circle cx="32" cy="32" r="28" fill="url(#glow2)" />
+                            </svg>
+                        </div>
+                        <div
+                            className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shadow-xl logo-float overflow-hidden border border-cyan-700/30"
+                            style={{
+                                background: 'linear-gradient(135deg, #0a0e17 80%, #232946 100%)',
+                                boxShadow: '0 6px 32px 0 #0ff2, 0 2px 12px 0 #6366f133',
+                            }}
+                        >
+                            <img
+                                src={logo}
+                                alt="Vibranta Logo"
+                                className="w-9 h-9 sm:w-12 sm:h-12 rounded-full object-cover"
+                                loading="lazy"
+                                decoding="async"
+                                style={{
+                                    background:
+                                        'linear-gradient(135deg, #06b6d4 0%, #2563eb 50%, #a21caf 100%)',
+                                    border: '2.5px solid #0ff',
+                                    boxShadow: '0 0 0 2px #232946',
+                                }}
+                            />
+                        </div>
+                        <h1
+                            className="text-white font-extrabold text-xl sm:text-2xl lg:text-3xl bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent tracking-wide text-shadow navbar-brand"
+                            style={{ letterSpacing: '0.04em', textShadow: '0 2px 12px #0ff4' }}
+                        >
+                            Vibranta
+                        </h1>
+                    </div>
 
-					{/* Navigation Links */}
-					<div className="hidden lg:flex items-center gap-1 xl:gap-2">
-						{navSections.flatMap((section) =>
-							section.items.map((item) => (
-								<button
-									key={item.name}
-									onClick={() => handleLinkClick(item.name)}
-									className={`nav-link flex items-center gap-2 px-3 xl:px-4 py-2.5 rounded-xl font-medium text-sm xl:text-base transition-all duration-300 ${
-										activeLink === item.name
-											? 'active text-white'
-											: 'text-slate-200 hover:text-white'
-									}`}
-								>
-									<item.icon
-										size={18}
-										className={`transition-all duration-300 ${
-											activeLink === item.name ? 'text-cyan-400' : ''
-										}`}
-									/>
-									<span className="whitespace-nowrap">{item.name}</span>
-									{activeLink === item.name && (
-										<div className="w-1 h-1 bg-cyan-400 rounded-full ml-1 animate-pulse" />
-									)}
-								</button>
-							))
-						)}
-					</div>
+                    {/* Navigation Links */}
+                    <div className="hidden lg:flex items-center gap-1 xl:gap-2">
+                        {navSections.flatMap((section) =>
+                            section.items.map((item) => (
+                                <button
+                                    key={item.name}
+                                    onClick={() => handleLinkClick(item.name)}
+                                    className={`nav-link flex items-center gap-2 px-3 xl:px-4 py-2.5 rounded-xl font-medium text-sm xl:text-base transition-all duration-300 ${
+                                        activeLink === item.name
+                                            ? 'active text-white'
+                                            : 'text-slate-200 hover:text-white'
+                                    }`}
+                                >
+                                    <item.icon
+                                        size={18}
+                                        className={`transition-all duration-300 ${
+                                            activeLink === item.name ? 'text-cyan-400' : ''
+                                        }`}
+                                    />
+                                    <span className="whitespace-nowrap">{item.name}</span>
+                                    {activeLink === item.name && (
+                                        <div className="w-1 h-1 bg-cyan-400 rounded-full ml-1 animate-pulse" />
+                                    )}
+                                </button>
+                            ))
+                        )}
+                    </div>
 
-					{/* Right Side Actions */}
-					<div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-						{isAuthenticated ? (
-							<div className="relative" ref={userRef}>
-								<button
-									onClick={() => setIsUserOpen(!isUserOpen)}
-									className="flex items-center gap-2 sm:gap-3 glass-effect px-2 sm:px-4 py-2 rounded-full hover:bg-white/10 transition-all duration-300 group"
-								>
-									<div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center shadow-lg">
-										<User className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-									</div>
-									<span className="hidden sm:block text-white font-medium text-sm">
-										{user?.name || 'User'}
-									</span>
-									<ChevronDown
-										className={`h-4 w-4 text-white transition-transform duration-300 ${isUserOpen ? 'rotate-180' : ''}`}
-									/>
-								</button>
-								{/* User Dropdown */}
-								{isUserOpen && (
-									<div className="absolute right-0 mt-3 w-64 sm:w-72 rounded-2xl glass-effect border border-white/20 shadow-2xl overflow-hidden z-50">
+                    {/* Right Side Actions */}
+                    <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                        {isAuthenticated ? (
+                            <div className="relative" ref={userRef}>
+                                <button
+                                    onClick={() => setIsUserOpen(!isUserOpen)}
+									<div className="absolute right-0 mt-3 w-64 sm:w-72 rounded-2xl bg-slate-900/90 backdrop-blur-lg border border-white/20 shadow-2xl overflow-hidden z-50">
 										<div className="p-4 border-b border-white/10 bg-gradient-to-r from-cyan-500/10 to-purple-500/10">
 											<div className="flex items-center gap-3">
 												<div className="w-12 h-12 rounded-full bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center shadow-lg">
@@ -391,7 +387,7 @@ const Navbar = () => {
 						onClick={() => setIsOpen(false)}
 					/>
 					{/* Drawer */}
-					<div className="absolute top-0 left-0 h-full mobile-drawer w-80 max-w-sm mobile-menu-enter glass-effect border-r border-white/20 shadow-2xl overflow-hidden">
+					<div className="absolute top-0 left-0 h-full mobile-drawer w-80 max-w-sm mobile-menu-enter bg-slate-900/95 backdrop-blur-lg border-r border-white/20 shadow-2xl overflow-hidden">
 						<div className="h-full flex flex-col">
 							{/* Header */}
 							<div className="flex justify-between items-center p-4 sm:p-6 border-b border-white/10 bg-gradient-to-r from-cyan-500/10 to-purple-500/10">
