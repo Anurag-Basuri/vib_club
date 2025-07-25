@@ -80,7 +80,7 @@ const memberSchema = new mongoose.Schema({
         required: [true, 'Password is required'],
         minlength: [8, 'Password must be at least 8 characters'],
         maxlength: [128, 'Password cannot exceed 128 characters'],
-        select: false,
+        // select: false,
     },
     linkedIn: {
         type: String,
@@ -148,7 +148,8 @@ memberSchema.pre('save', async function(next) {
 });
 
 memberSchema.methods.comparePassword = async function(candidatePassword) {
-    return await bcrypt.compare(candidatePassword, this.password);
+    const check = await bcrypt.compare(candidatePassword, this.password);
+    return check;
 };
 
 memberSchema.methods.generateResetToken = function () {

@@ -48,8 +48,12 @@ const loginMember = asyncHandler(async (req, res) => {
 
     const query = LpuId ? { LpuId } : { email };
     const member = await Member.findOne(query);
-    if (!member || !(await member.comparePassword(password))) {
-        throw new ApiError(401, 'Invalid credentials');
+    if (!member) {
+        throw new ApiError(404, 'Member not found');
+    }
+
+    if (!await member.comparePassword(password)) {
+        throw new ApiError(401, 'Incorrect Password');
     }
 
     const accessToken = member.generateAuthToken();

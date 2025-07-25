@@ -32,7 +32,6 @@ router.post(
 router.post(
     '/login',
     validate([
-        body('LpuId').notEmpty().withMessage('LPU ID is required'),
         body('password').notEmpty().withMessage('Password is required')
     ]),
     loginMember
