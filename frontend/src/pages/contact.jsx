@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Send, CheckCircle2, ChevronDown, ChevronUp, ShieldCheck } from 'lucide-react';
-import { apiClient } from '../services/api.js';
+import { apiClient, publicClient } from '../services/api.js';
 import { getToken, decodeToken } from '../utils/handleTokens.js';
 
 const ContactPage = () => {
@@ -52,7 +52,7 @@ const ContactPage = () => {
 		setLoading(true);
 		setError('');
 		try {
-			await apiClient.post('/api/contacts/send', formData);
+			await publicClient.post('/api/contact/send', formData);
 			setSuccess(true);
 			setFormData({
 				name: '',

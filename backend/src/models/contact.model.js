@@ -12,7 +12,6 @@ const contactSchema = new mongoose.Schema({
     email: {
         type: String,
         required: [true, 'Email is required'],
-        unique: true,
         lowercase: true,
         validate: {
             validator: function(v) {
@@ -34,7 +33,6 @@ const contactSchema = new mongoose.Schema({
     lpuID: {
         type: String,
         required: [true, 'LPU ID is required'],
-        unique: true,
         validate: {
             validator: function(v) {
                 return /^\d{8}$/.test(v);
