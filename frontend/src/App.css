@@ -1,0 +1,7 @@
+:root {
+    --navbar-height: 5rem;
+}
+
+html {
+    scroll-padding-top: var(--navbar-height);
+}
