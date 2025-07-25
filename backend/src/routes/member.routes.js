@@ -19,6 +19,12 @@ import { body, param } from 'express-validator';
 
 const router = Router();
 
+// get all members
+router.get(
+    '/getall',
+    getAllMembers
+);
+
 // Register Member
 router.post(
     '/register',
@@ -121,6 +127,8 @@ router.get(
     getMemberById
 );
 
+// get 
+
 // Send Password Reset Email
 router.post(
     '/send-reset-email',
@@ -128,14 +136,6 @@ router.post(
         body('email').notEmpty().withMessage('Email is required')
     ]),
     sendResetPasswordEmail
-);
-
-// Get All Members
-router.get(
-    '/getall',
-    authMiddleware.verifyToken,
-    authMiddleware.isAdmin,
-    getAllMembers
 );
 
 export default router;
