@@ -59,7 +59,6 @@ const Navbar = () => {
         setActiveLink(pathToNavName(location.pathname));
     }, [location.pathname]);
 
-    // Improved scroll logic
     useEffect(() => {
         const handleScroll = () => {
             const currentScrollY = window.scrollY;
@@ -211,58 +210,17 @@ const Navbar = () => {
                     {/* Brand with animated background */}
                     <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0 relative select-none">
                         {/* Animated, layered glowing background */}
-                        <div className="absolute left-0 top-0 w-16 h-16 sm:w-20 sm:h-20 -z-10 pointer-events-none">
-                            <div
-                                className="absolute inset-0 rounded-full"
-                                style={{
-                                    background:
-                                        'radial-gradient(circle at 60% 40%, #06b6d4 0%, #6366f1 60%, transparent 100%)',
-                                    filter: 'blur(18px)',
-                                    opacity: 0.5,
-                                    animation: 'pulse-slow 4s ease-in-out infinite',
-                                }}
-                            />
-                            <svg
-                                width="100%"
-                                height="100%"
-                                viewBox="0 0 64 64"
-                                className="animate-spin-slow"
-                                style={{
-                                    filter: 'blur(2.5px)',
-                                    position: 'absolute',
-                                    top: 0,
-                                    left: 0,
-                                    zIndex: 1,
-                                }}
-                            >
-                                <defs>
-                                    <radialGradient id="glow2" cx="50%" cy="50%" r="50%">
-                                        <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.7" />
-                                        <stop offset="60%" stopColor="#6366f1" stopOpacity="0.3" />
-                                        <stop offset="100%" stopColor="#000" stopOpacity="0" />
-                                    </radialGradient>
-                                </defs>
-                                <circle cx="32" cy="32" r="28" fill="url(#glow2)" />
-                            </svg>
-                        </div>
                         <div
-                            className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shadow-xl logo-float overflow-hidden border border-cyan-700/30"
-                            style={{
-                                background: 'linear-gradient(135deg, #0a0e17 80%, #232946 100%)',
-                                boxShadow: '0 6px 32px 0 #06b6d422, 0 2px 12px 0 #6366f133',
-                            }}
+                            className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shadow-lg border border-cyan-700/40 bg-black"
                         >
                             <img
                                 src={logo}
                                 alt="Vibranta Logo"
-                                className="w-9 h-9 sm:w-12 sm:h-12 rounded-full object-cover"
+                                className="w-9 h-9 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-cyan-400 shadow-md"
                                 loading="lazy"
                                 decoding="async"
                                 style={{
-                                    background:
-                                        'linear-gradient(135deg, #06b6d4 0%, #2563eb 50%, #a21caf 100%)',
-                                    border: '2.5px solid #06b6d4',
-                                    boxShadow: '0 0 0 2px #232946',
+                                    background: '#0a0e17',
                                 }}
                             />
                         </div>
@@ -299,7 +257,7 @@ const Navbar = () => {
                                     )}
                                 </button>
                             ))
-                        )}
+						)}
                     </div>
 
                     {/* Right Side Actions */}
