@@ -44,9 +44,9 @@ const memberSchema = new mongoose.Schema({
     },
     email: {
         type: String,
-        unique: true,
+        required: [true, 'Email is required'],
         lowercase: true,
-        validate: [validator.isEmail, 'Please provide a valid email']
+        unique: true,
     },
     program: {
         type: String,
@@ -114,13 +114,21 @@ const memberSchema = new mongoose.Schema({
             message: props => `${props.value} is not a valid GitHub URL!`
         },
     },
+    department: {
+        type: String,
+        required: [true, 'Department is required'],
+        enum: {
+            values: ['HR', 'Technical', 'Marketing', 'Management', 'Social Media', 'Content Writing', 'Event Management', 'Media'],
+            message: 'Please select a valid department'
+        }
+    },
     designation: {
         type: String,
         enum: {
-            values: ['volunteer', 'CEO', 'CTO', 'CFO', 'CMO', 'COO', 'Manager', 'Member'],
+            values: ['CEO', 'CTO', 'CFO', 'CMO', 'COO','Head','member'],
             message: 'Please select a valid designation'
         },
-        default: 'volunteer',
+        default: 'member',
     },
     bio: {
         type: String,
