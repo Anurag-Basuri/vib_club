@@ -5,6 +5,7 @@ import {
     logoutMember,
     resetPassword,
     updateProfile,
+    updateMemberByAdmin,
     uploadProfilePicture,
     getCurrentMember,
     getMemberById,
@@ -72,6 +73,20 @@ router.put(
         body('bio').optional().isString()
     ]),
     updateProfile
+);
+
+// Update Member by Admin
+router.put(
+    '/:id/admin',
+    authMiddleware.verifyToken,
+    authMiddleware.isAdmin,
+    validate([
+        param('id').isMongoId().withMessage('Invalid member ID'),
+        body('department').optional().isString(),
+        body('designation').optional().isString(),
+        body('LpuId').optional().isString()
+    ]),
+    updateMemberByAdmin
 );
 
 // Upload Profile Picture

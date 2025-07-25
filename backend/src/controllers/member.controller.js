@@ -326,6 +326,7 @@ export {
     logoutMember,
     resetPassword,
     updateProfile,
+    updateMemberByAdmin,
     uploadProfilePicture,
     getCurrentMember,
     getMemberById,
