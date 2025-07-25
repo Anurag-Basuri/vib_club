@@ -1,158 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown, Users, Code, Briefcase, Palette, Megaphone, Mail, Linkedin, Github, Sparkles, Star, Award, Heart, Target, Globe, ArrowRight } from 'lucide-react';
-
-// Enhanced Team Data Structure
-const teamData = {
-  leadership: [
-    {
-      id: 'ceo',
-      name: 'Alex Chen',
-      role: 'Chief Executive Officer',
-      bio: 'Visionary leader driving innovation in tech with a passion for creative problem-solving',
-      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face',
-      social: { linkedin: '#', github: '#', email: 'alex@company.com' },
-      level: 0,
-      quote: "Creativity is intelligence having fun"
-    },
-    {
-      id: 'cto',
-      name: 'Sarah Johnson',
-      role: 'Chief Technology Officer',
-      bio: 'Leading technical excellence and architecture with a focus on emerging technologies',
-      image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=300&h=300&fit=crop&crop=face',
-      social: { linkedin: '#', github: '#', email: 'sarah@company.com' },
-      level: 1,
-      quote: "The best way to predict the future is to invent it"
-    },
-    {
-      id: 'cmo',
-      name: 'Michael Rodriguez',
-      role: 'Chief Marketing Officer',
-      bio: 'Crafting compelling brand narratives that resonate with our community',
-      image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=300&fit=crop&crop=face',
-      social: { linkedin: '#', github: '#', email: 'michael@company.com' },
-      level: 1,
-      quote: "Marketing is no longer about the stuff you make, but the stories you tell"
-    },
-    {
-      id: 'coo',
-      name: 'Emily Zhang',
-      role: 'Chief Operations Officer',
-      bio: 'Optimizing processes for maximum efficiency while fostering team collaboration',
-      image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&h=300&fit=crop&crop=face',
-      social: { linkedin: '#', github: '#', email: 'emily@company.com' },
-      level: 1,
-      quote: "Efficiency is doing things right; effectiveness is doing the right things"
-    }
-  ],
-  departments: {
-    technical: {
-      title: 'Technical Team',
-      icon: Code,
-      color: 'from-blue-500 to-cyan-500',
-      description: 'Our tech wizards building innovative solutions and pushing boundaries',
-      members: [
-        {
-          name: 'David Kim',
-          role: 'Senior Full Stack Developer',
-          image: 'https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?w=300&h=300&fit=crop&crop=face',
-          skills: ['React', 'Node.js', 'Python', 'AI'],
-          social: { linkedin: '#', github: '#' },
-          funFact: 'Can solve a Rubik\'s cube in under 30 seconds'
-        },
-        {
-          name: 'Lisa Wang',
-          role: 'DevOps Engineer',
-          image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&h=300&fit=crop&crop=face',
-          skills: ['AWS', 'Docker', 'Kubernetes', 'CI/CD'],
-          social: { linkedin: '#', github: '#' },
-          funFact: 'Competitive esports player in college'
-        },
-        {
-          name: 'James Wilson',
-          role: 'Data Scientist',
-          image: 'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=300&h=300&fit=crop&crop=face',
-          skills: ['Python', 'ML', 'TensorFlow', 'NLP'],
-          social: { linkedin: '#', github: '#' },
-          funFact: 'Won a national math competition twice'
-        }
-      ]
-    },
-    management: {
-      title: 'Management Team',
-      icon: Briefcase,
-      color: 'from-purple-500 to-pink-500',
-      description: 'Strategic minds organizing and executing our creative initiatives',
-      members: [
-        {
-          name: 'Anna Thompson',
-          role: 'Project Manager',
-          image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=300&h=300&fit=crop&crop=face',
-          skills: ['Agile', 'Scrum', 'Leadership', 'Strategy'],
-          social: { linkedin: '#', github: '#' },
-          funFact: 'Organized the largest student hackathon in our region'
-        },
-        {
-          name: 'Robert Davis',
-          role: 'Product Manager',
-          image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&h=300&fit=crop&crop=face',
-          skills: ['Strategy', 'Analytics', 'UX', 'Research'],
-          social: { linkedin: '#', github: '#' },
-          funFact: 'Former competitive debater with national awards'
-        }
-      ]
-    },
-    design: {
-      title: 'Design Team',
-      icon: Palette,
-      color: 'from-green-500 to-teal-500',
-      description: 'Creative visionaries shaping our visual identity and user experiences',
-      members: [
-        {
-          name: 'Sophie Martinez',
-          role: 'UI/UX Designer',
-          image: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=300&h=300&fit=crop&crop=face',
-          skills: ['Figma', 'Sketch', 'Prototyping', 'Animation'],
-          social: { linkedin: '#', github: '#' },
-          funFact: 'Illustrates children\'s books in her free time'
-        },
-        {
-          name: 'Tom Anderson',
-          role: 'Graphic Designer',
-          image: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=300&h=300&fit=crop&crop=face',
-          skills: ['Photoshop', 'Illustrator', 'Branding', 'Typography'],
-          social: { linkedin: '#', github: '#' },
-          funFact: 'Designed logos for 3 student startups'
-        }
-      ]
-    },
-    outreach: {
-      title: 'Outreach Team',
-      icon: Megaphone,
-      color: 'from-orange-500 to-red-500',
-      description: 'Connectors building relationships and expanding our community impact',
-      members: [
-        {
-          name: 'Maria Garcia',
-          role: 'Community Manager',
-          image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&h=300&fit=crop&crop=face',
-          skills: ['Social Media', 'Content', 'Engagement', 'Networking'],
-          social: { linkedin: '#', github: '#' },
-          funFact: 'Speaks 4 languages fluently'
-        },
-        {
-          name: 'Chris Brown',
-          role: 'Event Coordinator',
-          image: 'https://images.unsplash.com/photo-1463453091185-61582044d556?w=300&h=300&fit=crop&crop=face',
-          skills: ['Planning', 'Networking', 'Logistics', 'Production'],
-          social: { linkedin: '#', github: '#' },
-          funFact: 'Former theater director with 10+ productions'
-        }
-      ]
-    }
-  }
-};
+import { publicClient } from '../services/api.js';
 
 // Leadership Card Component
 const LeadershipCard = ({ leader, index, onClick }) => {
@@ -489,6 +338,20 @@ const FloatingParticles = () => {
 const TeamsPage = () => {
   const [selectedLeader, setSelectedLeader] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [teamData, setTeamData] = useState([]);
+
+  useEffect(() => {
+    const fetchTeamData = async () => {
+      try {
+        const response = await publicClient.get('api/members/getall');
+        setTeamData(response.data);
+      } catch (error) {
+        console.error('Error fetching team data:', error);
+      }
+    };
+
+    fetchTeamData();
+  }, []);
 
   const handleLeaderClick = (leader) => {
     setSelectedLeader(leader);

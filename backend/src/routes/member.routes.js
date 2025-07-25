@@ -9,7 +9,8 @@ import {
     uploadProfilePicture,
     getCurrentMember,
     getMemberById,
-    sendResetPasswordEmail
+    sendResetPasswordEmail,
+    getAllMembers
 } from '../controllers/member.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { validate } from '../middlewares/validator.middleware.js';
@@ -131,7 +132,7 @@ router.post(
 
 // Get All Members
 router.get(
-    '/',
+    '/getall',
     authMiddleware.verifyToken,
     authMiddleware.isAdmin,
     getAllMembers
