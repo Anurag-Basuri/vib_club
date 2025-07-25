@@ -339,6 +339,17 @@ const TeamsPage = () => {
   const [selectedLeader, setSelectedLeader] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [teamData, setTeamData] = useState([]);
+  const [CEO, setCEO] = useState(null);
+  const [CTO, setCTO] = useState(null);
+  const [CMO, setCMO] = useState(null);
+  const [COO, setCOO] = useState(null);
+  const [technical, setTechnical] = useState([]);
+  const [management, setManagement] = useState([]);
+  const [marketing, setMarketing] = useState([]);
+  const [socialMedia, setSocialMedia] = useState([]);
+  const [media, setMedia] = useState([]);
+  const [contentWriting, setContentWriting] = useState([]);
+  const [design, setDesign] = useState([]);
 
   useEffect(() => {
     const fetchTeamData = async () => {
@@ -352,6 +363,41 @@ const TeamsPage = () => {
 
     fetchTeamData();
   }, []);
+
+  useEffect(() => {
+    if (teamData.length > 0) {
+      const ceo = teamData.find(member => member.designation === 'CEO');
+      const cto = teamData.find(member => member.designation === 'CTO');
+      const cmo = teamData.find(member => member.designation === 'CMO');
+      const coo = teamData.find(member => member.designation === 'COO');
+
+      setCEO(ceo);
+      setCTO(cto);
+      setCMO(cmo);
+      setCOO(coo);
+    }
+  }, [teamData]);
+
+  // Excluding CEO, CTO, CMO and COO
+  useEffect(() => {
+    if (teamData.length > 0) {
+      const technicalMembers = teamData.filter(member => member.department === 'Technical' && member.designation !== 'CEO' && member.designation !== 'CTO');
+      const managementMembers = teamData.filter(member => member.department === 'Management' && member.designation !== 'CEO' && member.designation !== 'CMO');
+      const marketingMembers = teamData.filter(member => member.department === 'Marketing');
+      const socialMediaMembers = teamData.filter(member => member.department === 'Social Media');
+      const mediaMembers = teamData.filter(member => member.department === 'Media');
+      const contentWritingMembers = teamData.filter(member => member.department === 'Content Writing');
+      const designMembers = teamData.filter(member => member.department === 'Design');
+
+      setTechnical(technicalMembers);
+      setManagement(managementMembers);
+      setMarketing(marketingMembers);
+      setSocialMedia(socialMediaMembers);
+      setMedia(mediaMembers);
+      setContentWriting(contentWritingMembers);
+      setDesign(designMembers);
+    }
+  }, [teamData]);
 
   const handleLeaderClick = (leader) => {
     setSelectedLeader(leader);
