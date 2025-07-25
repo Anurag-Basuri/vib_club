@@ -7,8 +7,8 @@ import { sendPasswordResetEmail } from '../services/email.service.js';
 
 //  Register a new member
 const registerMember = asyncHandler(async (req, res) => {
-    const {fullName, LpuId, email, password, department, designation, program} = req.body;
-    if (!fullName || !LpuId || !email || !password) {
+    const {fullName, LpuId, password, department, designation, program} = req.body;
+    if (!fullName || !LpuId || !password) {
         throw new ApiError(400, 'Full name, LPU ID, email, and password are required');
     }
 
@@ -20,7 +20,6 @@ const registerMember = asyncHandler(async (req, res) => {
     const member = await Member.create({
         fullName,
         LpuId,
-        email,
         password,
         department,
         designation,

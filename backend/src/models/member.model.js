@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
+import { type } from 'os';
 
 const memberSchema = new mongoose.Schema({
     memberID: {
@@ -44,41 +45,11 @@ const memberSchema = new mongoose.Schema({
     },
     email: {
         type: String,
-        required: [true, 'Email is required'],
-        lowercase: true,
-        unique: true,
+
     },
     program: {
         type: String,
         trim: true,
-        enum: [
-            'B.Tech CSE',
-            'B.Tech ECE',
-            'B.Tech EEE',
-            'B.Tech ME',
-            'B.Tech CE',
-            'B.Tech IT',
-            'B.Tech AE',
-            'B.Tech BT',
-            'B.Tech MCE',
-            'B.Tech biotech',
-            'B.Tech other',
-            'BSC agriculture',
-            'BSC Hons',
-            'BSC IT',
-            'BSC',
-            'BCA',
-            'BBA',
-            'BBA LLB',
-            'B.Com',
-            'B.Com Hons',
-            'B.Com LLB',
-            'B.Com General',
-            'B.Com Professional',
-            'B.Com Accounting',
-            'B.Com Finance',
-            'B.Com Marketing',
-        ],
     },
     year: {
         type: Number,
@@ -118,7 +89,7 @@ const memberSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Department is required'],
         enum: {
-            values: ['HR', 'Technical', 'Marketing', 'Management', 'Social Media', 'Content Writing', 'Event Management', 'Media'],
+            values: ['HR', 'Technical', 'Marketing', 'Management', 'Social Media', 'Content Writing', 'Media'],
             message: 'Please select a valid department'
         }
     },
