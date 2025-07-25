@@ -145,7 +145,7 @@ const updateProfile = asyncHandler(async (req, res) => {
     }
 
     member.fullName = fullName || member.fullName;
-    member.email = email || member.email;
+    member.gmail = email || member.gmail;
     member.program = program || member.program;
     member.year = year || member.year;
     member.linkedIn = linkedIn || member.linkedIn;

@@ -4,7 +4,6 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
-import { type } from 'os';
 
 const memberSchema = new mongoose.Schema({
     memberID: {
@@ -45,7 +44,7 @@ const memberSchema = new mongoose.Schema({
     },
     email: {
         type: String,
-
+        default: uuidv4(),
     },
     program: {
         type: String,
@@ -89,7 +88,7 @@ const memberSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Department is required'],
         enum: {
-            values: ['HR', 'Technical', 'Marketing', 'Management', 'Social Media', 'Content Writing', 'Media'],
+            values: ['HR', 'Technical', 'Marketing', 'Management', 'Social Media', 'Content Writing', 'Event Management', 'Media'],
             message: 'Please select a valid department'
         }
     },
