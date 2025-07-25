@@ -26,6 +26,11 @@ export const AuthProvider = ({ children }) => {
 
 	// Member Login
 	const loginMember = useCallback(async (credentials) => {
+		if(credentials.identifier.includes('@')) {
+			credentials.email = credentials.identifier;
+		} else {
+			credentials.LpuId = credentials.identifier;
+		}
 		const data = await memberLogin(credentials);
 		const decoded = decodeToken(data.accessToken);
 		setUser(decoded);
