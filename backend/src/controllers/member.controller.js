@@ -166,6 +166,32 @@ const updateProfile = asyncHandler(async (req, res) => {
     );
 });
 
+// Update by admin
+const updateMemberByAdmin = asyncHandler(async (req, res) => {
+    const { department, designation, LpuId } = req.body;
+
+    const member = await Member.findById(req.params.id);
+    if (!member) {
+        throw new ApiError(404, 'Member not found');
+    }
+
+    member.department = department || member.department;
+    member.designation = designation || member.designation;
+    member.LpuId = LpuId || member.LpuId;
+
+    await member.save();
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                'Member updated successfully',
+                { member: member.toJSON() }
+            )
+        );
+});
+
 // Upload profile picture
 const uploadProfilePicture = asyncHandler(async (req, res) => {
     const file = req.files;
