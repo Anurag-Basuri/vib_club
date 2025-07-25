@@ -18,6 +18,8 @@ import {
 	Globe,
 	ArrowRight,
 	Loader,
+	Calendar,
+    X
 } from 'lucide-react';
 import { publicClient } from '../services/api.js';
 
@@ -406,7 +408,7 @@ const TeamsPage = () => {
 			try {
 				setLoading(true);
 				const response = await publicClient.get('api/members/getall');
-				setTeamData(response.data);
+				setTeamData(response.data.message.members);
 				setError(null);
 			} catch (error) {
 				console.error('Error fetching team data:', error);
@@ -431,67 +433,68 @@ const TeamsPage = () => {
 
 			setLeadership(leadershipMembers);
 
-			// Filter other departments
+			// Use .some() to exclude leadership members by _id
 			setTechnical(
 				teamData.filter(
 					(member) =>
-						member.department === 'Technical' && !leadershipMembers.includes(member)
+						member.department === 'Technical' &&
+						!leadershipMembers.some((lm) => lm._id === member._id)
 				)
 			);
-
 			setManagement(
 				teamData.filter(
 					(member) =>
-						member.department === 'Management' && !leadershipMembers.includes(member)
+						member.department === 'Management' &&
+						!leadershipMembers.some((lm) => lm._id === member._id)
 				)
 			);
-
 			setMarketing(
 				teamData.filter(
 					(member) =>
-						member.department === 'Marketing' && !leadershipMembers.includes(member)
+						member.department === 'Marketing' &&
+						!leadershipMembers.some((lm) => lm._id === member._id)
 				)
 			);
-
 			setSocialMedia(
 				teamData.filter(
 					(member) =>
-						member.department === 'Social Media' && !leadershipMembers.includes(member)
+						member.department === 'Social Media' &&
+						!leadershipMembers.some((lm) => lm._id === member._id)
 				)
 			);
-
 			setMedia(
 				teamData.filter(
-					(member) => member.department === 'Media' && !leadershipMembers.includes(member)
+					(member) =>
+						member.department === 'Media' &&
+						!leadershipMembers.some((lm) => lm._id === member._id)
 				)
 			);
-
 			setContentWriting(
 				teamData.filter(
 					(member) =>
 						member.department === 'Content Writing' &&
-						!leadershipMembers.includes(member)
+						!leadershipMembers.some((lm) => lm._id === member._id)
 				)
 			);
-
 			setDesign(
 				teamData.filter(
 					(member) =>
-						member.department === 'Design' && !leadershipMembers.includes(member)
+						member.department === 'Design' &&
+						!leadershipMembers.some((lm) => lm._id === member._id)
 				)
 			);
-
 			setHR(
 				teamData.filter(
-					(member) => member.department === 'HR' && !leadershipMembers.includes(member)
+					(member) =>
+						member.department === 'HR' &&
+						!leadershipMembers.some((lm) => lm._id === member._id)
 				)
 			);
-
 			setEventManagement(
 				teamData.filter(
 					(member) =>
 						member.department === 'Event Management' &&
-						!leadershipMembers.includes(member)
+						!leadershipMembers.some((lm) => lm._id === member._id)
 				)
 			);
 		}
