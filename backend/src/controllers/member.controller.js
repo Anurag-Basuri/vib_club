@@ -257,24 +257,11 @@ const getMemberById = asyncHandler(async (req, res) => {
     }
 
     const currentUser = req.user;
-    if (currentUser.role !== 'admin' && currentUser.role !== 'member') {
-        const member = await Member.findById(id).select('-password -refreshToken');
-        if (!member) {
-            throw new ApiError(404, 'Member not found');
-        }
-
-        return res
-            .status(200)
-            .json(
-                new ApiResponse(
-                    200,
-                    'Member retrieved successfully',
-                { member: member.toJSON() }
-            )
-        );
+    if (!currentUser.admin && !currentUser.member) {
+        throw new ApiError(403, 'Access denied: Admins or members only');
     }
 
-    const member = await Member.findById(id).select('-password -refreshToken -LpuId -email -joinedAt');
+    const member = await Member.findById(id).select('-password -refreshToken -joinedAt');
     if (!member) {
         throw new ApiError(404, 'Member not found');
     }
@@ -317,6 +304,39 @@ const sendResetPasswordEmail = asyncHandler(async (req, res) => {
             'Password reset email sent successfully'
         )
     );
+});
+
+// Get all members
+const getAllMembers = asyncHandler(async (req, res) => {
+    const currentUser = req.user;
+
+    if(!currentUser.admin && !currentUser.member) {
+        const members = await Member.find().select('-LpuId -year - email -password -refreshToken');
+        const totalMembers = await Member.countDocuments();
+
+        return res
+            .status(200)
+            .json(
+                new ApiResponse(
+                    200,
+                    'Members retrieved successfully',
+                    { members, totalMembers }
+                )
+            );
+    }
+
+    const members = await Member.find().select('-password -refreshToken');
+    const totalMembers = await Member.countDocuments();
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                'Members retrieved successfully',
+                { members, totalMembers }
+            )
+        );
 });
 
 export {
