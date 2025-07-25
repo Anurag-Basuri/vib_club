@@ -349,5 +349,6 @@ export {
     uploadProfilePicture,
     getCurrentMember,
     getMemberById,
-    sendResetPasswordEmail
+    sendResetPasswordEmail,
+    getAllMembers
 };

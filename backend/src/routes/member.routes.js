@@ -129,4 +129,12 @@ router.post(
     sendResetPasswordEmail
 );
 
+// Get All Members
+router.get(
+    '/',
+    authMiddleware.verifyToken,
+    authMiddleware.isAdmin,
+    getAllMembers
+);
+
 export default router;
