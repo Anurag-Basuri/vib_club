@@ -1,20 +1,20 @@
 import Member from '../models/member.model.js';
-import {asyncHandler} from '../utils/asyncHandler.js';
-import {ApiError} from '../utils/apiError.js';
-import {ApiResponse} from '../utils/apiResponse.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
+import { ApiError } from '../utils/apiError.js';
+import { ApiResponse } from '../utils/apiResponse.js';
 import { uploadFile, deleteFile } from '../utils/cloudinary.js';
 import { sendPasswordResetEmail } from '../services/email.service.js';
 
-//  Register a new member
+// Register a new member
 const registerMember = asyncHandler(async (req, res) => {
-    const {fullName, LpuId, password, department, designation, program} = req.body;
+    const { fullName, LpuId, password, department, designation, program } = req.body;
     if (!fullName || !LpuId || !password) {
-        throw new ApiError(400, 'Full name, LPU ID, email, and password are required');
+        return res.status(400).json(ApiResponse.badRequest('Full name, LPU ID, and password are required'));
     }
 
     const existingMember = await Member.findOne({ LpuId });
     if (existingMember) {
-        throw new ApiError(400, 'Member with this LPU ID already exists');
+        return res.status(400).json(ApiResponse.conflict('Member with this LPU ID already exists'));
     }
 
     const member = await Member.create({
@@ -29,33 +29,30 @@ const registerMember = asyncHandler(async (req, res) => {
     const accessToken = member.generateAuthToken();
     const refreshToken = member.generateRefreshToken();
 
-    return res
-        .status(201)
-        .json(
-            new ApiResponse(
-                201,
-                'Member registered successfully',
-                { member: member.toJSON() },
-                { accessToken, refreshToken }
-            )
-        );
+    return res.status(201).json(
+        ApiResponse.created(
+            { member: member.toJSON() },
+            'Member registered successfully',
+            { accessToken, refreshToken }
+        )
+    );
 });
 
 // Login member
 const loginMember = asyncHandler(async (req, res) => {
     const { LpuId, email, password } = req.body;
     if ((!LpuId && !email) || !password) {
-        throw new ApiError(400, 'LPU ID or email and password are required');
+        return res.status(400).json(ApiResponse.badRequest('LPU ID or email and password are required'));
     }
 
     const query = LpuId ? { LpuId } : { email };
-    const member = await Member.findOne(query).select('');
+    const member = await Member.findOne(query).select('+password +refreshToken');
     if (!member) {
-        throw new ApiError(404, 'Member not found');
+        return res.status(404).json(ApiResponse.notFound('Member not found'));
     }
 
     if (!await member.comparePassword(password)) {
-        throw new ApiError(401, 'Incorrect Password');
+        return res.status(401).json(ApiResponse.unauthorized('Incorrect Password'));
     }
 
     const accessToken = await member.generateAuthToken();
@@ -63,66 +60,54 @@ const loginMember = asyncHandler(async (req, res) => {
 
     const user = await Member.findById(member._id).select('-password -refreshToken');
     if (!user) {
-        throw new ApiError(404, 'User not found');
+        return res.status(404).json(ApiResponse.notFound('User not found'));
     }
 
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(
-                200,
-                'Login successful',
-                { member: user.toJSON() },
-                { accessToken, refreshToken }
-            )
-        );
+    return res.status(200).json(
+        ApiResponse.success(
+            { member: user.toJSON() },
+            'Login successful',
+            { accessToken, refreshToken }
+        )
+    );
 });
 
 // Logout member
 const logoutMember = asyncHandler(async (req, res) => {
     const { refreshToken } = req.body;
     if (!refreshToken) {
-        throw new ApiError(400, 'Refresh token is required');
+        return res.status(400).json(ApiResponse.badRequest('Refresh token is required'));
     }
 
     const member = await Member.findOne({ refreshToken });
     if (!member) {
-        throw new ApiError(404, 'Member not found');
+        return res.status(404).json(ApiResponse.notFound('Member not found'));
     }
     member.refreshToken = null;
+    await member.save();
 
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(
-                200,
-                'Logout successful'
-            )
-        );
+    return res.status(200).json(ApiResponse.success(null, 'Logout successful'));
 });
 
 // Reset password
 const resetPassword = asyncHandler(async (req, res) => {
-    const {LpuId, newPassword} = req.body;
+    const { LpuId, newPassword } = req.body;
     if (!LpuId || !newPassword) {
-        throw new ApiError(400, 'LPU ID and new password are required');
+        return res.status(400).json(ApiResponse.badRequest('LPU ID and new password are required'));
     }
 
     const member = await Member.findOne({ LpuId });
     if (!member) {
-        throw new ApiError(404, 'Member not found');
+        return res.status(404).json(ApiResponse.notFound('Member not found'));
     }
 
     member.password = newPassword;
     await member.save();
 
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(
-                200,
-                'Password reset successfully',
-            { member: member.toJSON() }
+    return res.status(200).json(
+        ApiResponse.success(
+            { member: member.toJSON() },
+            'Password reset successfully'
         )
     );
 });
@@ -141,7 +126,7 @@ const updateProfile = asyncHandler(async (req, res) => {
 
     const member = await Member.findById(req.params.id);
     if (!member) {
-        throw new ApiError(404, 'Member not found');
+        return res.status(404).json(ApiResponse.notFound('Member not found'));
     }
 
     member.fullName = fullName || member.fullName;
@@ -154,13 +139,10 @@ const updateProfile = asyncHandler(async (req, res) => {
 
     await member.save();
 
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(
-                200,
-                'Profile updated successfully',
-            { member: member.toJSON() }
+    return res.status(200).json(
+        ApiResponse.success(
+            { member: member.toJSON() },
+            'Profile updated successfully'
         )
     );
 });
@@ -171,7 +153,7 @@ const updateMemberByAdmin = asyncHandler(async (req, res) => {
 
     const member = await Member.findById(req.params.id);
     if (!member) {
-        throw new ApiError(404, 'Member not found');
+        return res.status(404).json(ApiResponse.notFound('Member not found'));
     }
 
     member.department = department || member.department;
@@ -180,27 +162,24 @@ const updateMemberByAdmin = asyncHandler(async (req, res) => {
 
     await member.save();
 
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(
-                200,
-                'Member updated successfully',
-                { member: member.toJSON() }
-            )
-        );
+    return res.status(200).json(
+        ApiResponse.success(
+            { member: member.toJSON() },
+            'Member updated successfully'
+        )
+    );
 });
 
 // Upload profile picture
 const uploadProfilePicture = asyncHandler(async (req, res) => {
     const file = req.files;
     if (!file || file.length === 0) {
-        throw new ApiError(400, 'No files uploaded');
+        return res.status(400).json(ApiResponse.badRequest('No files uploaded'));
     }
 
     const member = await Member.findById(req.id);
     if (!member) {
-        throw new ApiError(404, 'Member not found');
+        return res.status(404).json(ApiResponse.notFound('Member not found'));
     }
 
     // Delete old profile picture from Cloudinary
@@ -216,14 +195,11 @@ const uploadProfilePicture = asyncHandler(async (req, res) => {
     };
     await member.save();
 
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(
-                200,
-                'Profile picture uploaded successfully',
-                { member: member.toJSON() }
-            )
+    return res.status(200).json(
+        ApiResponse.success(
+            { member: member.toJSON() },
+            'Profile picture uploaded successfully'
+        )
     );
 });
 
@@ -231,20 +207,17 @@ const uploadProfilePicture = asyncHandler(async (req, res) => {
 const getCurrentMember = asyncHandler(async (req, res) => {
     const id = req.id;
     if (!id) {
-        throw new ApiError(401, 'Unauthorized access');
+        return res.status(401).json(ApiResponse.unauthorized('Unauthorized access'));
     }
     const member = await Member.findById(id).select('-password -refreshToken');
     if (!member) {
-        throw new ApiError(404, 'Member not found');
+        return res.status(404).json(ApiResponse.notFound('Member not found'));
     }
 
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(
-                200,
-                'Current member retrieved successfully',
-            { member: member.toJSON() }
+    return res.status(200).json(
+        ApiResponse.success(
+            { member: member.toJSON() },
+            'Current member retrieved successfully'
         )
     );
 });
@@ -253,26 +226,23 @@ const getCurrentMember = asyncHandler(async (req, res) => {
 const getMemberById = asyncHandler(async (req, res) => {
     const id = req.params.id;
     if (!id) {
-        throw new ApiError(400, 'Member ID is required');
+        return res.status(400).json(ApiResponse.badRequest('Member ID is required'));
     }
 
     const currentUser = req.user;
     if (!currentUser.admin && !currentUser.member) {
-        throw new ApiError(403, 'Access denied: Admins or members only');
+        return res.status(403).json(ApiResponse.forbidden('Access denied: Admins or members only'));
     }
 
     const member = await Member.findById(id).select('-password -refreshToken -joinedAt');
     if (!member) {
-        throw new ApiError(404, 'Member not found');
+        return res.status(404).json(ApiResponse.notFound('Member not found'));
     }
 
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(
-                200,
-                'Member retrieved successfully',
-            { member: member.toJSON() }
+    return res.status(200).json(
+        ApiResponse.success(
+            { member: member.toJSON() },
+            'Member retrieved successfully'
         )
     );
 });
@@ -281,12 +251,12 @@ const getMemberById = asyncHandler(async (req, res) => {
 const sendResetPasswordEmail = asyncHandler(async (req, res) => {
     const { email } = req.body;
     if (!email) {
-        throw new ApiError(400, 'Email is required');
+        return res.status(400).json(ApiResponse.badRequest('Email is required'));
     }
 
     const member = await Member.findOne({ email });
     if (!member) {
-        throw new ApiError(404, 'Member not found');
+        return res.status(404).json(ApiResponse.notFound('Member not found'));
     }
 
     // Generate reset token
@@ -296,11 +266,9 @@ const sendResetPasswordEmail = asyncHandler(async (req, res) => {
     // Send the reset email
     await sendPasswordResetEmail(email, resetToken);
 
-    return res
-        .status(200)
-        .json(
-        new ApiResponse(
-            200,
+    return res.status(200).json(
+        ApiResponse.success(
+            null,
             'Password reset email sent successfully'
         )
     );
@@ -310,33 +278,27 @@ const sendResetPasswordEmail = asyncHandler(async (req, res) => {
 const getAllMembers = asyncHandler(async (req, res) => {
     const currentUser = req.user;
 
-    // if(!currentUser.admin && !currentUser.member) {
-    //     const members = await Member.find().select('-LpuId -year - email -password -refreshToken');
+    // If not admin or member, restrict sensitive fields
+    // if (!currentUser.admin && !currentUser.member) {
+    //     const members = await Member.find().select('-LpuId -year -email -password -refreshToken');
     //     const totalMembers = await Member.countDocuments();
-
-    //     return res
-    //         .status(200)
-    //         .json(
-    //             new ApiResponse(
-    //                 200,
-    //                 'Members retrieved successfully',
-    //                 { members, totalMembers }
-    //             )
-    //         );
+    //     return res.status(200).json(
+    //         ApiResponse.success(
+    //             { members, totalMembers },
+    //             'Members retrieved successfully'
+    //         )
+    //     );
     // }
 
     const members = await Member.find().select('-password -refreshToken');
     const totalMembers = await Member.countDocuments();
 
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(
-                200,
-                'Members retrieved successfully',
-                { members, totalMembers }
-            )
-        );
+    return res.status(200).json(
+        ApiResponse.success(
+            { members, totalMembers },
+            'Members retrieved successfully'
+        )
+    );
 });
 
 export {
