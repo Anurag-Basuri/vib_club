@@ -31,6 +31,7 @@ export const removeToken = () => {
 
 export const decodeToken = (token) => {
   try {
+    if (!token || typeof token !== 'string') return null;
     return jwtDecode(token);
   } catch (err) {
     console.error('Error decoding token', err);

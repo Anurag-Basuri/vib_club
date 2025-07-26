@@ -46,11 +46,8 @@ export const memberLogin = async (data) => {
   try {
     const response = await publicClient.post('/api/members/login', data);
 
-    console.log('Login response:', response.data);
-
-    const { accessToken, refreshToken } = response.data.metadata;
+    const { accessToken, refreshToken } = response.data.data;
     setToken({ accessToken, refreshToken });
-
     return response.data;
   } catch (error) {
     handleAuthError(error);

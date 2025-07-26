@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
 			credentials.LpuId = credentials.identifier;
 		}
 		const data = await memberLogin(credentials);
-		const decoded = decodeToken(data.accessToken);
+		const decoded = decodeToken(data.data.accessToken);
 		setUser(decoded);
 		setIsAuthenticated(true);
 	}, []);
@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }) => {
 	// Member Register
 	const registerMember = useCallback(async (details) => {
 		const data = await memberRegister(details);
-		const decoded = decodeToken(data.accessToken);
+		const decoded = decodeToken(data.data.accessToken);
 		setUser(decoded);
 		setIsAuthenticated(true);
 	}, []);
@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }) => {
 	// Admin Login
 	const loginAdmin = useCallback(async (credentials) => {
 		const data = await adminLogin(credentials);
-		const decoded = decodeToken(data.accessToken);
+		const decoded = decodeToken(data.data.accessToken);
 		setUser(decoded);
 		setIsAuthenticated(true);
 	}, []);
@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }) => {
 	// Admin Register
 	const registerAdmin = useCallback(async (details) => {
 		const data = await adminRegister(details);
-		const decoded = decodeToken(data.accessToken);
+		const decoded = decodeToken(data.data.accessToken);
 		setUser(decoded);
 		setIsAuthenticated(true);
 	}, []);

@@ -65,9 +65,11 @@ const loginMember = asyncHandler(async (req, res) => {
 
     return res.status(200).json(
         ApiResponse.success(
-            { member: user.toJSON() },
+            { member: user.toJSON(),
+              accessToken,
+              refreshToken
+            },
             'Login successful',
-            { accessToken, refreshToken }
         )
     );
 });
