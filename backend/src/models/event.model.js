@@ -66,6 +66,10 @@ const EventSchema = new mongoose.Schema({
         type: [String],
         trim: true,
     },
+    moreDetails: {
+        type: String,
+        trim: true,
+    },
 
     totalSpots: {
         type: Number,

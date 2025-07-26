@@ -7,7 +7,7 @@ import mongoose from 'mongoose';
 
 // Create Event
 const createEvent = asyncHandler(async (req, res) => {
-	const { title, description, date, time, venue, organizer, sponsor, ticketPrice, status } = req.body;
+	const { title, description, date, time, venue, organizer, sponsor, tags, totalSpots, ticketPrice, moreDetails } = req.body;
 
 	if (!title || !description || !date || !time || !venue) {
 		throw new ApiError(400, 'Title, description, date, time, and venue are required');
@@ -22,10 +22,12 @@ const createEvent = asyncHandler(async (req, res) => {
 		time,
 		venue,
 		organizer,
+		tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
+		totalSpots: totalSpots ? parseInt(totalSpots, 10) : 0,
 		sponsor: sponsor || 'Not Applicable',
 		posters: posters.map(p => p.url),
 		ticketPrice: ticketPrice ? parseFloat(ticketPrice) : 0,
-		status: status || 'upcoming'
+		moreDetails
 	});
 
 	return res
@@ -40,7 +42,7 @@ const createEvent = asyncHandler(async (req, res) => {
 // Update Event
 const updateEvent = asyncHandler(async (req, res) => {
 	const { id } = req.params;
-	const { title, description, date, venue, organizer, sponsor, ticketPrice, status } = req.body;
+	const { title, description, date, time, venue, organizer, sponsor, tags, totalSpots, ticketPrice, moreDetails } = req.body;
 
 	if (!mongoose.Types.ObjectId.isValid(id)) {
 		throw new ApiError(400, 'Invalid event ID');
@@ -65,7 +67,9 @@ const updateEvent = asyncHandler(async (req, res) => {
 		...(organizer && { organizer }),
 		...(sponsor && { sponsor }),
 		...(ticketPrice && { ticketPrice: parseFloat(ticketPrice) }),
-		...(status && { status }),
+		...(moreDetails && { moreDetails }),
+		...(tags && { tags: tags.split(',').map(tag => tag.trim()) }),
+		...(totalSpots && { totalSpots: parseInt(totalSpots, 10) }),
 		...(newPosters.length > 0 && { posters: newPosters.map(p => p.url) })
 	};
 
