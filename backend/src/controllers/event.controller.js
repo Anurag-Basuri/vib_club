@@ -90,7 +90,7 @@ const getAllEvents = asyncHandler(async (req, res) => {
 		.status(200)
 		.json(
 			new ApiResponse(
-				200, 'Events fetched successfully', events
+				200, events, 'Events fetched successfully'
 			)
 		);
 });
