@@ -4,89 +4,195 @@ import Logo from '../assets/logo.png';
 import { useNavigate } from 'react-router-dom';
 
 const Hero = () => {
-    const navigate = useNavigate();
+	const navigate = useNavigate();
 
-    return (
-        <section className="min-h-screen flex flex-col justify-center items-center px-4 relative z-10">
-        <div className="max-w-6xl w-full mx-auto text-center">
-            <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="mb-8"
-            >
-            <motion.span 
-                className="text-indigo-400 font-semibold tracking-wider"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4, duration: 0.8 }}
-            >
-                Vibranta
-            </motion.span>
-            <motion.h1 
-                className="text-5xl md:text-7xl font-bold mt-4 mb-6 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent"
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6, duration: 0.8 }}
-            >
-                Innovate. Collaborate. Inspire. 
-            </motion.h1>
-            <motion.p 
-                className="text-xl md:text-2xl max-w-3xl mx-auto text-blue-100"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.8, duration: 0.8 }}
-            >
-                
-            </motion.p>
-            </motion.div>
+	return (
+		<section className="min-h-screen flex flex-col justify-center items-center px-4 relative overflow-hidden">
+			{/* Background with logo pattern */}
+			<div className="absolute inset-0 z-0 opacity-10 pointer-events-none">
+				<div
+					className="absolute inset-0"
+					style={{
+						backgroundImage: `url(${Logo})`,
+						backgroundSize: '30%',
+						backgroundPosition: 'center',
+						backgroundRepeat: 'repeat',
+						opacity: 0.2,
+					}}
+				></div>
+				<div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-900/50 to-slate-900"></div>
+			</div>
 
-            <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1, duration: 0.8 }}
-            className="mt-12 flex flex-col sm:flex-row gap-4 justify-center"
-            >
-            <motion.button
-                whileHover={{ scale: 1.05, backgroundColor: '#4f46e5' }}
-                whileTap={{ scale: 0.95 }}
-                className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl font-medium text-lg shadow-lg"
-                onClick={() => navigate('/auth', { state: { tab: 'register' } })}
-            >
-                Join Our Community
-            </motion.button>
-            <motion.button
-                whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
-                whileTap={{ scale: 0.95 }}
-                className="px-8 py-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl font-medium text-lg"
-                onClick={() => navigate('/event')}
-            >
-                View Events
-            </motion.button>
-            </motion.div>
-        </div>
+			{/* Floating particles */}
+			{[...Array(15)].map((_, i) => (
+				<motion.div
+					key={i}
+					className="absolute rounded-full pointer-events-none"
+					style={{
+						top: `${Math.random() * 90 + 5}%`,
+						left: `${Math.random() * 90 + 5}%`,
+						width: `${Math.random() * 10 + 5}px`,
+						height: `${Math.random() * 10 + 5}px`,
+						background: `rgba(99, 102, 241, ${Math.random() * 0.4 + 0.1})`,
+					}}
+					animate={{
+						y: [0, Math.random() * 40 - 20],
+						x: [0, Math.random() * 40 - 20],
+					}}
+					transition={{
+						duration: Math.random() * 5 + 5,
+						repeat: Infinity,
+						repeatType: 'reverse',
+						ease: 'easeInOut',
+					}}
+				></motion.div>
+			))}
 
-        <motion.div
-            className="absolute bottom-12 flex flex-col items-center"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.2, duration: 0.8 }}
-        >
-            <span className="text-blue-300 mb-2">Scroll to explore</span>
-            <motion.div 
-            animate={{ y: [0, 10, 0] }}
-            transition={{ repeat: Infinity, duration: 1.5 }}
-            className="w-8 h-12 rounded-full border-2 border-blue-400 flex justify-center p-1"
-            >
-            <motion.div 
-                className="w-2 h-2 bg-blue-400 rounded-full"
-                animate={{ y: [0, 8, 0] }}
-                transition={{ repeat: Infinity, duration: 1.5 }}
-            />
-            </motion.div>
-        </motion.div>
-        </section>
-    );
+			<div className="max-w-6xl w-full mx-auto text-center relative z-10 pt-10 pb-16 md:pt-32 md:pb-24">
+				<motion.div
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.8 }}
+					className="mb-12"
+				>
+					{/* Club name with elegant typography */}
+					<motion.div
+						initial={{ opacity: 0, scale: 0.92, y: 10 }}
+						animate={{ opacity: 1, scale: 1, y: 0 }}
+						transition={{ delay: 0.3, duration: 0.8 }}
+						className="inline-block mb-10"
+					>
+						<div className="flex items-center justify-center gap-4">
+							<span className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-widest bg-gradient-to-r from-indigo-400 via-blue-400 to-purple-500 bg-clip-text text-transparent drop-shadow-lg animate-gradient-x">
+								VIBRANTA
+							</span>
+						</div>
+						<div className="mt-2 text-base md:text-lg font-light text-indigo-200 tracking-wide italic">
+							The Club of Visionaries
+						</div>
+					</motion.div>
+
+					<motion.h1
+						className="text-3xl md:text-5xl lg:text-7xl font-bold mt-4 mb-6"
+						initial={{ opacity: 0, y: 30 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ delay: 0.5, duration: 0.8 }}
+					>
+						<div className="font-serif italic text-white mb-3">
+							Where Innovation Meets
+						</div>
+						<div className="bg-gradient-to-r from-blue-300 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
+							Collective Brilliance
+						</div>
+					</motion.h1>
+
+					<motion.p
+						className="text-base md:text-xl lg:text-2xl max-w-3xl mx-auto text-indigo-200 font-light"
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						transition={{ delay: 0.7, duration: 0.8 }}
+					>
+						A community of visionaries building tomorrow through collaboration,
+						creativity, and transformative technology.
+					</motion.p>
+				</motion.div>
+
+				<motion.div
+					initial={{ opacity: 0, y: 40 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ delay: 0.9, duration: 0.8 }}
+					className="mt-8 md:mt-16 flex flex-col sm:flex-row gap-5 justify-center"
+				>
+					<motion.button
+						whileHover={{
+							scale: 1.05,
+							boxShadow: '0 5px 20px rgba(99, 102, 241, 0.4)',
+						}}
+						whileTap={{ scale: 0.95 }}
+						className="px-6 py-3 md:px-8 md:py-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl font-medium text-base md:text-lg shadow-lg flex items-center gap-2 transition-all"
+						onClick={() => navigate('/auth', { state: { tab: 'register' } })}
+					>
+						<svg
+							className="w-5 h-5"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth={2}
+								d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+							/>
+						</svg>
+						Join Our Community
+					</motion.button>
+
+					<motion.button
+						whileHover={{
+							scale: 1.05,
+							backgroundColor: 'rgba(255, 255, 255, 0.08)',
+						}}
+						whileTap={{ scale: 0.95 }}
+						className="px-6 py-3 md:px-8 md:py-4 bg-white/5 backdrop-blur-lg border border-indigo-500/30 rounded-xl font-medium text-base md:text-lg flex items-center gap-2 transition-all"
+						onClick={() => navigate('/event')}
+					>
+						<svg
+							className="w-5 h-5"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth={2}
+								d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+							/>
+						</svg>
+						Explore Events
+					</motion.button>
+				</motion.div>
+			</div>
+
+			{/* Animated "Discover More" scroll indicator */}
+			<motion.div
+				className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center z-20"
+				initial={{ opacity: 0, y: 20 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{ delay: 1.2, duration: 0.8 }}
+			>
+				<motion.div
+					animate={{ y: [0, 12, 0] }}
+					transition={{ repeat: Infinity, duration: 1.8, ease: 'easeInOut' }}
+					className="w-8 md:w-12 h-12 md:h-16 rounded-full border-2 border-indigo-400/60 bg-gradient-to-b from-indigo-700/30 to-purple-700/20 shadow-xl flex flex-col items-center justify-start p-1 backdrop-blur-md"
+				>
+					<motion.div
+						className="w-2 md:w-3 h-2 md:h-3 bg-gradient-to-r from-indigo-400 via-blue-400 to-purple-400 rounded-full mt-2 shadow-md"
+						animate={{ y: [0, 10, 0], opacity: [1, 0.7, 1] }}
+						transition={{ repeat: Infinity, duration: 1.8, ease: 'easeInOut' }}
+					/>
+					<motion.div
+						className="w-1 h-6 mt-2 rounded-full bg-indigo-400/30"
+						animate={{ scaleY: [1, 1.2, 1] }}
+						transition={{ repeat: Infinity, duration: 1.8, ease: 'easeInOut' }}
+					/>
+				</motion.div>
+			</motion.div>
+
+			{/* Enhanced floating decorative elements */}
+			<motion.div
+				className="absolute top-1/4 left-2 md:left-10 w-32 md:w-56 h-32 md:h-56 rounded-full bg-gradient-to-br from-indigo-700/20 via-blue-700/10 to-purple-700/20 blur-3xl shadow-2xl pointer-events-none"
+				animate={{ scale: [1, 1.12, 1], rotate: [0, 8, 0] }}
+				transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+			></motion.div>
+			<motion.div
+				className="absolute bottom-1/3 right-6 md:right-10 w-44 md:w-64 h-44 md:h-64 rounded-full bg-gradient-to-br from-purple-700/20 via-indigo-700/10 to-blue-700/20 blur-3xl shadow-2xl pointer-events-none"
+				animate={{ scale: [1, 1.18, 1], rotate: [0, -8, 0] }}
+				transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+			></motion.div>
+		</section>
+	);
 };
 
 export default Hero;
