@@ -338,7 +338,7 @@ const TeamsPage = () => {
             try {
                 setLoading(true);
                 const response = await publicClient.get('api/members/getall');
-                setTeamData(response.data.message.members);
+                setTeamData(response.data.data.members);
                 setError(null);
             } catch (error) {
                 setError('Failed to load team data. Please try again later.');

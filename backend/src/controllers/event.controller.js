@@ -7,10 +7,10 @@ import mongoose from 'mongoose';
 
 // Create Event
 const createEvent = asyncHandler(async (req, res) => {
-	const { title, description, date, venue, organizer, sponsor, ticketPrice, status } = req.body;
+	const { title, description, date, time, venue, organizer, sponsor, ticketPrice, status } = req.body;
 
-	if (!title || !description || !date || !venue) {
-		throw new ApiError(400, 'Title, description, date, and venue are required');
+	if (!title || !description || !date || !time || !venue) {
+		throw new ApiError(400, 'Title, description, date, time, and venue are required');
 	}
 
 	const posters = req.files ? await Promise.all(req.files.map(file => uploadFile(file))) : [];
@@ -19,6 +19,7 @@ const createEvent = asyncHandler(async (req, res) => {
 		title,
 		description,
 		date: new Date(date),
+		time,
 		venue,
 		organizer,
 		sponsor: sponsor || 'Not Applicable',
@@ -31,7 +32,7 @@ const createEvent = asyncHandler(async (req, res) => {
 		.status(201)
 		.json(
 			new ApiResponse(
-				201, 'Event created successfully', newEvent
+				201,  newEvent, 'Event created successfully',
 			)
 		);
 });
