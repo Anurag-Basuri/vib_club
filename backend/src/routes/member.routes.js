@@ -8,7 +8,7 @@ import {
     updateMemberByAdmin,
     uploadProfilePicture,
     getCurrentMember,
-    getMemberById,
+    getLeaders,
     sendResetPasswordEmail,
     getAllMembers
 } from '../controllers/member.controller.js';
@@ -23,6 +23,12 @@ const router = Router();
 router.get(
     '/getall',
     getAllMembers
+);
+
+// Get Leaders
+router.get(
+    '/getleaders',
+    getLeaders
 );
 
 // Register Member
@@ -116,18 +122,6 @@ router.get(
     authMiddleware.isMember,
     getCurrentMember
 );
-
-// Get Member By ID
-router.get(
-    '/:id',
-    authMiddleware.verifyToken,
-    validate([
-        param('id').isMongoId().withMessage('Invalid member ID')
-    ]),
-    getMemberById
-);
-
-// get 
 
 // Send Password Reset Email
 router.post(

@@ -303,7 +303,7 @@ export {
     updateMemberByAdmin,
     uploadProfilePicture,
     getCurrentMember,
-    getMemberById,
+    getLeaders,
     sendResetPasswordEmail,
     getAllMembers
 };
