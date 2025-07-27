@@ -38,7 +38,10 @@ const createEvent = asyncHandler(async (req, res) => {
         tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
         totalSpots: totalSpots ? parseInt(totalSpots, 10) : 0,
         sponsor: sponsor || 'Not Applicable',
-        posters: posters.map(p => ({ url: p.url, publicId: p.publicId })),
+        posters: posters.map(p => ({
+            url: p.url,
+            publicId: p.publicId
+        })),
         ticketPrice: ticketPrice ? parseFloat(ticketPrice) : 0,
         moreDetails
     });
@@ -61,7 +64,7 @@ const updateEvent = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'Invalid event ID');
     }
 
-	const existingEvent = await Event.findById(id);
+    const existingEvent = await Event.findById(id);
     if (!existingEvent) {
         throw new ApiError(404, 'Event not found');
     }
@@ -71,7 +74,7 @@ const updateEvent = asyncHandler(async (req, res) => {
 
     // If new posters are uploaded, delete old ones from cloud
     if (newPosters.length > 0 && existingEvent.posters.length > 0) {
-        await Promise.all(existingEvent.posters.map(poster => deleteFile(poster.publicId)));
+        await Promise.all(existingEvent.posters.map(poster => deleteFile({public_id: poster.publicId, resource_type: 'image'})));
     }
 
     // Delete uploaded files from server after uploading to cloud
@@ -80,7 +83,7 @@ const updateEvent = asyncHandler(async (req, res) => {
         for (const file of req.files) {
             try {
                 fs.unlinkSync(file.path);
-            } catch (err) {
+			} catch (err) {
                 console.error('Error deleting file from server:', err);
             }
         }
@@ -98,7 +101,10 @@ const updateEvent = asyncHandler(async (req, res) => {
         ...(moreDetails && { moreDetails }),
         ...(tags && { tags: tags.split(',').map(tag => tag.trim()) }),
         ...(totalSpots && { totalSpots: parseInt(totalSpots, 10) }),
-        ...(newPosters.length > 0 && { posters: newPosters.map(p => ({ url: p.url, publicId: p.publicId })) })
+        ...(newPosters.length > 0 && { posters: newPosters.map(p => ({
+            url: p.url,
+            publicId: p.publicId
+        })) })
     };
 
     const updatedEvent = await Event.findByIdAndUpdate(id, updateFields, { new: true });
