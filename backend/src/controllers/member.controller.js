@@ -224,27 +224,18 @@ const getCurrentMember = asyncHandler(async (req, res) => {
     );
 });
 
-// Get member by ID
-const getMemberById = asyncHandler(async (req, res) => {
-    const id = req.params.id;
-    if (!id) {
-        return res.status(400).json(ApiResponse.badRequest('Member ID is required'));
-    }
+// get the leaders
+const getLeaders = asyncHandler(async (req, res) => {
+    const members = await Member.find({designation: { $in: ['CEO', 'CTO', 'CMO', 'COO'] }})
 
-    const currentUser = req.user;
-    if (!currentUser.admin && !currentUser.member) {
-        return res.status(403).json(ApiResponse.forbidden('Access denied: Admins or members only'));
-    }
-
-    const member = await Member.findById(id).select('-password -refreshToken -joinedAt');
-    if (!member) {
-        return res.status(404).json(ApiResponse.notFound('Member not found'));
+    if (!members || members.length === 0) {
+        return res.status(404).json(ApiResponse.notFound('No leaders found'));
     }
 
     return res.status(200).json(
         ApiResponse.success(
-            { member: member.toJSON() },
-            'Member retrieved successfully'
+            { members: members.map(member => member.toJSON()) },
+            'Leaders retrieved successfully'
         )
     );
 });

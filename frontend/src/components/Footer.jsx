@@ -1,79 +1,145 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import {
+  TwitterIcon,
+  GithubIcon,
+  LinkedinIcon,
+  InstagramIcon
+} from '@heroicons/react/24/solid';
 
 const Footer = () => {
+  const socialLinks = [
+    { name: 'Twitter', icon: <TwitterIcon />  },
+    { name: 'GitHub', icon: <GithubIcon /> },
+    { name: 'LinkedIn', icon: <LinkedinIcon /> },
+    { name: 'Instagram', icon: <InstagramIcon /> }
+  ];
+
+  const footerLinks = [
+    {
+      title: "Legal",
+      items: [
+        { name: "Privacy Policy", url: "/privacy" },
+        { name: "Terms of Use", url: "/terms" },
+        { name: "Cookie Policy", url: "/cookies" }
+      ]
+    }
+  ];
+
   return (
-    <footer className="pt-24 pb-12 px-4 relative z-10">
+    <footer className="pt-24 pb-12 px-4 relative z-10 overflow-hidden">
+      {/* Background elements */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute bottom-0 left-0 w-full h-full bg-gradient-to-t from-blue-900/50 to-indigo-900/20 backdrop-blur-3xl"></div>
+        <div className="absolute top-1/3 left-1/4 w-64 h-64 bg-blue-600/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 right-1/4 w-72 h-72 bg-indigo-600/10 rounded-full blur-3xl"></div>
+      </div>
+      
       <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-16">
-          <div className="md:col-span-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 mb-16">
+          {/* Brand column */}
+          <div className="lg:col-span-2">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-blue-500 to-purple-600 flex items-center justify-center text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
                 </svg>
               </div>
-              <h3 className="text-white font-bold text-xl">Tech Innovators Club</h3>
+              <h3 className="text-white font-bold text-2xl bg-gradient-to-r from-blue-300 to-indigo-300 bg-clip-text text-transparent">
+                Vibranta Club
+              </h3>
             </div>
-            <p className="text-blue-200 mb-6 max-w-md">
-              Empowering students to become technology leaders through hands-on projects, workshops, and community building.
+            
+            <p className="text-blue-200 mb-8 max-w-md leading-relaxed">
+              Empowering the next generation of tech innovators through hands-on projects, workshops, and community building.
             </p>
-            <div className="flex gap-4">
-              {['twitter', 'github', 'linkedin', 'instagram'].map((platform) => (
+            
+            {/* Social links */}
+            <div className="flex gap-4 mb-8">
+              {socialLinks.map((social, index) => (
                 <motion.a
-                  key={platform}
+                  key={index}
                   href="#"
-                  whileHover={{ y: -5, color: '#818cf8' }}
-                  className="text-blue-300 hover:text-white"
+                  className="w-10 h-10 rounded-full bg-blue-900/30 backdrop-blur-sm border border-white/10 flex items-center justify-center hover:bg-blue-800/50 transition-colors"
+                  whileHover={{ 
+                    y: -5,
+                    backgroundColor: 'rgba(99, 102, 241, 0.3)'
+                  }}
+                  whileTap={{ scale: 0.9 }}
                 >
-                  <span className="sr-only">{platform}</span>
-                  <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-                    <div className="bg-gray-200 border-2 border-dashed rounded-xl w-6 h-6" />
-                  </div>
+                  <svg className="w-5 h-5 text-blue-300" viewBox="0 0 24 24">
+                    <path fill="currentColor" d={social.icon} />
+                  </svg>
                 </motion.a>
               ))}
             </div>
           </div>
-          
-          <div>
-            <h4 className="text-white font-semibold mb-4">Quick Links</h4>
-            <ul className="space-y-3">
-              {['About Us', 'Events', 'Projects', 'Team', 'Join Us'].map((link) => (
-                <li key={link}>
-                  <motion.a 
-                    href="#" 
-                    className="text-blue-300 hover:text-white transition-colors"
+
+          {/* Footer link columns */}
+          {footerLinks.map((column, index) => (
+            <div key={index}>
+              <h4 className="text-white font-semibold mb-6 text-lg relative inline-block">
+                {column.title}
+                <div className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-blue-500 to-indigo-500"></div>
+              </h4>
+              <ul className="space-y-4">
+                {column.items.map((item, itemIndex) => (
+                  <motion.li 
+                    key={itemIndex}
                     whileHover={{ x: 5 }}
+                    className="text-blue-200 hover:text-white transition-colors"
                   >
-                    {link}
-                  </motion.a>
-                </li>
-              ))}
-            </ul>
-          </div>
-          
+                    <a href={item.url} className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                      {item.name}
+                    </a>
+                  </motion.li>
+                ))}
+              </ul>
+            </div>
+          ))}
+
+          {/* Contact column */}
           <div>
-            <h4 className="text-white font-semibold mb-4">Contact Us</h4>
-            <ul className="space-y-3 text-blue-200">
+            <h4 className="text-white font-semibold mb-6 text-lg relative inline-block">
+              Contact Us
+              <div className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-blue-500 to-indigo-500"></div>
+            </h4>
+            <ul className="space-y-5 text-blue-200">
               <li className="flex items-start gap-3">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                <span>contact@techinnovators.club</span>
+                <div className="w-8 h-8 rounded-full bg-blue-900/30 backdrop-blur-sm border border-white/10 flex items-center justify-center flex-shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <span>vibranta.studorg@gmail.com</span>
               </li>
               <li className="flex items-start gap-3">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span>Tech Building, Room 305<br />University Campus</span>
+                <div className="w-8 h-8 rounded-full bg-blue-900/30 backdrop-blur-sm border border-white/10 flex items-center justify-center flex-shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                </div>
+                <span>+91 9140253374</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-blue-900/30 backdrop-blur-sm border border-white/10 flex items-center justify-center flex-shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
               </li>
             </ul>
           </div>
         </div>
         
-        <div className="pt-8 border-t border-white/10 text-center text-blue-300">
-          <p>© 2023 Tech Innovators Club. All rights reserved.</p>
+        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-blue-300 text-center md:text-left">
+            © 2024 Vibranta Club. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>

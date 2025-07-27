@@ -5,6 +5,7 @@ import ClubDescription from '../components/ClubDescription.jsx';
 import EventsPreview from '../components/EventsPreview.jsx';
 import TeamPreview from '../components/TeamPreview.jsx';
 import Testimonials from '../components/Testimonials.jsx';
+import Footer from '../components/Footer.jsx';
 
 const Home = () => {
 	return (
@@ -24,6 +25,7 @@ const Home = () => {
 				<EventsPreview />
 				<TeamPreview />
 				<Testimonials />
+				<Footer />
 			</div>
 		</div>
 	);
