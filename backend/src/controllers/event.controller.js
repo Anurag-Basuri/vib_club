@@ -113,7 +113,7 @@ const updateEvent = asyncHandler(async (req, res) => {
         .status(200)
         .json(
             new ApiResponse(
-                200, 'Event updated successfully', updatedEvent
+                200, updatedEvent, 'Event updated successfully'
             )
         );
 });
@@ -151,7 +151,7 @@ const getEventById = asyncHandler(async (req, res) => {
 		.status(200)
 		.json(
 			new ApiResponse(
-				200, 'Event fetched successfully', event
+				200, event, 'Event fetched successfully'
 			)
 		);
 });
@@ -194,7 +194,7 @@ const getUpcomingEvent = asyncHandler(async (req, res) => {
 		.status(200)
 		.json(
 			new ApiResponse(
-				200, 'Upcoming events fetched successfully', event
+				200, event, 'Upcoming events fetched successfully'
 			)
 		);
 });

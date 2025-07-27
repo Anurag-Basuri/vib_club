@@ -40,17 +40,6 @@ router.put(
     authMiddleware.verifyToken,
     authMiddleware.isAdmin,
     uploadFile('posters'),
-    validate([
-        param('id').isMongoId().withMessage('Invalid event ID'),
-        body('title').optional().isString(),
-        body('description').optional().isString(),
-        body('date').optional().isISO8601().withMessage('Date must be valid'),
-        body('venue').optional().isString(),
-        body('organizer').optional().isString(),
-        body('sponsor').optional().isString(),
-        body('ticketPrice').optional().isFloat({ min: 0 }).withMessage('Ticket price must be a positive number'),
-        body('status').optional().isIn(['upcoming', 'completed', 'cancelled']).withMessage('Invalid status')
-    ]),
     updateEvent
 );
 
