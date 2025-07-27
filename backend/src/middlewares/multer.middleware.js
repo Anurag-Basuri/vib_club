@@ -61,11 +61,21 @@ const upload = multer({
 // Middleware to handle file upload for a single field
 export const uploadFile = (fieldName) => (req, res, next) => {
 	upload.single(fieldName)(req, res, (err) => {
-		if (err instanceof multer.MulterError) {
-			return next(new ApiError(400, `Multer error: ${err.message}`));
-		} else if (err) {
-			return next(new ApiError(400, `File upload error: ${err.message}`));
-		}
-		next();
-	});
+		// If an error occurred and a file was uploaded, delete it
+		if ((err instanceof multer.MulterError || err) && req.file && req.file.path) {
+        	try {
+                fs.unlinkSync(req.file.path);
+            } catch (deleteErr) {
+                console.error('Error deleting file after upload error:', deleteErr);
+            }
+        }
+        if (err instanceof multer.MulterError) {
+            return next(new ApiError(400, `Multer error: ${err.message}`));
+        } else if (err) {
+            return next(new ApiError(400, `File upload error: ${err.message}`));
+        }
+        // Ensure req.files is always an array for consistency
+        req.files = req.file ? [req.file] : [];
+        next();
+    });
 };
