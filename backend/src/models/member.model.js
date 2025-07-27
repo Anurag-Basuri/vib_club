@@ -13,16 +13,19 @@ const memberSchema = new mongoose.Schema({
     },
 
     profilePicture: {
-        type: String,
-        default: 'https://randomuser.me/api/portraits/lego/1.jpg',
-        validate: {
-            validator: function(v) {
-                return v === 'https://randomuser.me/api/portraits/lego/1.jpg' || 
-                       /^https?:\/\/.*\.(jpg|jpeg|png|gif|webp)$/i.test(v) ||
-                       /^[a-zA-Z0-9_-]+\.(jpg|jpeg|png|gif|webp)$/i.test(v);
+        url: {
+            type: String,
+            validate: {
+                validator: function(v) {
+                    return /^https?:\/\/.*\.(png|jpg|jpeg)$/.test(v);
+                },
+                message: 'QR Code must be a valid image URL'
             },
-            message: props => `${props.value} is not a valid profile picture!`
-        },
+            publicId: {
+                type: String,
+                unique: true
+            }
+        }
     },
     fullName: {
         type: String,

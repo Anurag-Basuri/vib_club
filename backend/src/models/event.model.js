@@ -53,14 +53,23 @@ const EventSchema = new mongoose.Schema({
         default: 'Not Applicable'
     },
     posters: {
-        type: [String],
-        validate: {
-            validator: function(v) {
-                if (!v || v.length === 0) return true; // Optional field
-                return v.every(url => /^https?:\/\/.*\.(jpg|jpeg|png|gif|webp)$/i.test(url));
-            },
-            message: 'All posters must be valid image URLs'
-        }
+        type: [
+            {
+                url: {
+                    type: String,
+                    validate: {
+                        validator: function(v) {
+                            return /^https?:\/\/.*\.(png|jpg|jpeg)$/.test(v);
+                        },
+                        message: 'Poster URL must be a valid image URL'
+                    }
+                },
+                publicId: {
+                    type: String,
+                    unique: true
+                }
+            }
+        ]
     },
     tags: {
         type: [String],
@@ -70,7 +79,6 @@ const EventSchema = new mongoose.Schema({
         type: String,
         trim: true,
     },
-
     totalSpots: {
         type: Number,
         min: [0, 'Total spots cannot be negative']
