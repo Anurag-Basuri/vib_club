@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
-import { Calendar, MapPin, Users, ArrowRight, ExternalLink, Sparkles, Ticket, Clock, Star, Heart } from 'lucide-react';
+import { Calendar, MapPin, Users, ArrowRight, Sparkles, Ticket, Clock, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { publicClient } from '../services/api.js';
 
@@ -63,18 +63,15 @@ const UpcomingEventShowcase = () => {
           setLoading(false);
         }, 700);
       } catch (error) {
-        console.error("Error fetching upcoming event:", error);
         setLoading(false);
       }
     };
 
     fetchUpcomingEvent();
 
-    // Handle window resize for mobile detection
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -154,13 +151,13 @@ const UpcomingEventShowcase = () => {
     : null;
 
   // ExpandableText component for mobile description
-  function ExpandableText({ text, maxChars = 100 }) {
+  function ExpandableText({ text, maxChars = 100, className }) {
     const [expanded, setExpanded] = useState(false);
     if (!text) return null;
-    if (text.length <= maxChars) return <p className="text-blue-100/90 text-sm leading-relaxed">{text}</p>;
+    if (text.length <= maxChars) return <p className={className || "text-blue-100/90 text-sm leading-relaxed"}>{text}</p>;
     return (
       <div>
-        <p className="text-blue-100/90 text-sm leading-relaxed">
+        <p className={className || "text-blue-100/90 text-sm leading-relaxed"}>
           {expanded ? text : text.slice(0, maxChars) + '...'}
           <button
             className="ml-2 text-cyan-400 font-medium text-sm hover:text-cyan-300 transition-colors"
@@ -176,7 +173,7 @@ const UpcomingEventShowcase = () => {
   // Mobile-specific layout with enhanced creativity
   if (isMobile) {
     return (
-      <section className="py-6 px-3 relative z-10 bg-transparent min-h-[70vh] overflow-hidden">
+      <section className="py-8 px-2 relative z-10 bg-transparent min-h-[70vh] overflow-hidden">
         {/* Floating background elements */}
         <div className="absolute top-10 left-4 w-20 h-20 bg-cyan-400/10 rounded-full blur-xl animate-pulse"></div>
         <div className="absolute top-32 right-6 w-16 h-16 bg-purple-400/10 rounded-full blur-lg animate-pulse" style={{ animationDelay: '1s' }}></div>
@@ -215,7 +212,7 @@ const UpcomingEventShowcase = () => {
             </motion.h1>
           </motion.div>
 
-          {/* Revolutionary Mobile Card Design */}
+          {/* Mobile Card */}
           <motion.div
             ref={ref}
             variants={containerVariants}
@@ -223,18 +220,17 @@ const UpcomingEventShowcase = () => {
             animate={inView ? "visible" : "hidden"}
             className="relative"
           >
-            {/* Main Card Container */}
             <motion.div
               variants={itemVariants}
-              className="bg-gradient-to-br from-blue-900/40 via-purple-900/50 to-indigo-900/40 backdrop-blur-2xl border-2 border-white/20 rounded-3xl overflow-hidden shadow-2xl relative"
+              className="bg-gradient-to-br from-blue-900/60 via-purple-900/70 to-indigo-900/60 backdrop-blur-2xl border-2 border-white/20 rounded-3xl overflow-hidden shadow-2xl relative"
               whileHover={{ scale: 1.02 }}
               transition={{ type: "spring", stiffness: 300 }}
             >
-              {/* Hero Poster Section - Full Width Display */}
+              {/* Poster */}
               {poster && poster.url && (
                 <motion.div
                   variants={itemVariants}
-                  className="relative w-full h-80 overflow-hidden"
+                  className="relative w-full h-64 overflow-hidden"
                   whileHover={{ scale: 1.05 }}
                   transition={{ duration: 0.6 }}
                 >
@@ -242,9 +238,8 @@ const UpcomingEventShowcase = () => {
                   <img
                     src={poster.url}
                     alt={event.title}
-                    className="w-full h-full object-cover object-center transform hover:scale-110 transition-transform duration-700"
+                    className="w-full h-full object-cover object-center rounded-t-3xl"
                   />
-                  
                   {/* Floating Info Cards on Poster */}
                   <div className="absolute top-4 left-4 z-20">
                     <motion.div 
@@ -258,28 +253,27 @@ const UpcomingEventShowcase = () => {
                       </span>
                     </motion.div>
                   </div>
-
                   {/* Bottom overlay with key info */}
-                  <div className="absolute bottom-0 left-0 right-0 z-20 p-4">
+                  <div className="absolute bottom-0 left-0 right-0 z-20 p-3">
                     <motion.div 
-                      className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-3"
+                      className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-2"
                       initial={{ y: 50, opacity: 0 }}
                       animate={{ y: 0, opacity: 1 }}
                       transition={{ delay: 0.5, duration: 0.6 }}
                     >
-                      <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-cyan-400" />
-                          <span className="text-white text-sm font-semibold">{dateStr.split(',')[0]}</span>
+                          <span className="text-white text-xs font-semibold">{dateStr.split(',')[0]}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Clock className="w-4 h-4 text-purple-400" />
-                          <span className="text-white text-sm font-semibold">{timeStr}</span>
+                          <span className="text-white text-xs font-semibold">{timeStr}</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <MapPin className="w-4 h-4 text-pink-400" />
-                        <span className="text-white text-sm font-medium truncate">{event.venue}</span>
+                        <span className="text-white text-xs font-medium truncate">{event.venue}</span>
                       </div>
                     </motion.div>
                   </div>
@@ -289,41 +283,40 @@ const UpcomingEventShowcase = () => {
               {/* Content Section */}
               <motion.div
                 variants={itemVariants}
-                className="p-5"
+                className="p-4"
               >
                 {/* Description */}
-                <div className="mb-4">
+                <div className="mb-3">
                   <ExpandableText text={event.description} maxChars={120} />
                 </div>
 
                 {/* Additional Info Cards */}
-                <div className="grid grid-cols-1 gap-3 mb-5">
+                <div className="grid grid-cols-1 gap-2 mb-4">
                   {event.sponsor && event.sponsor !== 'Not Applicable' && (
                     <motion.div 
-                      className="bg-gradient-to-r from-indigo-800/30 to-purple-800/30 backdrop-blur-sm border border-indigo-400/30 rounded-xl p-3 flex items-center gap-3"
+                      className="bg-gradient-to-r from-indigo-800/30 to-purple-800/30 backdrop-blur-sm border border-indigo-400/30 rounded-xl p-2 flex items-center gap-2"
                       whileHover={{ scale: 1.02, backgroundColor: 'rgba(99, 102, 241, 0.2)' }}
                     >
-                      <div className="w-8 h-8 bg-indigo-500/30 rounded-lg flex items-center justify-center">
+                      <div className="w-7 h-7 bg-indigo-500/30 rounded-lg flex items-center justify-center">
                         <Star className="w-4 h-4 text-indigo-400" />
                       </div>
                       <div>
                         <div className="text-indigo-300 text-xs font-medium">Sponsored by</div>
-                        <div className="text-white text-sm font-semibold">{event.sponsor}</div>
+                        <div className="text-white text-xs font-semibold">{event.sponsor}</div>
                       </div>
                     </motion.div>
                   )}
-                  
                   {event.organizer && (
                     <motion.div 
-                      className="bg-gradient-to-r from-cyan-800/30 to-blue-800/30 backdrop-blur-sm border border-cyan-400/30 rounded-xl p-3 flex items-center gap-3"
+                      className="bg-gradient-to-r from-cyan-800/30 to-blue-800/30 backdrop-blur-sm border border-cyan-400/30 rounded-xl p-2 flex items-center gap-2"
                       whileHover={{ scale: 1.02, backgroundColor: 'rgba(34, 211, 238, 0.15)' }}
                     >
-                      <div className="w-8 h-8 bg-cyan-500/30 rounded-lg flex items-center justify-center">
+                      <div className="w-7 h-7 bg-cyan-500/30 rounded-lg flex items-center justify-center">
                         <Users className="w-4 h-4 text-cyan-400" />
                       </div>
                       <div>
                         <div className="text-cyan-300 text-xs font-medium">Organized by</div>
-                        <div className="text-white text-sm font-semibold">{event.organizer}</div>
+                        <div className="text-white text-xs font-semibold">{event.organizer}</div>
                       </div>
                     </motion.div>
                   )}
@@ -336,7 +329,7 @@ const UpcomingEventShowcase = () => {
                     boxShadow: '0 10px 40px rgba(99, 102, 241, 0.4)'
                   }}
                   whileTap={{ scale: 0.95 }}
-                  className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 border border-indigo-400/50 rounded-2xl font-bold text-white transition-all duration-300 shadow-lg relative overflow-hidden group"
+                  className="w-full flex items-center justify-center gap-3 px-5 py-3 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 border border-indigo-400/50 rounded-2xl font-bold text-white transition-all duration-300 shadow-lg relative overflow-hidden group"
                   onClick={() => navigate(`/event/${event._id}`)}
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-cyan-600/20 to-purple-600/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-out"></div>
@@ -345,7 +338,6 @@ const UpcomingEventShowcase = () => {
                 </motion.button>
               </motion.div>
             </motion.div>
-
             {/* Decorative Elements */}
             <div className="absolute -top-2 -left-2 w-4 h-4 bg-cyan-400/60 rounded-full blur-sm animate-ping"></div>
             <div className="absolute -bottom-2 -right-2 w-4 h-4 bg-purple-400/60 rounded-full blur-sm animate-ping" style={{ animationDelay: '1s' }}></div>
@@ -355,7 +347,7 @@ const UpcomingEventShowcase = () => {
     );
   }
 
-  // Desktop layout (unchanged for focus on mobile improvement)
+  // Desktop layout
   return (
     <section className="py-24 px-4 relative z-10 bg-transparent min-h-[60vh] overflow-hidden">
       {/* Decorative elements */}
@@ -378,9 +370,6 @@ const UpcomingEventShowcase = () => {
           <h1 className="text-4xl md:text-5xl font-extrabold mb-4 bg-gradient-to-r from-blue-300 via-purple-300 to-pink-300 bg-clip-text text-transparent drop-shadow-lg">
             {event.title}
           </h1>
-          <p className="text-xl text-blue-200 max-w-2xl mx-auto">
-            {event.description}
-          </p>
         </motion.div>
 
         {/* Main Event Card */}
@@ -393,7 +382,7 @@ const UpcomingEventShowcase = () => {
           className="bg-gradient-to-br from-blue-900/60 to-purple-900/60 backdrop-blur-xl border border-white/20 rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row items-stretch"
         >
           {/* Poster */}
-          {poster.url && (
+          {poster && poster.url && (
             <motion.div
               variants={itemVariants}
               className="md:w-2/5 flex items-center justify-center bg-gradient-to-br from-blue-800/40 to-purple-800/40 relative overflow-hidden"
@@ -401,7 +390,7 @@ const UpcomingEventShowcase = () => {
               <img
                 src={poster.url}
                 alt={event.title}
-                className="object-cover w-full h-full min-h-[300px]"
+                className="object-cover w-full h-full min-h-[300px] rounded-l-3xl"
               />
             </motion.div>
           )}
@@ -411,6 +400,7 @@ const UpcomingEventShowcase = () => {
             variants={itemVariants}
             className="flex-1 p-8 flex flex-col justify-between"
           >
+            <ExpandableText text={event.description} maxChars={200} className="mb-6 text-blue-100/90 text-base leading-relaxed" />
             <div>
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="flex items-start gap-3">
@@ -452,9 +442,7 @@ const UpcomingEventShowcase = () => {
                 {event.sponsor && event.sponsor !== 'Not Applicable' && (
                   <div className="flex items-start gap-3">
                     <div className="p-2 bg-indigo-800/30 rounded-lg">
-                      <svg className="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                      </svg>
+                      <Star className="w-5 h-5 text-indigo-400" />
                     </div>
                     <div>
                       <div className="text-blue-300 text-sm font-semibold">Sponsor</div>
