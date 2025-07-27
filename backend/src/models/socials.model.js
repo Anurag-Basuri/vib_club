@@ -15,14 +15,26 @@ const SocialSchema = new mongoose.Schema({
     },
     images: [
         {
-            url: { type: String, required: true },
-            publicId: { type: String, required: true },
+            url: {
+                type: String,
+                required: true
+            },
+            publicId: {
+                type: String,
+                required: true
+            },
         }
     ],
     videos: [
         {
-            url: { type: String, required: true },
-            publicId: { type: String, required: true },
+            url: { 
+                type: String,
+                required: true
+            },
+            publicId: {
+                type: String,
+                required: true
+            },
         }
     ],
 
