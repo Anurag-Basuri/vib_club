@@ -160,7 +160,7 @@ const getUpcomingEvent = asyncHandler(async (req, res) => {
 		.status(200)
 		.json(
 			new ApiResponse(
-				200, 'Upcoming events fetched successfully', events
+				200, 'Upcoming events fetched successfully', event
 			)
 		);
 });

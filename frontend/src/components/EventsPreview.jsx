@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import { Calendar, MapPin, Users, ArrowRight, ExternalLink, Sparkles, Ticket } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import {publicClient} from '../services/api.js';
 
 const containerVariants = {
   hidden: { opacity: 0, y: 50 },
@@ -13,14 +14,6 @@ const containerVariants = {
       duration: 0.8,
       staggerChildren: 0.2
     }
-  }
-};
-
-const cardHoverVariants = {
-  hover: {
-    scale: 1.02,
-    boxShadow: "0 8px 32px rgba(99,102,241,0.15)",
-    transition: { duration: 0.3, ease: "easeOut" }
   }
 };
 
@@ -46,12 +39,14 @@ const UpcomingEventShowcase = () => {
   useEffect(() => {
     const fetchUpcomingEvent = async () => {
       try {
-        const res = await axios.get('/api/events/upcoming-event');
+        const res = await publicClient.get('/api/events/upcoming-event');
+        console.log("Upcoming Event Data:", res.data);
         setTimeout(() => {
           setEvent(res.data.data);
           setLoading(false);
         }, 700);
       } catch (error) {
+        console.error("Error fetching upcoming event:", error);
         setLoading(false);
       }
     };
@@ -229,29 +224,6 @@ const UpcomingEventShowcase = () => {
               )}
             </div>
           </motion.div>
-        </motion.div>
-
-        {/* Additional Info */}
-        <motion.div 
-          className="text-center mt-12"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8, duration: 0.6 }}
-        >
-          <p className="text-blue-300 mb-4">
-            🎯 {event.speakers || 'Top'} expert speakers • 🤝 Networking sessions • 🎁 Swag bags included
-          </p>
-          <motion.button
-            whileHover={{ 
-              scale: 1.05,
-              backgroundColor: 'rgba(79, 70, 229, 0.3)'
-            }}
-            whileTap={{ scale: 0.95 }}
-            className="px-8 py-3 bg-indigo-700/20 backdrop-blur-sm border border-indigo-500/30 rounded-xl font-medium text-indigo-300 hover:text-white transition-all duration-300"
-            onClick={() => navigate('/event')}
-          >
-            View All Upcoming Events →
-          </motion.button>
         </motion.div>
       </div>
     </section>

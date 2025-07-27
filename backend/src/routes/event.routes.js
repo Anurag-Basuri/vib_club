@@ -28,6 +28,12 @@ router.post(
     createEvent
 );
 
+// Get Upcoming Events
+router.get(
+    '/upcoming-event',
+    getUpcomingEvent
+);
+
 // Update Event
 router.put(
     '/:id/update',
@@ -72,12 +78,6 @@ router.delete(
         param('id').isMongoId().withMessage('Invalid event ID')
     ]),
     deleteEvent
-);
-
-// Get Upcoming Events
-router.get(
-    '/upcoming-event',
-    getUpcomingEvent
 );
 
 export default router;
