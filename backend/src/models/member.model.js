@@ -14,10 +14,10 @@ const memberSchema = new mongoose.Schema({
 
     profilePicture: {
         type: String,
-        default: 'default-profile.png',
+        default: 'https://randomuser.me/api/portraits/lego/1.jpg',
         validate: {
             validator: function(v) {
-                return v === 'default-profile.png' || 
+                return v === 'https://randomuser.me/api/portraits/lego/1.jpg' || 
                        /^https?:\/\/.*\.(jpg|jpeg|png|gif|webp)$/i.test(v) ||
                        /^[a-zA-Z0-9_-]+\.(jpg|jpeg|png|gif|webp)$/i.test(v);
             },

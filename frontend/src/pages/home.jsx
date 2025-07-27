@@ -24,7 +24,7 @@ const Home = () => {
 				<ClubDescription />
 				<EventsPreview />
 				<TeamPreview />
-				<Testimonials />
+				{/* <Testimonials /> */}
 				<Footer />
 			</div>
 		</div>
