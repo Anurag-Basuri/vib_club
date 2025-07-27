@@ -7,6 +7,7 @@ import Social from '../pages/socials.jsx';
 import Contact from '../pages/contact.jsx';
 import MemberProfile from '../pages/member.jsx';
 import Auth from '../pages/auth.jsx';
+import Current from '../components/upcomingEvent.jsx';
 
 const AppRoutes = () => {
     return (
@@ -14,7 +15,7 @@ const AppRoutes = () => {
             <Route path="/auth/*" element={<Auth />} />
 
             <Route path="/" element={<Home />} />
-            <Route path="/event" element={<Event />} />
+            <Route path="/event" element={<Current />} />
             <Route path="/team" element={<Team />} />
             <Route path='/social-page' element={<Social />} />
             <Route path="/contact" element={<Contact />} />

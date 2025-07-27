@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { publicClient } from '../services/api.js';
+import RaveYardEventPage from '../components/upcomingEvent.jsx';
 
 // Past Event Card
 const PastEventCard = ({ event, onClick }) => (
@@ -205,48 +206,50 @@ const EventPage = () => {
   const [pastEvents, setPastEvents] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        setLoading(true);
-        const response = await publicClient.get('api/events/getall');
-        const events = response.data.data;
-        const now = new Date();
-        const past = events.filter(event => new Date(event.date) < now);
-        setPastEvents(past);
-      } catch (error) {
-        console.error('Error fetching events:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchEvents = async () => {
+  //     try {
+  //       setLoading(true);
+  //       const response = await publicClient.get('api/events/getall');
+  //       const events = response.data.data;
+  //       const now = new Date();
+  //       const past = events.filter(event => new Date(event.date) < now);
+  //       setPastEvents(past);
+  //     } catch (error) {
+  //       console.error('Error fetching events:', error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
 
-    fetchEvents();
-  }, []);
+  //   fetchEvents();
+  // }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0a0f1f] via-[#1a1f3a] to-[#0d1326]">
-        <div className="flex flex-col items-center">
-          <div className="w-16 h-16 border-4 border-cyan-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <span className="text-cyan-300">Loading events...</span>
-        </div>
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0a0f1f] via-[#1a1f3a] to-[#0d1326]">
+  //       <div className="flex flex-col items-center">
+  //         <div className="w-16 h-16 border-4 border-cyan-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+  //         <span className="text-cyan-300">Loading events...</span>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0f1f] via-[#1a1f3a] to-[#0d1326] text-white overflow-hidden relative">
-      {/* Glassy blue background elements */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-blue-900/20 filter blur-3xl animate-pulse" />
-        <div className="absolute top-1/3 right-1/4 w-80 h-80 rounded-full bg-cyan-900/20 filter blur-3xl" />
-      </div>
-      {/* Make sure navbar is above modal by using z-50 or higher on navbar */}
-      <div className="relative z-10 pt-24 pb-20">
-        <PastSection pastEvents={pastEvents} />
-      </div>
-    </div>
+    // <div className="min-h-screen bg-gradient-to-br from-[#0a0f1f] via-[#1a1f3a] to-[#0d1326] text-white overflow-hidden relative">
+    //   {/* Glassy blue background elements */}
+    //   <div className="fixed inset-0 z-0 pointer-events-none">
+    //     <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-blue-900/20 filter blur-3xl animate-pulse" />
+    //     <div className="absolute top-1/3 right-1/4 w-80 h-80 rounded-full bg-cyan-900/20 filter blur-3xl" />
+    //   </div>
+    //   {/* Make sure navbar is above modal by using z-50 or higher on navbar */}
+    //   <div className="relative z-10 pt-24 pb-20">
+    //     <PastSection pastEvents={pastEvents} />
+    //   </div>
+    // </div>
+
+    <RaveYardEventPage />
   );
 };
 
