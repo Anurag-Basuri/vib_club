@@ -15,12 +15,9 @@ const HorrorRaveYardPage = () => {
     const fetchEventData = async () => {
       try {
         const response = await publicClient.get('api/events/upcoming-event');
-        console.log('Fetched event data:', response.data);
-        // If using ApiResponse, data is in response.data.data
         const event = response.data?.data || response.data;
         setEventData(event);
 
-        // Calculate spots left
         if (event) {
           setTotalSpots(event.totalSpots || 0);
           const registrations = Array.isArray(event.registrations) ? event.registrations.length : 0;
@@ -34,7 +31,6 @@ const HorrorRaveYardPage = () => {
     fetchEventData();
   }, []);
 
-  // Countdown timer
   useEffect(() => {
     if (!eventData?.date) return;
     const targetDate = new Date(eventData.date).getTime();
@@ -56,7 +52,6 @@ const HorrorRaveYardPage = () => {
     return () => clearInterval(interval);
   }, [eventData]);
 
-  // Eyes blinking with randomness
   useEffect(() => {
     const interval = setInterval(() => {
       setEyesBlinking(true);
@@ -65,7 +60,6 @@ const HorrorRaveYardPage = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Ghost appearances
   useEffect(() => {
     const interval = setInterval(() => {
       setGhostAppears(true);
@@ -74,7 +68,6 @@ const HorrorRaveYardPage = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Blood drip creation
   useEffect(() => {
     const interval = setInterval(() => {
       if (bloodDrips.length < 20) {
@@ -91,7 +84,6 @@ const HorrorRaveYardPage = () => {
     return () => clearInterval(interval);
   }, [bloodDrips]);
 
-  // Blood drip component
   const BloodDrips = () => (
     <div className="fixed inset-0 pointer-events-none z-0">
       {bloodDrips.map((drip) => (
@@ -130,48 +122,52 @@ const HorrorRaveYardPage = () => {
     </div>
   );
 
-  // Horror highlights (static, but you can use eventData.tags if you want dynamic)
-  const horrorHighlights = [
+  // Event highlights based on your prompt
+  const eventHighlights = [
     {
-      icon: "🧟‍♂️",
-      title: "Zombie DJ Sets",
-      description: "Undead DJs spinning beats from beyond the grave with blood-curdling bass drops",
-      color: "from-red-600 to-red-800"
+      title: "Headlining Performance by DJ Gracy",
+      description: "Nationally renowned DJ bringing an exclusive high-energy haunted set. Remix segments: Bollywood x EOH Desi Bass, with dark glitchy FX. Interactive crowd drops, live horror-themed AV sync.",
+      icon: "🎧"
     },
     {
-      icon: "⚰️",
-      title: "Coffin Dance Floor",
-      description: "Dance on actual coffins with fog machines creating a graveyard atmosphere",
-      color: "from-purple-600 to-purple-800"
+      title: "Curated Freshers Experience",
+      description: "First event to welcome the incoming batch — from the other side! Mixes horror, fun, and chaos for an unforgettable freshman night. Sets a ghostly tone for campus culture and Gen Z celebration.",
+      icon: "👻"
     },
     {
-      icon: "🔥",
-      title: "Hell's Kitchen",
-      description: "Demonic cocktails served in skull glasses with dry ice and blood-red concoctions",
-      color: "from-orange-600 to-red-600"
+      title: "Haunted Glow Setup",
+      description: "Lasers, fog, UV-reactive horror decor, props, and more. Insta-worthy ghost installations, skull photo booths, and gaming. Tattoo mask transformation booth at entry.",
+      icon: "💀"
     },
     {
-      icon: "👹",
-      title: "Demon Makeover",
-      description: "Professional horror makeup artists transform you into creatures of the night",
-      color: "from-green-600 to-green-800"
+      title: "Limited Access Entry",
+      description: "Entry via branded wristbands. VIP zones for contest winners, influencers, faculty guests. Exclusive access to haunted chill lounge and scream zone.",
+      icon: "🎟️"
     },
     {
-      icon: "🦴",
-      title: "Bone Yard VIP",
-      description: "Exclusive skeleton lounge with bone furniture and ghostly experiences",
-      color: "from-gray-600 to-gray-800"
+      title: "Emergency Preparedness",
+      description: "Security with crowd flow control. Emergency medical setup & trained volunteers. Gender-sensitive, inclusive crowd care policy enforced at checkpoints.",
+      icon: "🚨"
     },
     {
-      icon: "🕷️",
-      title: "Spider Web Maze",
-      description: "Navigate through haunted corridors filled with jump scares and nightmares",
-      color: "from-indigo-600 to-purple-600"
+      title: "Social Media Amplification",
+      description: "Hashtag: #RaveYard2025 — Join the undead online! Scream countdowns, ghost transformation content. Influencer strategy & branded social booth for sponsors.",
+      icon: "📱"
+    },
+    {
+      title: "Refreshment Zone @ RaveYard",
+      description: "Dedicated food & beverage stalls near the venue. Chillers: Mojitos, mocktails, soda blends, lemonade, cold coffee. Warmers: Coffee, chai. Snacks: Momos, rolls, nachos, popcorn, samosa. Quick eats: Sandwiches, Maggi, fries. Sweet treats: Cupcakes, brownies, chocolate dipped waffles.",
+      icon: "🍔"
     }
   ];
 
   return (
-    <div className="min-h-screen bg-black text-white overflow-x-hidden font-sans relative">
+    <div
+      className="min-h-screen bg-black text-white font-sans relative"
+      style={{
+        overflow: "hidden" // Prevent double scrollbars
+      }}
+    >
       <BloodDrips />
 
       {/* Rust particles floating */}
@@ -198,102 +194,41 @@ const HorrorRaveYardPage = () => {
         </motion.div>
       ))}
 
-      {/* Hero Section */}
+      {/* Hero Section - Attraction Only */}
       <section className="relative min-h-screen flex flex-col justify-center items-center p-4 overflow-hidden"
         style={{
           background: 'radial-gradient(circle at 30% 40%, #2d1b69 0%, #1a0630 40%, #0a0015 70%, #000000 100%)'
         }}
       >
-        {/* Rust texture overlay */}
-        <div className="absolute inset-0 opacity-30"
-          style={{
-            backgroundImage: `
-              radial-gradient(circle, rgba(139,0,0,0.1) 0%, transparent 70%),
-              repeating-linear-gradient(
-                45deg,
-                transparent,
-                transparent 10px,
-                rgba(120, 50, 20, 0.2) 10px,
-                rgba(120, 50, 20, 0.2) 20px
-              )
-            `,
-            backgroundSize: "300px 300px, 30px 30px"
-          }}
-        />
-        
-        {/* Rusty metal border effect */}
-        <div className="absolute inset-8 pointer-events-none"
-          style={{
-            border: '4px solid transparent',
-            borderImage: `linear-gradient(
-              to bottom,
-              #8B4513 0%,
-              #5D2919 25%,
-              #8B4513 50%,
-              #5D2919 75%,
-              #8B4513 100%
-            )`,
-            borderImageSlice: 1,
-            filter: 'drop-shadow(0 0 10px rgba(139, 0, 0, 0.5))'
-          }}
-        />
-        
-        {/* Rusty corrosion spots */}
-        {[...Array(10)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute rounded-full bg-gradient-to-br from-red-900 to-red-700 opacity-30"
-            style={{
-              width: `${10 + Math.random() * 50}px`,
-              height: `${10 + Math.random() * 50}px`,
-              left: `${Math.random() * 90}%`,
-              top: `${Math.random() * 90}%`,
-            }}
-            animate={{
-              scale: [1, 1.1, 1],
-              opacity: [0.3, 0.5, 0.3]
-            }}
-            transition={{
-              duration: 5 + Math.random() * 10,
-              repeat: Infinity
-            }}
-          />
-        ))}
-
+        {/* Rust overlays */}
         <div className="relative z-10 text-center max-w-6xl px-4">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1 }}
           >
-            {/* Rusty text effect */}
-            <motion.h1 
-              className="text-6xl md:text-8xl font-black mb-6 relative"
+            <motion.h1
+              className="text-7xl md:text-9xl font-black mb-6 relative"
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.8 }}
             >
               <span className="bg-gradient-to-r from-red-500 to-red-700 bg-clip-text text-transparent">
-                {eventData?.title || "RaveYard"}
+                RaveYard 2025
               </span>
               <span className="absolute -bottom-4 left-0 right-0 h-1 bg-gradient-to-r from-red-800 via-red-600 to-red-800 rounded-full"></span>
-              
-              {/* Rust texture on text */}
-              <span 
+              <span
                 className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/rust.png')] opacity-20"
                 style={{ mixBlendMode: 'multiply' }}
               />
             </motion.h1>
-            
-            {/* Subtitle with dripping effect */}
-            <motion.h2 
-              className="text-4xl md:text-5xl text-red-400 mb-8 font-bold relative pb-4"
+            <motion.h2
+              className="text-4xl md:text-6xl text-red-400 mb-8 font-bold relative pb-4"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5, duration: 1 }}
             >
-              {eventData?.moreDetails || "The Haunted Resurrection"}
-              {/* Dripping underline */}
+              The Haunted Resurrection
               <div className="absolute bottom-0 left-0 right-0 flex justify-center">
                 {[...Array(5)].map((_, i) => (
                   <motion.div
@@ -312,112 +247,77 @@ const HorrorRaveYardPage = () => {
                 ))}
               </div>
             </motion.h2>
-            
-            <motion.p
-              className="text-xl text-red-200 mb-12 max-w-3xl mx-auto leading-relaxed relative"
+            <motion.div
+              className="flex flex-wrap justify-center gap-8 mt-8"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.8, duration: 1 }}
+              transition={{ delay: 1, duration: 1 }}
             >
-              {eventData?.description || "Experience the most haunted rave of your life!"}
-              
-              {/* Random rust spots in text */}
-              {[...Array(3)].map((_, i) => (
-                <span 
-                  key={i}
-                  className="absolute inline-block w-2 h-2 bg-red-800 rounded-full opacity-70"
-                  style={{
-                    left: `${15 + i * 30}%`,
-                    top: `${20 + i * 10}%`
-                  }}
-                />
-              ))}
-            </motion.p>
-            
-            {/* Countdown timer */}
-            <motion.div 
-              className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto mb-16"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1, duration: 0.8 }}
-            >
-              {Object.entries(countdown).map(([unit, value], index) => (
-                <motion.div 
-                  key={unit} 
-                  className="relative bg-gradient-to-b from-gray-900 to-black border-b-4 border-red-900 rounded-xl p-4 overflow-hidden"
-                  style={{
-                    boxShadow: 'inset 0 0 10px rgba(139, 0, 0, 0.5)'
-                  }}
-                  whileHover={{ scale: 1.05 }}
-                >
-                  {/* Rust texture overlay */}
-                  <div 
-                    className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/rust.png')] opacity-20 pointer-events-none"
-                    style={{ mixBlendMode: 'overlay' }}
-                  />
-                  
-                  {/* Rust spots */}
-                  <div className="absolute top-2 right-2 w-3 h-3 bg-red-900 rounded-full"></div>
-                  <div className="absolute bottom-2 left-2 w-4 h-4 bg-red-900 rounded-full opacity-70"></div>
-                  
-                  <div className="text-3xl md:text-4xl font-black text-red-400 mb-1 relative z-10">
-                    {String(value).padStart(2, '0')}
-                  </div>
-                  <div className="text-sm text-red-300 uppercase font-medium relative z-10">
-                    {unit}
-                  </div>
-                </motion.div>
-              ))}
+              <div className="flex flex-col items-center">
+                <span className="text-6xl mb-2">🎧</span>
+                <span className="text-lg font-bold text-red-300">DJ Gracy Live</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="text-6xl mb-2">👻</span>
+                <span className="text-lg font-bold text-red-300">Glow Horror Setup</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="text-6xl mb-2">🍔</span>
+                <span className="text-lg font-bold text-red-300">Refreshment Zone</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="text-6xl mb-2">🎟️</span>
+                <span className="text-lg font-bold text-red-300">VIP Wristbands</span>
+              </div>
             </motion.div>
-            
-            {/* Rusty metal button */}
-            <motion.button
-              whileHover={{ 
-                scale: 1.05,
-                boxShadow: "0 0 30px rgba(220, 38, 38, 0.8)"
-              }}
-              whileTap={{ scale: 0.95 }}
-              className="px-10 py-6 relative rounded-xl font-bold text-xl shadow-lg overflow-hidden"
-              style={{
-                background: `linear-gradient(145deg, #8B4513, #5D2919)`,
-                boxShadow: `0 4px 0 #3a180d, inset 0 2px 4px rgba(255, 100, 100, 0.4)`,
-                border: '1px solid #5D2919'
-              }}
+            <motion.div
+              className="mt-12"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 1.2, duration: 0.8 }}
             >
-              {/* Button rust texture */}
-              <div 
-                className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/rust.png')] opacity-30 pointer-events-none"
-                style={{ mixBlendMode: 'overlay' }}
-              />
-              
-              <div className="relative z-10 flex items-center gap-3">
-                <span>ENTER THE CRYPT</span>
-                <span>💀</span>
-              </div>
-              
-              {/* Button drips */}
-              <div className="absolute bottom-0 left-0 right-0 flex justify-center">
-                {[...Array(3)].map((_, i) => (
-                  <motion.div
-                    key={i}
-                    className="w-1 h-6 mx-2 bg-gradient-to-b from-red-600 to-transparent"
-                    animate={{
-                      y: [0, 10, 20],
-                      opacity: [1, 1, 0]
-                    }}
-                    transition={{
-                      duration: 1.5,
-                      repeat: Infinity,
-                      delay: i * 0.5
-                    }}
-                  />
-                ))}
-              </div>
-            </motion.button>
+              <motion.button
+                whileHover={{
+                  scale: 1.05,
+                  boxShadow: "0 0 30px rgba(220, 38, 38, 0.8)"
+                }}
+                whileTap={{ scale: 0.95 }}
+                className="px-10 py-6 relative rounded-xl font-bold text-xl shadow-lg overflow-hidden"
+                style={{
+                  background: `linear-gradient(145deg, #8B4513, #5D2919)`,
+                  boxShadow: `0 4px 0 #3a180d, inset 0 2px 4px rgba(255, 100, 100, 0.4)`,
+                  border: '1px solid #5D2919'
+                }}
+              >
+                <div
+                  className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/rust.png')] opacity-30 pointer-events-none"
+                  style={{ mixBlendMode: 'overlay' }}
+                />
+                <div className="relative z-10 flex items-center gap-3">
+                  <span>ENTER THE CRYPT</span>
+                  <span>💀</span>
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 flex justify-center">
+                  {[...Array(3)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      className="w-1 h-6 mx-2 bg-gradient-to-b from-red-600 to-transparent"
+                      animate={{
+                        y: [0, 10, 20],
+                        opacity: [1, 1, 0]
+                      }}
+                      transition={{
+                        duration: 1.5,
+                        repeat: Infinity,
+                        delay: i * 0.5
+                      }}
+                    />
+                  ))}
+                </div>
+              </motion.button>
+            </motion.div>
           </motion.div>
         </div>
-        
-        {/* Scroll indicator with rust */}
         <motion.div
           className="absolute bottom-8 flex flex-col items-center"
           initial={{ opacity: 0 }}
@@ -425,7 +325,7 @@ const HorrorRaveYardPage = () => {
           transition={{ delay: 1.5 }}
         >
           <span className="text-red-400 mb-3 text-sm font-medium">DESCEND INTO DARKNESS</span>
-          <motion.div 
+          <motion.div
             animate={{ y: [0, 10, 0] }}
             transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
             className="w-10 h-16 rounded-full border-2 border-red-900 flex justify-center p-2"
@@ -434,7 +334,7 @@ const HorrorRaveYardPage = () => {
               boxShadow: 'inset 0 0 5px rgba(139, 0, 0, 0.5)'
             }}
           >
-            <motion.div 
+            <motion.div
               className="w-2 h-3 bg-gradient-to-b from-red-500 to-red-700 rounded-full"
               animate={{ y: [0, 12, 0] }}
               transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
@@ -442,11 +342,59 @@ const HorrorRaveYardPage = () => {
           </motion.div>
         </motion.div>
       </section>
-      
-      {/* Horror Highlights */}
-      <section className="py-24 px-4 relative">
+
+      {/* Countdown timer */}
+      <section className="py-12 px-4 bg-black">
+        <div className="max-w-2xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"
+          >
+            {Object.entries(countdown).map(([unit, value], index) => (
+              <motion.div
+                key={unit}
+                className="relative bg-gradient-to-b from-gray-900 to-black border-b-4 border-red-900 rounded-xl p-4 overflow-hidden"
+                style={{
+                  boxShadow: 'inset 0 0 10px rgba(139, 0, 0, 0.5)'
+                }}
+                whileHover={{ scale: 1.05 }}
+              >
+                <div
+                  className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/rust.png')] opacity-20 pointer-events-none"
+                  style={{ mixBlendMode: 'overlay' }}
+                />
+                <div className="absolute top-2 right-2 w-3 h-3 bg-red-900 rounded-full"></div>
+                <div className="absolute bottom-2 left-2 w-4 h-4 bg-red-900 rounded-full opacity-70"></div>
+                <div className="text-3xl md:text-4xl font-black text-red-400 mb-1 relative z-10">
+                  {String(value).padStart(2, '0')}
+                </div>
+                <div className="text-sm text-red-300 uppercase font-medium relative z-10">
+                  {unit}
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+          <div className="flex justify-center gap-8 mb-4">
+            <span className="text-red-400 font-bold">{spotsLeft} SOULS LEFT</span>
+            <span className="text-red-400 font-bold">{totalSpots} TOTAL</span>
+          </div>
+          <div className="w-full bg-gray-900/50 h-3 rounded-full overflow-hidden mb-4">
+            <div
+              className="h-full bg-gradient-to-r from-red-600 to-red-800"
+              style={{
+                width: totalSpots > 0 ? `${(spotsLeft / totalSpots) * 100}%` : "0%"
+              }}
+            ></div>
+          </div>
+        </div>
+      </section>
+
+      {/* Event Highlights */}
+      <section className="py-24 px-4 bg-gradient-to-b from-black via-red-900/10 to-black">
         <div className="max-w-6xl mx-auto">
-          <motion.div 
+          <motion.div
             className="text-center mb-16"
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -454,29 +402,26 @@ const HorrorRaveYardPage = () => {
             transition={{ duration: 1 }}
           >
             <h2 className="text-4xl md:text-5xl font-bold text-red-500 mb-6">
-              CHAMBERS OF HORROR
+              EVENT HIGHLIGHTS
             </h2>
             <p className="text-xl text-red-300 max-w-3xl mx-auto">
-              Experience terror like never before in our haunted attractions
+              Discover what makes RaveYard 2025 unforgettable
             </p>
           </motion.div>
-          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {horrorHighlights.map((item, index) => (
+            {eventHighlights.map((item, index) => (
               <motion.div
                 key={index}
-                className={`bg-gradient-to-br ${item.color} backdrop-blur-sm border border-red-600/50 rounded-xl p-8 relative overflow-hidden`}
+                className="bg-gradient-to-br from-red-900 to-black backdrop-blur-sm border border-red-600/50 rounded-xl p-8 relative overflow-hidden"
                 initial={{ opacity: 0, y: 50 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.15, duration: 0.8 }}
                 whileHover={{ y: -10 }}
               >
-                <div className="text-6xl mb-6">{item.icon}</div>
-                <h3 className="text-2xl font-bold text-white mb-4">{item.title}</h3>
+                <div className="text-5xl mb-4">{item.icon}</div>
+                <h3 className="text-xl font-bold text-white mb-2">{item.title}</h3>
                 <p className="text-red-200">{item.description}</p>
-                
-                {/* Blood droplet effect */}
                 <motion.div
                   className="absolute top-4 right-4 w-6 h-6 bg-red-600 rounded-full"
                   animate={{
@@ -484,8 +429,8 @@ const HorrorRaveYardPage = () => {
                     scale: [1, 1.2, 1],
                     opacity: [0.7, 1, 0.7]
                   }}
-                  transition={{ 
-                    duration: 2, 
+                  transition={{
+                    duration: 2,
                     repeat: Infinity,
                     delay: index * 0.2
                   }}
@@ -495,9 +440,9 @@ const HorrorRaveYardPage = () => {
           </div>
         </div>
       </section>
-      
+
       {/* Event Details */}
-      <section className="py-24 px-4 bg-gradient-to-b from-black via-red-900/10 to-black">
+      <section className="py-24 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <motion.div
@@ -509,7 +454,6 @@ const HorrorRaveYardPage = () => {
               <h2 className="text-3xl md:text-4xl font-bold text-red-400 mb-8">
                 EVENT DETAILS
               </h2>
-              
               <div className="space-y-6 mb-10">
                 <div className="flex items-center gap-4 p-4 bg-black/30 rounded-xl border border-red-600/30">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center">
@@ -522,7 +466,6 @@ const HorrorRaveYardPage = () => {
                     </div>
                   </div>
                 </div>
-                
                 <div className="flex items-center gap-4 p-4 bg-black/30 rounded-xl border border-red-600/30">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center">
                     <span>📍</span>
@@ -532,7 +475,6 @@ const HorrorRaveYardPage = () => {
                     <div className="text-white text-xl font-medium">{eventData?.venue || "--"}</div>
                   </div>
                 </div>
-                
                 <div className="flex items-center gap-4 p-4 bg-black/30 rounded-xl border border-red-600/30">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center">
                     <span>🎟️</span>
@@ -545,7 +487,6 @@ const HorrorRaveYardPage = () => {
                   </div>
                 </div>
               </div>
-              
               <div className="mb-6">
                 <div className="flex justify-between mb-2">
                   <span className="text-red-400 font-bold">{spotsLeft} SOULS LEFT</span>
@@ -560,11 +501,10 @@ const HorrorRaveYardPage = () => {
                   ></div>
                 </div>
               </div>
-              
               {eventData?.tags && eventData.tags.length > 0 && (
                 <div className="flex flex-wrap gap-3 mb-8">
                   {eventData.tags.map((tag, index) => (
-                    <span 
+                    <span
                       key={index}
                       className="px-3 py-1.5 rounded-full text-sm bg-red-900/50 text-red-300"
                     >
@@ -574,7 +514,6 @@ const HorrorRaveYardPage = () => {
                 </div>
               )}
             </motion.div>
-            
             <motion.div
               initial={{ opacity: 0, x: 50 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -593,7 +532,7 @@ const HorrorRaveYardPage = () => {
           </div>
         </div>
       </section>
-      
+
       {/* Ticket CTA */}
       <section className="py-32 px-4 relative">
         <div className="max-w-4xl mx-auto text-center">
@@ -606,9 +545,8 @@ const HorrorRaveYardPage = () => {
             <h2 className="text-4xl md:text-5xl font-bold text-red-500 mb-8">
               CLAIM YOUR SOUL PASS
             </h2>
-            
             <motion.button
-              whileHover={{ 
+              whileHover={{
                 scale: 1.05,
                 boxShadow: "0 0 40px rgba(220, 38, 38, 0.8)"
               }}
@@ -621,7 +559,6 @@ const HorrorRaveYardPage = () => {
                 <span>🔥</span>
               </div>
             </motion.button>
-            
             <div className="mt-12 space-y-4">
               <p className="text-xl text-red-300 max-w-2xl mx-auto">
                 ⚠️ Limited to {totalSpots} souls - Once sold out, entry is sealed forever ⚠️
@@ -630,7 +567,7 @@ const HorrorRaveYardPage = () => {
           </motion.div>
         </div>
       </section>
-      
+
       {/* Footer */}
       <footer className="py-16 px-4 bg-gradient-to-t from-red-900/20 to-black border-t border-red-800/30">
         <div className="max-w-6xl mx-auto">
@@ -638,9 +575,8 @@ const HorrorRaveYardPage = () => {
             <div className="text-3xl font-bold bg-gradient-to-r from-red-500 to-red-700 bg-clip-text text-transparent">
               RaveYard 2025
             </div>
-            
             <div className="flex justify-center gap-8 text-red-300">
-              {[
+              { [
                 { icon: "📱", text: "#RaveYard2025" },
                 { icon: "👻", text: "@raveyard_official" },
                 { icon: "💀", text: "Join the Undead" }
@@ -654,7 +590,6 @@ const HorrorRaveYardPage = () => {
                 </div>
               ))}
             </div>
-            
             <div className="border-t border-red-800/30 pt-8 space-y-2">
               <p className="text-red-300">© 2025 RaveYard. All rights reserved to the underworld.</p>
               <p className="text-red-400 text-sm opacity-80">
@@ -664,8 +599,6 @@ const HorrorRaveYardPage = () => {
           </div>
         </div>
       </footer>
-      
-      {/* Floating eyes */}
       <AnimatePresence>
         {eyesBlinking && (
           <motion.div
@@ -691,8 +624,6 @@ const HorrorRaveYardPage = () => {
           </motion.div>
         )}
       </AnimatePresence>
-      
-      {/* Floating ghosts */}
       <AnimatePresence>
         {ghostAppears && (
           <div className="fixed inset-0 pointer-events-none z-20">
@@ -705,8 +636,8 @@ const HorrorRaveYardPage = () => {
                   top: `${20 + (i % 2) * 40}%`,
                 }}
                 initial={{ opacity: 0, scale: 0 }}
-                animate={{ 
-                  opacity: [0, 1, 0.7, 0], 
+                animate={{
+                  opacity: [0, 1, 0.7, 0],
                   scale: [0, 1.5, 1.2, 0],
                   y: [0, -50, -30, -100]
                 }}
