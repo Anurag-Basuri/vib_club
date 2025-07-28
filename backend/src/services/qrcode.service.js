@@ -1,5 +1,5 @@
 import QRCode from 'qrcode';
-import { ApiError } from '../utils/apiError.js';
+import { ApiError } from '../utils/ApiError.js';
 import { v4 as uuidv4 } from 'uuid';
 import streamifier from 'streamifier';
 import { v2 as cloudinary } from 'cloudinary';
