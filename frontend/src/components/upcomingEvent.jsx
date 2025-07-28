@@ -1,69 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { publicClient } from "../services/api.js";
 
 const HorrorRaveYardPage = () => {
-  const [spotsLeft, setSpotsLeft] = useState(342);
+  const [spotsLeft, setSpotsLeft] = useState(0);
+  const [totalSpots, setTotalSpots] = useState(0);
   const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [eyesBlinking, setEyesBlinking] = useState(false);
   const [ghostAppears, setGhostAppears] = useState(false);
   const [bloodDrips, setBloodDrips] = useState([]);
-  
-  // Event data
-  const eventData = {
-    title: "RaveYard 2025",
-    subtitle: "The Haunted Resurrection",
-    date: "October 31, 2025",
-    time: "11:59 PM - 6:66 AM",
-    venue: "The Cursed Crypt - Abandoned Campus",
-    ticketPrice: "₹666",
-    status: "SOULS BEING HARVESTED",
-    tags: ["#RaveYard2025", "#CursedRave", "#BloodMoon", "#GhostlyBeats", "#NightmareParty"],
-    description: "Rise from your graves for the most terrifying rave experience ever conjured. Where screaming meets bass drops, and the dead dance until dawn. This Halloween, we're not just throwing a party - we're summoning the apocalypse."
-  };
-  
-  // Enhanced horror highlights with blood effects
-  const horrorHighlights = [
-    { 
-      icon: "🧟‍♂️", 
-      title: "Zombie DJ Sets", 
-      description: "Undead DJs spinning beats from beyond the grave with blood-curdling bass drops",
-      color: "from-red-600 to-red-800"
-    },
-    { 
-      icon: "⚰️", 
-      title: "Coffin Dance Floor", 
-      description: "Dance on actual coffins with fog machines creating a graveyard atmosphere",
-      color: "from-purple-600 to-purple-800"
-    },
-    { 
-      icon: "🔥", 
-      title: "Hell's Kitchen", 
-      description: "Demonic cocktails served in skull glasses with dry ice and blood-red concoctions",
-      color: "from-orange-600 to-red-600"
-    },
-    { 
-      icon: "👹", 
-      title: "Demon Makeover", 
-      description: "Professional horror makeup artists transform you into creatures of the night",
-      color: "from-green-600 to-green-800"
-    },
-    { 
-      icon: "🦴", 
-      title: "Bone Yard VIP", 
-      description: "Exclusive skeleton lounge with bone furniture and ghostly experiences",
-      color: "from-gray-600 to-gray-800"
-    },
-    { 
-      icon: "🕷️", 
-      title: "Spider Web Maze", 
-      description: "Navigate through haunted corridors filled with jump scares and nightmares",
-      color: "from-indigo-600 to-purple-600"
-    }
-  ];
-  
+  const [eventData, setEventData] = useState(null);
+
+  useEffect(() => {
+    const fetchEventData = async () => {
+      try {
+        const response = await publicClient.get('api/events/upcoming-event');
+        console.log('Fetched event data:', response.data);
+        // If using ApiResponse, data is in response.data.data
+        const event = response.data?.data || response.data;
+        setEventData(event);
+
+        // Calculate spots left
+        if (event) {
+          setTotalSpots(event.totalSpots || 0);
+          const registrations = Array.isArray(event.registrations) ? event.registrations.length : 0;
+          setSpotsLeft((event.totalSpots || 0) - registrations);
+        }
+      } catch (error) {
+        console.error('Error fetching event data:', error);
+      }
+    };
+
+    fetchEventData();
+  }, []);
+
   // Countdown timer
   useEffect(() => {
-    const targetDate = new Date('October 31, 2025 23:59:00').getTime();
+    if (!eventData?.date) return;
+    const targetDate = new Date(eventData.date).getTime();
     const updateCountdown = () => {
       const now = new Date().getTime();
       const distance = targetDate - now;
@@ -73,13 +47,15 @@ const HorrorRaveYardPage = () => {
         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
         setCountdown({ days, hours, minutes, seconds });
+      } else {
+        setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 });
       }
     };
     updateCountdown();
     const interval = setInterval(updateCountdown, 1000);
     return () => clearInterval(interval);
-  }, []);
-  
+  }, [eventData]);
+
   // Eyes blinking with randomness
   useEffect(() => {
     const interval = setInterval(() => {
@@ -88,7 +64,7 @@ const HorrorRaveYardPage = () => {
     }, 1500 + Math.random() * 2000);
     return () => clearInterval(interval);
   }, []);
-  
+
   // Ghost appearances
   useEffect(() => {
     const interval = setInterval(() => {
@@ -97,7 +73,7 @@ const HorrorRaveYardPage = () => {
     }, 6000 + Math.random() * 8000);
     return () => clearInterval(interval);
   }, []);
-  
+
   // Blood drip creation
   useEffect(() => {
     const interval = setInterval(() => {
@@ -111,10 +87,10 @@ const HorrorRaveYardPage = () => {
         setBloodDrips(prev => [...prev, newDrip]);
       }
     }, 500);
-    
+
     return () => clearInterval(interval);
   }, [bloodDrips]);
-  
+
   // Blood drip component
   const BloodDrips = () => (
     <div className="fixed inset-0 pointer-events-none z-0">
@@ -124,12 +100,12 @@ const HorrorRaveYardPage = () => {
           className="absolute top-0 w-2 h-8 bg-red-600 rounded-b-full"
           style={{ left: `${drip.x}%` }}
           initial={{ height: 0, opacity: 0 }}
-          animate={{ 
+          animate={{
             height: ['0px', '50px', '50px', '100px'],
             opacity: [0, 1, 1, 0],
             y: [0, window.innerHeight * 0.8]
           }}
-          transition={{ 
+          transition={{
             duration: drip.duration,
             delay: drip.delay,
             times: [0, 0.3, 0.7, 1]
@@ -138,13 +114,13 @@ const HorrorRaveYardPage = () => {
             setBloodDrips(prev => prev.filter(d => d.id !== drip.id));
           }}
         >
-          <motion.div 
+          <motion.div
             className="absolute bottom-0 w-4 h-4 bg-red-700 rounded-full"
-            animate={{ 
+            animate={{
               scale: [0, 1.5, 1],
               y: [0, 10, 20]
             }}
-            transition={{ 
+            transition={{
               duration: drip.duration * 0.3,
               delay: drip.duration * 0.7
             }}
@@ -153,35 +129,51 @@ const HorrorRaveYardPage = () => {
       ))}
     </div>
   );
-  
-  // Floating elements with simplified animations
-  const FloatingElement = ({ delay, size, position, emoji }) => {
-    return (
-      <motion.div
-        className={`absolute ${position} z-0 pointer-events-none`}
-        initial={{ y: 0, opacity: 0.5 }}
-        animate={{ 
-          y: [0, -20, 0],
-          x: [0, Math.random() > 0.5 ? 10 : -10, 0],
-          opacity: [0.5, 0.8, 0.5]
-        }}
-        transition={{ 
-          duration: 8, 
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay
-        }}
-      >
-        <span className={`text-${size}xl`}>{emoji}</span>
-      </motion.div>
-    );
-  };
-  
+
+  // Horror highlights (static, but you can use eventData.tags if you want dynamic)
+  const horrorHighlights = [
+    {
+      icon: "🧟‍♂️",
+      title: "Zombie DJ Sets",
+      description: "Undead DJs spinning beats from beyond the grave with blood-curdling bass drops",
+      color: "from-red-600 to-red-800"
+    },
+    {
+      icon: "⚰️",
+      title: "Coffin Dance Floor",
+      description: "Dance on actual coffins with fog machines creating a graveyard atmosphere",
+      color: "from-purple-600 to-purple-800"
+    },
+    {
+      icon: "🔥",
+      title: "Hell's Kitchen",
+      description: "Demonic cocktails served in skull glasses with dry ice and blood-red concoctions",
+      color: "from-orange-600 to-red-600"
+    },
+    {
+      icon: "👹",
+      title: "Demon Makeover",
+      description: "Professional horror makeup artists transform you into creatures of the night",
+      color: "from-green-600 to-green-800"
+    },
+    {
+      icon: "🦴",
+      title: "Bone Yard VIP",
+      description: "Exclusive skeleton lounge with bone furniture and ghostly experiences",
+      color: "from-gray-600 to-gray-800"
+    },
+    {
+      icon: "🕷️",
+      title: "Spider Web Maze",
+      description: "Navigate through haunted corridors filled with jump scares and nightmares",
+      color: "from-indigo-600 to-purple-600"
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden font-sans relative">
-      {/* Enhanced Blood drips with rust particles */}
       <BloodDrips />
-      
+
       {/* Rust particles floating */}
       {[...Array(15)].map((_, i) => (
         <motion.div
@@ -206,7 +198,7 @@ const HorrorRaveYardPage = () => {
         </motion.div>
       ))}
 
-      {/* Hero Section with Rust Effects */}
+      {/* Hero Section */}
       <section className="relative min-h-screen flex flex-col justify-center items-center p-4 overflow-hidden"
         style={{
           background: 'radial-gradient(circle at 30% 40%, #2d1b69 0%, #1a0630 40%, #0a0015 70%, #000000 100%)'
@@ -282,7 +274,7 @@ const HorrorRaveYardPage = () => {
               transition={{ duration: 0.8 }}
             >
               <span className="bg-gradient-to-r from-red-500 to-red-700 bg-clip-text text-transparent">
-                RaveYard
+                {eventData?.title || "RaveYard"}
               </span>
               <span className="absolute -bottom-4 left-0 right-0 h-1 bg-gradient-to-r from-red-800 via-red-600 to-red-800 rounded-full"></span>
               
@@ -300,7 +292,7 @@ const HorrorRaveYardPage = () => {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5, duration: 1 }}
             >
-              The Haunted Resurrection
+              {eventData?.moreDetails || "The Haunted Resurrection"}
               {/* Dripping underline */}
               <div className="absolute bottom-0 left-0 right-0 flex justify-center">
                 {[...Array(5)].map((_, i) => (
@@ -327,7 +319,7 @@ const HorrorRaveYardPage = () => {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.8, duration: 1 }}
             >
-              {eventData.description}
+              {eventData?.description || "Experience the most haunted rave of your life!"}
               
               {/* Random rust spots in text */}
               {[...Array(3)].map((_, i) => (
@@ -342,7 +334,7 @@ const HorrorRaveYardPage = () => {
               ))}
             </motion.p>
             
-            {/* Countdown timer with rusty metal look */}
+            {/* Countdown timer */}
             <motion.div 
               className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto mb-16"
               initial={{ opacity: 0, y: 30 }}
@@ -378,56 +370,50 @@ const HorrorRaveYardPage = () => {
               ))}
             </motion.div>
             
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 1.2, duration: 0.8 }}
+            {/* Rusty metal button */}
+            <motion.button
+              whileHover={{ 
+                scale: 1.05,
+                boxShadow: "0 0 30px rgba(220, 38, 38, 0.8)"
+              }}
+              whileTap={{ scale: 0.95 }}
+              className="px-10 py-6 relative rounded-xl font-bold text-xl shadow-lg overflow-hidden"
+              style={{
+                background: `linear-gradient(145deg, #8B4513, #5D2919)`,
+                boxShadow: `0 4px 0 #3a180d, inset 0 2px 4px rgba(255, 100, 100, 0.4)`,
+                border: '1px solid #5D2919'
+              }}
             >
-              {/* Rusty metal button */}
-              <motion.button
-                whileHover={{ 
-                  scale: 1.05,
-                  boxShadow: "0 0 30px rgba(220, 38, 38, 0.8)"
-                }}
-                whileTap={{ scale: 0.95 }}
-                className="px-10 py-6 relative rounded-xl font-bold text-xl shadow-lg overflow-hidden"
-                style={{
-                  background: `linear-gradient(145deg, #8B4513, #5D2919)`,
-                  boxShadow: `0 4px 0 #3a180d, inset 0 2px 4px rgba(255, 100, 100, 0.4)`,
-                  border: '1px solid #5D2919'
-                }}
-              >
-                {/* Button rust texture */}
-                <div 
-                  className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/rust.png')] opacity-30 pointer-events-none"
-                  style={{ mixBlendMode: 'overlay' }}
-                />
-                
-                <div className="relative z-10 flex items-center gap-3">
-                  <span>ENTER THE CRYPT</span>
-                  <span>💀</span>
-                </div>
-                
-                {/* Button drips */}
-                <div className="absolute bottom-0 left-0 right-0 flex justify-center">
-                  {[...Array(3)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      className="w-1 h-6 mx-2 bg-gradient-to-b from-red-600 to-transparent"
-                      animate={{
-                        y: [0, 10, 20],
-                        opacity: [1, 1, 0]
-                      }}
-                      transition={{
-                        duration: 1.5,
-                        repeat: Infinity,
-                        delay: i * 0.5
-                      }}
-                    />
-                  ))}
-                </div>
-              </motion.button>
-            </motion.div>
+              {/* Button rust texture */}
+              <div 
+                className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/rust.png')] opacity-30 pointer-events-none"
+                style={{ mixBlendMode: 'overlay' }}
+              />
+              
+              <div className="relative z-10 flex items-center gap-3">
+                <span>ENTER THE CRYPT</span>
+                <span>💀</span>
+              </div>
+              
+              {/* Button drips */}
+              <div className="absolute bottom-0 left-0 right-0 flex justify-center">
+                {[...Array(3)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className="w-1 h-6 mx-2 bg-gradient-to-b from-red-600 to-transparent"
+                    animate={{
+                      y: [0, 10, 20],
+                      opacity: [1, 1, 0]
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      delay: i * 0.5
+                    }}
+                  />
+                ))}
+              </div>
+            </motion.button>
           </motion.div>
         </div>
         
@@ -510,78 +496,6 @@ const HorrorRaveYardPage = () => {
         </div>
       </section>
       
-      {/* Blood River Section */}
-      <section className="py-24 px-4 relative overflow-hidden">
-        <div className="max-w-6xl mx-auto text-center">
-          <motion.div 
-            className="mb-16"
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1 }}
-          >
-            <h2 className="text-4xl md:text-5xl font-bold text-red-500 mb-6">
-              RIVER OF BLOOD
-            </h2>
-            <p className="text-xl text-red-300 max-w-3xl mx-auto">
-              Cross the crimson currents to enter the underworld
-            </p>
-          </motion.div>
-          
-          <div className="relative h-64 rounded-xl overflow-hidden border-4 border-red-800/50">
-            <motion.div 
-              className="absolute inset-0 bg-gradient-to-r from-red-800/80 to-red-600/80"
-              animate={{
-                backgroundPosition: ['0% 50%', '100% 50%']
-              }}
-              transition={{
-                duration: 5,
-                repeat: Infinity,
-                repeatType: "reverse",
-                ease: "linear"
-              }}
-            />
-            
-            <motion.div 
-              className="absolute inset-0 flex items-center justify-center"
-              animate={{
-                y: [0, -10, 0],
-              }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            >
-              <span className="text-8xl">🩸</span>
-            </motion.div>
-            
-            {/* Floating bodies in blood */}
-            {[...Array(5)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute text-4xl"
-                style={{
-                  left: `${10 + i * 20}%`,
-                  top: `${40 + (i % 2) * 30}%`
-                }}
-                animate={{
-                  y: [0, -20, 0],
-                  rotate: [0, 15, 0, -15, 0]
-                }}
-                transition={{
-                  duration: 4 + i,
-                  repeat: Infinity,
-                  delay: i * 0.5
-                }}
-              >
-                {i % 2 === 0 ? '💀' : '🦴'}
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-      
       {/* Event Details */}
       <section className="py-24 px-4 bg-gradient-to-b from-black via-red-900/10 to-black">
         <div className="max-w-6xl mx-auto">
@@ -603,7 +517,9 @@ const HorrorRaveYardPage = () => {
                   </div>
                   <div>
                     <div className="text-sm text-red-300 font-medium">DATE & TIME</div>
-                    <div className="text-white text-xl font-medium">{eventData.date} • {eventData.time}</div>
+                    <div className="text-white text-xl font-medium">
+                      {eventData?.date ? new Date(eventData.date).toLocaleDateString() : "--"} • {eventData?.time || "--"}
+                    </div>
                   </div>
                 </div>
                 
@@ -613,7 +529,7 @@ const HorrorRaveYardPage = () => {
                   </div>
                   <div>
                     <div className="text-sm text-red-300 font-medium">LOCATION</div>
-                    <div className="text-white text-xl font-medium">{eventData.venue}</div>
+                    <div className="text-white text-xl font-medium">{eventData?.venue || "--"}</div>
                   </div>
                 </div>
                 
@@ -623,7 +539,9 @@ const HorrorRaveYardPage = () => {
                   </div>
                   <div>
                     <div className="text-sm text-red-300 font-medium">TICKET PRICE</div>
-                    <div className="text-white text-xl font-medium">{eventData.ticketPrice}</div>
+                    <div className="text-white text-xl font-medium">
+                      {eventData?.ticketPrice ? `₹${eventData.ticketPrice}` : "--"}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -631,23 +549,30 @@ const HorrorRaveYardPage = () => {
               <div className="mb-6">
                 <div className="flex justify-between mb-2">
                   <span className="text-red-400 font-bold">{spotsLeft} SOULS LEFT</span>
-                  <span className="text-red-400 font-bold">500 TOTAL</span>
+                  <span className="text-red-400 font-bold">{totalSpots} TOTAL</span>
                 </div>
                 <div className="w-full bg-gray-900/50 h-3 rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-red-600 to-red-800 w-2/3"></div>
+                  <div
+                    className="h-full bg-gradient-to-r from-red-600 to-red-800"
+                    style={{
+                      width: totalSpots > 0 ? `${(spotsLeft / totalSpots) * 100}%` : "0%"
+                    }}
+                  ></div>
                 </div>
               </div>
               
-              <div className="flex flex-wrap gap-3 mb-8">
-                {eventData.tags.map((tag, index) => (
-                  <span 
-                    key={index}
-                    className="px-3 py-1.5 rounded-full text-sm bg-red-900/50 text-red-300"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
+              {eventData?.tags && eventData.tags.length > 0 && (
+                <div className="flex flex-wrap gap-3 mb-8">
+                  {eventData.tags.map((tag, index) => (
+                    <span 
+                      key={index}
+                      className="px-3 py-1.5 rounded-full text-sm bg-red-900/50 text-red-300"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
             </motion.div>
             
             <motion.div
@@ -699,7 +624,7 @@ const HorrorRaveYardPage = () => {
             
             <div className="mt-12 space-y-4">
               <p className="text-xl text-red-300 max-w-2xl mx-auto">
-                ⚠️ Limited to 500 souls - Once sold out, entry is sealed forever ⚠️
+                ⚠️ Limited to {totalSpots} souls - Once sold out, entry is sealed forever ⚠️
               </p>
             </div>
           </motion.div>

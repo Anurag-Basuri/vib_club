@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { generateTicketQR } from '../services/qrcode.service.js';
 import { sendRegistrationEmail } from '../services/email.service.js';
 import { deleteFile } from '../utils/cloudinary.js';
-import ApiError from '../utils/ApiError.js';
+import {ApiError} from '../utils/ApiError.js';
 
 const generateAndSendTicket = async ({ fullName, email, LpuId, eventId, eventName }) => {
     if (!fullName || !email || !LpuId || !eventId || !eventName) {
