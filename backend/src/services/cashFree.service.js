@@ -25,4 +25,4 @@ async function createCashfreeOrder(orderDetails) {
 	}
 }
 
-module.exports = { createCashfreeOrder };
+export default createCashfreeOrder;
