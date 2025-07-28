@@ -2,7 +2,7 @@ import express from 'express';
 import { initRateLimiter, rateLimiter } from './middlewares/rateLimit.middleware.js';
 import { applyCors } from './middlewares/cors.middleware.js';
 import { InitializeCloudinary } from './utils/cloudinary.js';
-import { ApiError } from './utils/apiError.js';
+import { ApiError } from './utils/ApiError.js';
 
 import dotenv from 'dotenv';
 dotenv.config();
@@ -14,6 +14,7 @@ import eventRoutes from './routes/event.routes.js';
 import memberRoutes from './routes/member.routes.js';
 import socialRouter from './routes/socials.routes.js';
 import ticketRouter from './routes/ticket.routes.js';
+import cashFreeRoutes from './routes/cashFree.routes.js';
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use('/api/events', eventRoutes);
 app.use('/api/members', memberRoutes);
 app.use('/api/socials', socialRouter);
 app.use('/api/tickets', ticketRouter);
+app.use('/api/cashfree', cashFreeRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {
