@@ -21,6 +21,12 @@ const createOrder = asyncHandler(async (req, res) => {
 
         const order_id = uuidv4();
 
+        // Check for duplicate order_id
+        const existing = await Transaction.findOne({ orderId: order_id });
+        if (existing) {
+            throw new ApiError(409, 'Duplicate orderId — try again');
+        }
+
         const orderPayload = {
             order_id,
             order_amount: amount,
