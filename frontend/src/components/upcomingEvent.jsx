@@ -1,23 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const HorrorRaveYardPage = () => {
-  const [bloodDrip, setBloodDrip] = useState(false);
   const [spotsLeft, setSpotsLeft] = useState(342);
   const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-  const [screamActive, setScreamActive] = useState(false);
   const [eyesBlinking, setEyesBlinking] = useState(false);
   const [ghostAppears, setGhostAppears] = useState(false);
-  const [soundEnabled, setSoundEnabled] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [isHovering, setIsHovering] = useState(false);
-  const [nightmareMode, setNightmareMode] = useState(false);
-  const [cursorTrail, setCursorTrail] = useState([]);
-  
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const rotateX = useTransform(mouseY, [-300, 300], [15, -15]);
-  const rotateY = useTransform(mouseX, [-300, 300], [-15, 15]);
+  const [bloodDrips, setBloodDrips] = useState([]);
   
   // Event data
   const eventData = {
@@ -32,103 +21,45 @@ const HorrorRaveYardPage = () => {
     description: "Rise from your graves for the most terrifying rave experience ever conjured. Where screaming meets bass drops, and the dead dance until dawn. This Halloween, we're not just throwing a party - we're summoning the apocalypse."
   };
   
-  // Enhanced horror highlights with glitch effects
+  // Enhanced horror highlights with blood effects
   const horrorHighlights = [
     { 
       icon: "🧟‍♂️", 
       title: "Zombie DJ Sets", 
-      description: "Undead DJs spinning beats from beyond the grave with blood-curdling bass drops that make the earth shake",
-      color: "from-red-600 to-red-800",
-      bgColor: "bg-gradient-to-br from-red-900/80 to-black/90",
-      glitchColor: "red"
+      description: "Undead DJs spinning beats from beyond the grave with blood-curdling bass drops",
+      color: "from-red-600 to-red-800"
     },
     { 
       icon: "⚰️", 
       title: "Coffin Dance Floor", 
-      description: "Dance on actual coffins with fog machines creating a graveyard atmosphere of pure terror",
-      color: "from-purple-600 to-purple-800",
-      bgColor: "bg-gradient-to-br from-purple-900/80 to-black/90",
-      glitchColor: "purple"
+      description: "Dance on actual coffins with fog machines creating a graveyard atmosphere",
+      color: "from-purple-600 to-purple-800"
     },
     { 
       icon: "🔥", 
       title: "Hell's Kitchen", 
-      description: "Demonic cocktails served in skull glasses with dry ice and blood-red concoctions from the underworld",
-      color: "from-orange-600 to-red-600",
-      bgColor: "bg-gradient-to-br from-orange-900/80 to-red-900/80",
-      glitchColor: "orange"
+      description: "Demonic cocktails served in skull glasses with dry ice and blood-red concoctions",
+      color: "from-orange-600 to-red-600"
     },
     { 
       icon: "👹", 
       title: "Demon Makeover", 
-      description: "Professional horror makeup artists transform you into creatures of the night for eternal damnation",
-      color: "from-green-600 to-green-800",
-      bgColor: "bg-gradient-to-br from-green-900/80 to-black/90",
-      glitchColor: "green"
+      description: "Professional horror makeup artists transform you into creatures of the night",
+      color: "from-green-600 to-green-800"
     },
     { 
       icon: "🦴", 
       title: "Bone Yard VIP", 
-      description: "Exclusive skeleton lounge with bone furniture and ghostly experiences reserved for the elite damned",
-      color: "from-gray-600 to-gray-800",
-      bgColor: "bg-gradient-to-br from-gray-900/80 to-black/90",
-      glitchColor: "white"
+      description: "Exclusive skeleton lounge with bone furniture and ghostly experiences",
+      color: "from-gray-600 to-gray-800"
     },
     { 
       icon: "🕷️", 
       title: "Spider Web Maze", 
-      description: "Navigate through haunted corridors filled with jump scares, spooky surprises, and your worst nightmares",
-      color: "from-indigo-600 to-purple-600",
-      bgColor: "bg-gradient-to-br from-indigo-900/80 to-purple-900/80",
-      glitchColor: "indigo"
+      description: "Navigate through haunted corridors filled with jump scares and nightmares",
+      color: "from-indigo-600 to-purple-600"
     }
   ];
-  
-  // Mouse tracking for 3D effects
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      const x = e.clientX - window.innerWidth / 2;
-      const y = e.clientY - window.innerHeight / 2;
-      setMousePosition({ x, y });
-      mouseX.set(x);
-      mouseY.set(y);
-      setCursorTrail(prev => [
-        ...prev.slice(-20),
-        { x: e.clientX, y: e.clientY, id: Date.now() }
-      ]);
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [mouseX, mouseY]);
-  
-  // Enhanced scroll effects
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      setBloodDrip(scrollY > 100);
-      setNightmareMode(scrollY > window.innerHeight);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-  
-  // Eyes blinking with randomness
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setEyesBlinking(true);
-      setTimeout(() => setEyesBlinking(false), 150 + Math.random() * 200);
-    }, 1500 + Math.random() * 2000);
-    return () => clearInterval(interval);
-  }, []);
-  
-  // Ghost appearances
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setGhostAppears(true);
-      setTimeout(() => setGhostAppears(false), 2000);
-    }, 6000 + Math.random() * 8000);
-    return () => clearInterval(interval);
-  }, []);
   
   // Countdown timer
   useEffect(() => {
@@ -149,1572 +80,718 @@ const HorrorRaveYardPage = () => {
     return () => clearInterval(interval);
   }, []);
   
-  // Reduced Glitch text component
-  const GlitchText = ({ children, className = "" }) => {
-    const [glitchActive, setGlitchActive] = useState(false);
-    useEffect(() => {
-      const interval = setInterval(() => {
-        setGlitchActive(true);
-        setTimeout(() => setGlitchActive(false), 80);
-      }, 7000 + Math.random() * 4000);
-      return () => clearInterval(interval);
-    }, []);
-    return (
-      <motion.div
-        className={`relative ${className}`}
-        animate={glitchActive ? {
-          x: [0, -1, 1, 0],
-          filter: [
-            "contrast(1)",
-            "contrast(1.1)",
-            "contrast(0.9)",
-            "contrast(1)"
-          ]
-        } : {}}
-        transition={{ duration: 0.15 }}
-      >
-        {children}
-      </motion.div>
-    );
-  };
+  // Eyes blinking with randomness
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setEyesBlinking(true);
+      setTimeout(() => setEyesBlinking(false), 150 + Math.random() * 200);
+    }, 1500 + Math.random() * 2000);
+    return () => clearInterval(interval);
+  }, []);
   
-  // Floating particle system
-  const ParticleSystem = () => {
-    const particles = Array.from({ length: 50 }, (_, i) => ({
-      id: i,
-      emoji: ['💀', '🦇', '👻', '🕷️', '🩸', '⚰️', '👁️'][Math.floor(Math.random() * 7)],
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      delay: Math.random() * 5,
-      duration: 10 + Math.random() * 20
-    }));
+  // Ghost appearances
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setGhostAppears(true);
+      setTimeout(() => setGhostAppears(false), 2000);
+    }, 6000 + Math.random() * 8000);
+    return () => clearInterval(interval);
+  }, []);
+  
+  // Blood drip creation
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (bloodDrips.length < 20) {
+        const newDrip = {
+          id: Date.now(),
+          x: Math.random() * 100,
+          delay: Math.random() * 3,
+          duration: 3 + Math.random() * 5
+        };
+        setBloodDrips(prev => [...prev, newDrip]);
+      }
+    }, 500);
     
-    return (
-      <div className="fixed inset-0 pointer-events-none z-10 overflow-hidden">
-        {particles.map((particle) => (
-          <motion.div
-            key={particle.id}
-            className="absolute text-2xl opacity-30"
-            style={{
-              left: `${particle.x}%`,
-              top: `${particle.y}%`,
-            }}
-            animate={{
-              y: [0, -100, 0],
-              x: [0, Math.sin(particle.id) * 50, 0],
-              rotate: [0, 360],
-              scale: [0.5, 1.5, 0.5],
-              opacity: [0.1, 0.6, 0.1]
-            }}
-            transition={{
-              duration: particle.duration,
-              repeat: Infinity,
-              delay: particle.delay,
-              ease: "easeInOut"
-            }}
-          >
-            {particle.emoji}
-          </motion.div>
-        ))}
-      </div>
-    );
-  };
+    return () => clearInterval(interval);
+  }, [bloodDrips]);
   
-  // Cursor trail component
-  const CursorTrail = () => (
-    <div className="fixed inset-0 pointer-events-none z-50">
-      {cursorTrail.map((point, index) => (
+  // Blood drip component
+  const BloodDrips = () => (
+    <div className="fixed inset-0 pointer-events-none z-0">
+      {bloodDrips.map((drip) => (
         <motion.div
-          key={point.id}
-          className="absolute w-2 h-2 bg-red-500 rounded-full"
-          style={{
-            left: point.x - 4,
-            top: point.y - 4,
+          key={drip.id}
+          className="absolute top-0 w-2 h-8 bg-red-600 rounded-b-full"
+          style={{ left: `${drip.x}%` }}
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ 
+            height: ['0px', '50px', '50px', '100px'],
+            opacity: [0, 1, 1, 0],
+            y: [0, window.innerHeight * 0.8]
           }}
-          initial={{ scale: 1, opacity: 1 }}
-          animate={{
-            scale: 0,
-            opacity: 0,
+          transition={{ 
+            duration: drip.duration,
+            delay: drip.delay,
+            times: [0, 0.3, 0.7, 1]
           }}
-          transition={{
-            duration: 1,
-            ease: "easeOut"
+          onAnimationComplete={() => {
+            setBloodDrips(prev => prev.filter(d => d.id !== drip.id));
           }}
-        />
+        >
+          <motion.div 
+            className="absolute bottom-0 w-4 h-4 bg-red-700 rounded-full"
+            animate={{ 
+              scale: [0, 1.5, 1],
+              y: [0, 10, 20]
+            }}
+            transition={{ 
+              duration: drip.duration * 0.3,
+              delay: drip.duration * 0.7
+            }}
+          />
+        </motion.div>
       ))}
     </div>
   );
   
-  // Enhanced Horror Background with parallax
-  const HorrorBackground = () => {
+  // Floating elements with simplified animations
+  const FloatingElement = ({ delay, size, position, emoji }) => {
     return (
-      <div className="absolute inset-0 overflow-hidden">
-        {/* Multiple layered backgrounds for depth */}
-        <motion.div 
-          className="absolute inset-0 bg-gradient-to-b from-black via-red-900/30 to-black"
-          style={{
-            rotateX,
-            rotateY,
-            transformStyle: "preserve-3d"
-          }}
-        />
-        
-        {/* Animated lightning effects */}
-        <motion.div
-          className="absolute inset-0"
-          animate={{
-            background: screamActive ? [
-              "radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1) 0%, transparent 50%)",
-              "radial-gradient(circle at 30% 70%, rgba(255,0,0,0.3) 0%, transparent 50%)",
-              "radial-gradient(circle at 70% 30%, rgba(255,255,255,0.1) 0%, transparent 50%)",
-            ] : "transparent"
-          }}
-          transition={{ duration: 0.1 }}
-        />
-        
-        {/* Dynamic fog with mouse interaction */}
-        <motion.div
-          className="absolute inset-0 opacity-40"
-          animate={{
-            backgroundPosition: ["0% 0%", "100% 100%"],
-          }}
-          style={{
-            x: mousePosition.x * 0.01,
-            y: mousePosition.y * 0.01,
-          }}
-          transition={{
-            backgroundPosition: {
-              duration: 30,
-              repeat: Infinity,
-              repeatType: "reverse",
-              ease: "linear"
-            }
-          }}
-        >
-          <div
-            className="w-full h-full"
-            style={{
-              backgroundImage: `
-                radial-gradient(circle at 20% 80%, rgba(139, 0, 0, 0.6) 0%, transparent 60%),
-                radial-gradient(circle at 80% 20%, rgba(75, 0, 130, 0.4) 0%, transparent 60%),
-                radial-gradient(circle at 40% 40%, rgba(0, 0, 0, 0.8) 0%, transparent 60%),
-                radial-gradient(circle at 60% 60%, rgba(255, 0, 100, 0.2) 0%, transparent 60%)
-              `,
-              backgroundSize: "400% 400%"
-            }}
-          />
-        </motion.div>
-        
-        {/* Interactive spider web */}
-        <svg className="absolute inset-0 w-full h-full opacity-20" viewBox="0 0 1920 1080">
-          <defs>
-            <pattern id="spiderweb" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
-              <motion.g
-                animate={{
-                  rotate: [0, 5, -5, 0],
-                  scale: isHovering ? [1, 1.1, 1] : 1
-                }}
-                transition={{ duration: 4, repeat: Infinity }}
-              >
-                <path d="M100,10 L100,190 M10,100 L190,100 M30,30 L170,170 M170,30 L30,170" 
-                      stroke="rgba(255,255,255,0.15)" strokeWidth="2" fill="none"/>
-                <circle cx="100" cy="100" r="4" fill="rgba(255,0,0,0.5)"/>
-              </motion.g>
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#spiderweb)"/>
-        </svg>
-        
-        {/* Dynamic eyes with mouse tracking */}
-        <div className="absolute inset-0">
-          {[...Array(8)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute text-5xl cursor-pointer"
-              style={{
-                left: `${5 + i * 12}%`,
-                top: `${15 + (i % 3) * 25}%`,
-                transform: `translate(${mousePosition.x * 0.02}px, ${mousePosition.y * 0.02}px)`
-              }}
-              animate={eyesBlinking ? {
-                scaleY: [1, 0.05, 1],
-                opacity: [0.8, 1, 0.8]
-              } : {
-                rotate: [0, 10, -10, 0],
-                scale: [1, 1.2, 1]
-              }}
-              transition={{
-                scaleY: { duration: 0.2 },
-                rotate: { duration: 3, repeat: Infinity },
-                scale: { duration: 2, repeat: Infinity, delay: i * 0.2 }
-              }}
-              whileHover={{
-                scale: 1.5,
-                textShadow: "0 0 20px #ff0000",
-                filter: "drop-shadow(0 0 10px #ff0000)"
-              }}
-              onHoverStart={() => setIsHovering(true)}
-              onHoverEnd={() => setIsHovering(false)}
-            >
-              👁️
-            </motion.div>
-          ))}
-        </div>
-        
-        {/* Nightmare mode overlay */}
-        <AnimatePresence>
-          {nightmareMode && (
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-b from-red-900/50 via-black/70 to-purple-900/50"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 1 }}
-            />
-          )}
-        </AnimatePresence>
-        
-        {/* Ghost army */}
-        <AnimatePresence>
-          {ghostAppears && (
-            <div className="absolute inset-0">
-              {[...Array(5)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  className="absolute text-8xl z-20"
-                  style={{
-                    left: `${i * 20}%`,
-                    top: `${20 + (i % 2) * 40}%`,
-                  }}
-                  initial={{ opacity: 0, scale: 0, rotate: -180 }}
-                  animate={{ 
-                    opacity: [0, 1, 0.7, 0], 
-                    scale: [0, 1.5, 1.2, 0],
-                    rotate: [-180, 0, 20, 180],
-                    y: [0, -50, -30, -100]
-                  }}
-                  exit={{ opacity: 0, scale: 0 }}
-                  transition={{ 
-                    duration: 2,
-                    delay: i * 0.2,
-                    ease: "easeInOut"
-                  }}
-                >
-                  👻
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </AnimatePresence>
-      </div>
+      <motion.div
+        className={`absolute ${position} z-0 pointer-events-none`}
+        initial={{ y: 0, opacity: 0.5 }}
+        animate={{ 
+          y: [0, -20, 0],
+          x: [0, Math.random() > 0.5 ? 10 : -10, 0],
+          opacity: [0.5, 0.8, 0.5]
+        }}
+        transition={{ 
+          duration: 8, 
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay
+        }}
+      >
+        <span className={`text-${size}xl`}>{emoji}</span>
+      </motion.div>
     );
   };
   
   return (
-    <div className="min-h-screen bg-black text-white overflow-x-hidden relative cursor-none">
-      <ParticleSystem />
-      <CursorTrail />
-
-      {/* Custom cursor */}
-      <motion.div
-        className="fixed w-8 h-8 bg-red-500 rounded-full pointer-events-none z-50 mix-blend-difference"
-        style={{
-          left: mousePosition.x + (typeof window !== 'undefined' ? window.innerWidth / 2 : 0) - 16,
-          top: mousePosition.y + (typeof window !== 'undefined' ? window.innerHeight / 2 : 0) - 16,
-        }}
-        animate={{
-          scale: isHovering ? 2 : 1,
-          backgroundColor: isHovering ? "#ff0000" : "#dc2626"
-        }}
-        transition={{ type: "spring", stiffness: 500, damping: 28 }}
-      />
-
-      {/* Hero Section with 3D Transform */}
-      <section className="relative min-h-screen flex flex-col justify-center items-center p-4 overflow-hidden perspective-1000">
-        <HorrorBackground />
-
-        {/* 3D floating frame */}
-        <motion.div 
-          className="absolute inset-8 border-4 border-red-800/60 rounded-2xl pointer-events-none"
+    <div className="min-h-screen bg-black text-white overflow-x-hidden font-sans relative">
+      {/* Enhanced Blood drips with rust particles */}
+      <BloodDrips />
+      
+      {/* Rust particles floating */}
+      {[...Array(15)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute text-xl text-red-800 opacity-50"
           style={{
-            rotateX,
-            rotateY,
-            transformStyle: "preserve-3d"
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
           }}
           animate={{
-            borderColor: screamActive ? ["rgba(220, 38, 38, 0.6)", "rgba(255, 255, 255, 0.8)", "rgba(220, 38, 38, 0.6)"] : "rgba(220, 38, 38, 0.6)"
+            y: [0, -10, 0],
+            x: [0, (Math.random() > 0.5 ? 1 : -1) * 5, 0],
+            rotate: [0, Math.random() * 360]
+          }}
+          transition={{
+            duration: 8 + Math.random() * 10,
+            repeat: Infinity,
+            delay: i * 0.5
           }}
         >
-          {/* Corner demons */}
-          {[
-            { position: "-top-4 -left-4", emoji: "👹" },
-            { position: "-top-4 -right-4", emoji: "💀" },
-            { position: "-bottom-4 -left-4", emoji: "🕷️" },
-            { position: "-bottom-4 -right-4", emoji: "⚰️" }
-          ].map((corner, i) => (
-            <motion.div
-              key={i}
-              className={`absolute ${corner.position} text-5xl cursor-pointer`}
-              animate={{
-                rotate: [0, 360],
-                scale: [1, 1.3, 1],
-                textShadow: [
-                  "0 0 10px #ff0000",
-                  "0 0 30px #ff0000",
-                  "0 0 10px #ff0000"
-                ]
-              }}
-              transition={{
-                rotate: { duration: 8, repeat: Infinity },
-                scale: { duration: 2, repeat: Infinity, delay: i * 0.5 },
-                textShadow: { duration: 1.5, repeat: Infinity, delay: i * 0.3 }
-              }}
-              whileHover={{
-                scale: 2,
-                rotate: 720,
-                textShadow: "0 0 50px #ff0000"
-              }}
-            >
-              {corner.emoji}
-            </motion.div>
-          ))}
+          •
         </motion.div>
-        
-        {/* Main hero content with 3D effects */}
-        <motion.div 
-          className="relative z-10 text-center max-w-6xl px-4"
+      ))}
+
+      {/* Hero Section with Rust Effects */}
+      <section className="relative min-h-screen flex flex-col justify-center items-center p-4 overflow-hidden"
+        style={{
+          background: 'radial-gradient(circle at 30% 40%, #2d1b69 0%, #1a0630 40%, #0a0015 70%, #000000 100%)'
+        }}
+      >
+        {/* Rust texture overlay */}
+        <div className="absolute inset-0 opacity-30"
           style={{
-            rotateX: rotateX,
-            rotateY: rotateY,
-            transformStyle: "preserve-3d"
+            backgroundImage: `
+              radial-gradient(circle, rgba(139,0,0,0.1) 0%, transparent 70%),
+              repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(120, 50, 20, 0.2) 10px,
+                rgba(120, 50, 20, 0.2) 20px
+              )
+            `,
+            backgroundSize: "300px 300px, 30px 30px"
           }}
-        >
+        />
+        
+        {/* Rusty metal border effect */}
+        <div className="absolute inset-8 pointer-events-none"
+          style={{
+            border: '4px solid transparent',
+            borderImage: `linear-gradient(
+              to bottom,
+              #8B4513 0%,
+              #5D2919 25%,
+              #8B4513 50%,
+              #5D2919 75%,
+              #8B4513 100%
+            )`,
+            borderImageSlice: 1,
+            filter: 'drop-shadow(0 0 10px rgba(139, 0, 0, 0.5))'
+          }}
+        />
+        
+        {/* Rusty corrosion spots */}
+        {[...Array(10)].map((_, i) => (
           <motion.div
-            initial={{ opacity: 0, y: 100, rotateX: -90 }}
-            animate={{ opacity: 1, y: 0, rotateX: 0 }}
-            transition={{ duration: 2, ease: "easeOut" }}
+            key={i}
+            className="absolute rounded-full bg-gradient-to-br from-red-900 to-red-700 opacity-30"
+            style={{
+              width: `${10 + Math.random() * 50}px`,
+              height: `${10 + Math.random() * 50}px`,
+              left: `${Math.random() * 90}%`,
+              top: `${Math.random() * 90}%`,
+            }}
+            animate={{
+              scale: [1, 1.1, 1],
+              opacity: [0.3, 0.5, 0.3]
+            }}
+            transition={{
+              duration: 5 + Math.random() * 10,
+              repeat: Infinity
+            }}
+          />
+        ))}
+
+        <div className="relative z-10 text-center max-w-6xl px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1 }}
           >
-            {/* Dramatic title */}
-            <motion.div
-              className="mb-12 relative"
-              animate={{
-                filter: screamActive ? [
-                  "drop-shadow(0 0 10px #ff0000)",
-                  "drop-shadow(0 0 50px #ff0000) drop-shadow(0 0 100px #ff00ff)",
-                  "drop-shadow(0 0 10px #ff0000)"
-                ] : "drop-shadow(0 0 20px #ff0000)"
-              }}
+            {/* Rusty text effect */}
+            <motion.h1 
+              className="text-6xl md:text-8xl font-black mb-6 relative"
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.8 }}
             >
-              <GlitchText className="text-7xl md:text-9xl lg:text-[12rem] font-black bg-gradient-to-b from-red-400 via-red-600 to-black bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-red-500 to-red-700 bg-clip-text text-transparent">
                 RaveYard
-              </GlitchText>
+              </span>
+              <span className="absolute -bottom-4 left-0 right-0 h-1 bg-gradient-to-r from-red-800 via-red-600 to-red-800 rounded-full"></span>
               
-              <motion.div 
-                className="text-6xl md:text-8xl lg:text-9xl font-black bg-gradient-to-r from-purple-500 via-red-500 to-orange-500 bg-clip-text text-transparent block mt-6"
-                animate={{
-                  backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"]
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: "linear"
-                }}
-                style={{
-                  backgroundSize: "200% 200%"
-                }}
-              >
-                2025
-              </motion.div>
-              
-              {/* Floating skull army */}
-              <div className="absolute inset-0 pointer-events-none">
-                {[...Array(12)].map((_, i) => (
+              {/* Rust texture on text */}
+              <span 
+                className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/rust.png')] opacity-20"
+                style={{ mixBlendMode: 'multiply' }}
+              />
+            </motion.h1>
+            
+            {/* Subtitle with dripping effect */}
+            <motion.h2 
+              className="text-4xl md:text-5xl text-red-400 mb-8 font-bold relative pb-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5, duration: 1 }}
+            >
+              The Haunted Resurrection
+              {/* Dripping underline */}
+              <div className="absolute bottom-0 left-0 right-0 flex justify-center">
+                {[...Array(5)].map((_, i) => (
                   <motion.div
                     key={i}
-                    className="absolute text-4xl md:text-6xl"
-                    style={{
-                      left: `${-20 + Math.random() * 140}%`,
-                      top: `${-20 + Math.random() * 140}%`,
-                    }}
+                    className="w-1 h-6 mx-1 bg-gradient-to-b from-red-500 to-transparent"
                     animate={{
-                      rotate: [0, 360],
-                      scale: [0.5, 1.2, 0.5],
-                      opacity: [0.3, 0.8, 0.3],
-                      x: [0, Math.sin(i) * 100, 0],
-                      y: [0, Math.cos(i) * 50, 0]
+                      y: [0, 20, 40, 60],
+                      opacity: [1, 1, 1, 0]
                     }}
                     transition={{
-                      duration: 8 + Math.random() * 4,
+                      duration: 2,
                       repeat: Infinity,
-                      delay: i * 0.3,
-                      ease: "easeInOut"
+                      delay: i * 0.3
                     }}
-                  >
-                    💀
-                  </motion.div>
+                  />
                 ))}
               </div>
-            </motion.div>
-            
-            <GlitchText className="text-4xl md:text-6xl lg:text-7xl text-red-400 mb-8 font-bold">
-              🩸 THE HAUNTED RESURRECTION 🩸
-            </GlitchText>
+            </motion.h2>
             
             <motion.p
-              className="text-2xl md:text-3xl text-red-200 mb-20 max-w-5xl mx-auto leading-relaxed font-light"
-              animate={{
-                textShadow: [
-                  "0 0 10px rgba(255, 0, 0, 0.3)",
-                  "0 0 20px rgba(255, 0, 0, 0.6)",
-                  "0 0 10px rgba(255, 0, 0, 0.3)"
-                ]
-              }}
-              transition={{ duration: 2, repeat: Infinity }}
+              className="text-xl text-red-200 mb-12 max-w-3xl mx-auto leading-relaxed relative"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8, duration: 1 }}
             >
               {eventData.description}
+              
+              {/* Random rust spots in text */}
+              {[...Array(3)].map((_, i) => (
+                <span 
+                  key={i}
+                  className="absolute inline-block w-2 h-2 bg-red-800 rounded-full opacity-70"
+                  style={{
+                    left: `${15 + i * 30}%`,
+                    top: `${20 + i * 10}%`
+                  }}
+                />
+              ))}
             </motion.p>
             
-            {/* 3D Countdown with particle effects */}
+            {/* Countdown timer with rusty metal look */}
             <motion.div 
-              className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto mb-24"
-              style={{
-                transformStyle: "preserve-3d"
-              }}
+              className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto mb-16"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1, duration: 0.8 }}
             >
               {Object.entries(countdown).map(([unit, value], index) => (
                 <motion.div 
                   key={unit} 
-                  className="bg-gradient-to-b from-red-900/90 to-black/95 backdrop-blur-xl border-2 border-red-600/70 rounded-2xl p-8 relative overflow-hidden group cursor-pointer"
+                  className="relative bg-gradient-to-b from-gray-900 to-black border-b-4 border-red-900 rounded-xl p-4 overflow-hidden"
                   style={{
-                    transformStyle: "preserve-3d",
-                    rotateX: -10,
-                    rotateY: index % 2 === 0 ? -5 : 5
+                    boxShadow: 'inset 0 0 10px rgba(139, 0, 0, 0.5)'
                   }}
-                  whileHover={{ 
-                    scale: 1.15,
-                    rotateX: 0,
-                    rotateY: 0,
-                    borderColor: "rgba(255, 255, 255, 0.8)",
-                    boxShadow: "0 0 60px rgba(220, 38, 38, 0.8), 0 0 100px rgba(147, 51, 234, 0.4)",
-                    z: 50
-                  }}
-                  animate={{
-                    boxShadow: [
-                      "0 20px 40px rgba(0, 0, 0, 0.5)",
-                      "0 30px 60px rgba(220, 38, 38, 0.3)",
-                      "0 20px 40px rgba(0, 0, 0, 0.5)"
-                    ]
-                  }}
-                  transition={{
-                    boxShadow: { duration: 2, repeat: Infinity, delay: index * 0.2 }
-                  }}
+                  whileHover={{ scale: 1.05 }}
                 >
-                  {/* Particle burst on hover */}
-                  <motion.div
-                    className="absolute inset-0 pointer-events-none"
-                    whileHover={{
-                      background: [
-                        "radial-gradient(circle, transparent 0%, transparent 100%)",
-                        "radial-gradient(circle, rgba(220, 38, 38, 0.3) 0%, transparent 70%)",
-                        "radial-gradient(circle, transparent 0%, transparent 100%)"
-                      ]
-                    }}
-                    transition={{ duration: 0.5 }}
+                  {/* Rust texture overlay */}
+                  <div 
+                    className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/rust.png')] opacity-20 pointer-events-none"
+                    style={{ mixBlendMode: 'overlay' }}
                   />
                   
-                  <div className="relative z-10">
-                    <motion.div 
-                      className="text-5xl md:text-7xl font-black text-red-400 mb-3 font-mono"
-                      animate={{
-                        textShadow: [
-                          "0 0 10px #ff0000",
-                          "0 0 30px #ff0000",
-                          "0 0 10px #ff0000"
-                        ]
-                      }}
-                      transition={{ duration: 1, repeat: Infinity, delay: index * 0.1 }}
-                    >
-                      {String(value).padStart(2, '0')}
-                    </motion.div>
-                    <div className="text-lg text-red-300 uppercase font-bold tracking-widest">{unit}</div>
-                  </div>
+                  {/* Rust spots */}
+                  <div className="absolute top-2 right-2 w-3 h-3 bg-red-900 rounded-full"></div>
+                  <div className="absolute bottom-2 left-2 w-4 h-4 bg-red-900 rounded-full opacity-70"></div>
                   
-                  {/* Floating mini skulls */}
-                  {[...Array(3)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      className="absolute text-sm opacity-40"
-                      style={{
-                        left: `${20 + i * 25}%`,
-                        top: `${10 + i * 15}%`
-                      }}
-                      animate={{
-                        rotate: [0, 360],
-                        scale: [0.5, 1, 0.5],
-                        y: [0, -10, 0]
-                      }}
-                      transition={{
-                        duration: 3,
-                        repeat: Infinity,
-                        delay: i * 0.5
-                      }}
-                    >
-                      💀
-                    </motion.div>
-                  ))}
+                  <div className="text-3xl md:text-4xl font-black text-red-400 mb-1 relative z-10">
+                    {String(value).padStart(2, '0')}
+                  </div>
+                  <div className="text-sm text-red-300 uppercase font-medium relative z-10">
+                    {unit}
+                  </div>
                 </motion.div>
               ))}
             </motion.div>
             
-            {/* Ultimate CTA with holographic effect */}
             <motion.div
-              className="relative"
-              whileHover={{ scale: 1.05 }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 1.2, duration: 0.8 }}
             >
+              {/* Rusty metal button */}
               <motion.button
-                className="relative px-20 py-12 bg-gradient-to-r from-red-800 via-red-600 to-red-800 rounded-3xl font-black text-4xl md:text-5xl shadow-2xl overflow-hidden group border-4 border-red-500 cursor-pointer"
                 whileHover={{ 
-                  boxShadow: [
-                    "0 0 60px rgba(220, 38, 38, 0.8)",
-                    "0 0 120px rgba(220, 38, 38, 1), 0 0 200px rgba(147, 51, 234, 0.6)",
-                    "0 0 60px rgba(220, 38, 38, 0.8)"
-                  ],
-                  borderColor: ["#dc2626", "#ffffff", "#dc2626"]
+                  scale: 1.05,
+                  boxShadow: "0 0 30px rgba(220, 38, 38, 0.8)"
                 }}
                 whileTap={{ scale: 0.95 }}
-                animate={{
-                  background: [
-                    "linear-gradient(45deg, #991b1b, #dc2626, #991b1b)",
-                    "linear-gradient(90deg, #dc2626, #ef4444, #dc2626)",
-                    "linear-gradient(135deg, #991b1b, #dc2626, #991b1b)"
-                  ]
-                }}
-                transition={{
-                  background: { duration: 3, repeat: Infinity },
-                  boxShadow: { duration: 0.5 },
-                  borderColor: { duration: 0.5 }
+                className="px-10 py-6 relative rounded-xl font-bold text-xl shadow-lg overflow-hidden"
+                style={{
+                  background: `linear-gradient(145deg, #8B4513, #5D2919)`,
+                  boxShadow: `0 4px 0 #3a180d, inset 0 2px 4px rgba(255, 100, 100, 0.4)`,
+                  border: '1px solid #5D2919'
                 }}
               >
-                {/* Holographic overlay */}
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100"
-                  animate={{
-                    x: ["-100%", "100%"]
-                  }}
-                  transition={{
-                    duration: 1.5,
-                    repeat: Infinity,
-                    repeatDelay: 2
-                  }}
+                {/* Button rust texture */}
+                <div 
+                  className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/rust.png')] opacity-30 pointer-events-none"
+                  style={{ mixBlendMode: 'overlay' }}
                 />
                 
-                {/* Plasma effect */}
-                <motion.div
-                  className="absolute inset-0 opacity-30"
-                  animate={{
-                    background: [
-                      "radial-gradient(circle at 20% 20%, rgba(255, 0, 0, 0.3) 0%, transparent 50%)",
-                      "radial-gradient(circle at 80% 80%, rgba(255, 0, 255, 0.3) 0%, transparent 50%)",
-                      "radial-gradient(circle at 50% 50%, rgba(0, 255, 255, 0.3) 0%, transparent 50%)",
-                      "radial-gradient(circle at 20% 80%, rgba(255, 255, 0, 0.3) 0%, transparent 50%)"
-                    ]
-                  }}
-                  transition={{ duration: 4, repeat: Infinity }}
-                />
+                <div className="relative z-10 flex items-center gap-3">
+                  <span>ENTER THE CRYPT</span>
+                  <span>💀</span>
+                </div>
                 
-                <div className="relative z-10 flex items-center gap-6">
-                  <motion.span 
-                    className="text-6xl"
-                    animate={{ 
-                      rotate: [0, 360],
-                      scale: [1, 1.4, 1],
-                      filter: [
-                        "drop-shadow(0 0 10px #ff0000)",
-                        "drop-shadow(0 0 30px #ff0000) drop-shadow(0 0 50px #ff00ff)",
-                        "drop-shadow(0 0 10px #ff0000)"
-                      ]
-                    }}
-                    transition={{ 
-                      rotate: { duration: 4, repeat: Infinity },
-                      scale: { duration: 2, repeat: Infinity },
-                      filter: { duration: 1.5, repeat: Infinity }
-                    }}
-                  >
-                    ⚰️
-                  </motion.span>
-                  <GlitchText className="font-black">ENTER THE CRYPT</GlitchText>
-                  <motion.span
-                    className="text-6xl"
-                    animate={{ 
-                      scale: [1, 1.8, 1],
-                      opacity: [1, 0.3, 1],
-                      rotate: [0, 180, 360]
-                    }}
-                    transition={{ 
-                      duration: 2, 
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                  >
-                    💀
-                  </motion.span>
+                {/* Button drips */}
+                <div className="absolute bottom-0 left-0 right-0 flex justify-center">
+                  {[...Array(3)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      className="w-1 h-6 mx-2 bg-gradient-to-b from-red-600 to-transparent"
+                      animate={{
+                        y: [0, 10, 20],
+                        opacity: [1, 1, 0]
+                      }}
+                      transition={{
+                        duration: 1.5,
+                        repeat: Infinity,
+                        delay: i * 0.5
+                      }}
+                    />
+                  ))}
                 </div>
               </motion.button>
-              
-              {/* Button aura effect */}
-              <motion.div
-                className="absolute inset-0 rounded-3xl"
-                animate={{
-                  boxShadow: [
-                    "0 0 40px rgba(220, 38, 38, 0.4)",
-                    "0 0 80px rgba(220, 38, 38, 0.8), 0 0 120px rgba(147, 51, 234, 0.4)",
-                    "0 0 40px rgba(220, 38, 38, 0.4)"
-                  ]
-                }}
-                transition={{ duration: 2, repeat: Infinity }}
-              />
             </motion.div>
           </motion.div>
-        </motion.div>
+        </div>
         
-        {/* Enhanced scroll indicator */}
+        {/* Scroll indicator with rust */}
         <motion.div
-          className="absolute bottom-12 flex flex-col items-center z-20"
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 3 }}
+          className="absolute bottom-8 flex flex-col items-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.5 }}
         >
-          <GlitchText className="text-red-400 mb-6 text-lg font-bold animate-pulse tracking-widest">
-            DESCEND TO HELL
-          </GlitchText>
+          <span className="text-red-400 mb-3 text-sm font-medium">DESCEND INTO DARKNESS</span>
           <motion.div 
-            className="relative w-16 h-24 rounded-full border-4 border-red-600 flex justify-center p-4 bg-black/60 backdrop-blur-lg overflow-hidden cursor-pointer"
-            whileHover={{
-              scale: 1.2,
-              borderColor: "#ffffff",
-              boxShadow: "0 0 40px rgba(220, 38, 38, 0.8)"
-            }}
-            animate={{
-              y: [0, 10, 0],
-              boxShadow: [
-                "0 0 20px rgba(220, 38, 38, 0.3)",
-                "0 0 40px rgba(220, 38, 38, 0.8)",
-                "0 0 20px rgba(220, 38, 38, 0.3)"
-              ]
-            }}
-            transition={{ 
-              y: { repeat: Infinity, duration: 2.5, ease: "easeInOut" },
-              boxShadow: { repeat: Infinity, duration: 2, ease: "easeInOut" }
+            animate={{ y: [0, 10, 0] }}
+            transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+            className="w-10 h-16 rounded-full border-2 border-red-900 flex justify-center p-2"
+            style={{
+              background: `linear-gradient(145deg, #2a0f06, #1a0904)`,
+              boxShadow: 'inset 0 0 5px rgba(139, 0, 0, 0.5)'
             }}
           >
-            {/* Liquid effect */}
             <motion.div 
-              className="w-4 h-6 bg-gradient-to-b from-red-500 via-red-600 to-red-800 rounded-full relative"
-              animate={{ 
-                y: [0, 8, 0],
-                scaleY: [1, 1.3, 1]
-              }}
-              transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
-            >
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent rounded-full"
-                animate={{
-                  opacity: [0.3, 0.7, 0.3]
-                }}
-                transition={{ repeat: Infinity, duration: 1.5 }}
-              />
-            </motion.div>
-            
-            {/* Floating particles inside */}
-            {[...Array(3)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-1 h-1 bg-red-400 rounded-full"
-                style={{
-                  left: `${30 + i * 10}%`,
-                  top: `${20 + i * 20}%`
-                }}
-                animate={{
-                  y: [0, -20, 0],
-                  opacity: [0, 1, 0],
-                  scale: [0.5, 1, 0.5]
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  delay: i * 0.5
-                }}
-              />
-            ))}
+              className="w-2 h-3 bg-gradient-to-b from-red-500 to-red-700 rounded-full"
+              animate={{ y: [0, 12, 0] }}
+              transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+            />
           </motion.div>
         </motion.div>
       </section>
       
-      {/* Enhanced Horror Highlights with 3D cards */}
-      <section className="py-32 px-4 relative z-10">
-        <HorrorBackground />
-        
-        <div className="max-w-7xl mx-auto">
+      {/* Horror Highlights */}
+      <section className="py-24 px-4 relative">
+        <div className="max-w-6xl mx-auto">
           <motion.div 
-            className="text-center mb-24"
-            initial={{ opacity: 0, y: 100 }}
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 1.5 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1 }}
           >
-            <GlitchText className="text-5xl md:text-7xl lg:text-8xl font-black bg-gradient-to-b from-red-400 via-red-600 to-black bg-clip-text text-transparent mb-8">
+            <h2 className="text-4xl md:text-5xl font-bold text-red-500 mb-6">
               CHAMBERS OF HORROR
-            </GlitchText>
-            <motion.p 
-              className="text-3xl text-red-200 max-w-5xl mx-auto leading-relaxed font-light"
-              animate={{
-                textShadow: [
-                  "0 0 10px rgba(255, 0, 0, 0.3)",
-                  "0 0 30px rgba(255, 0, 0, 0.6)",
-                  "0 0 10px rgba(255, 0, 0, 0.3)"
-                ]
-              }}
-              transition={{ duration: 3, repeat: Infinity }}
-            >
-              Experience terror like never before in our haunted attractions where nightmares become reality
-            </motion.p>
+            </h2>
+            <p className="text-xl text-red-300 max-w-3xl mx-auto">
+              Experience terror like never before in our haunted attractions
+            </p>
           </motion.div>
           
-          {/* 3D Card Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 perspective-1000">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {horrorHighlights.map((item, index) => (
               <motion.div
                 key={index}
-                className={`${item.bgColor} backdrop-blur-xl border-3 border-red-800/60 rounded-3xl p-10 relative overflow-hidden group cursor-pointer`}
-                style={{
-                  transformStyle: "preserve-3d",
-                  rotateX: -5,
-                  rotateY: index % 2 === 0 ? -3 : 3
-                }}
-                initial={{ 
-                  opacity: 0, 
-                  y: 100, 
-                  rotateX: -45,
-                  scale: 0.8
-                }}
-                whileInView={{ 
-                  opacity: 1, 
-                  y: 0, 
-                  rotateX: -5,
-                  scale: 1
-                }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ 
-                  delay: index * 0.2, 
-                  duration: 1,
-                  ease: "easeOut"
-                }}
-                whileHover={{ 
-                  y: -30,
-                  rotateX: 0,
-                  rotateY: 0,
-                  scale: 1.05,
-                  borderColor: "rgba(255, 255, 255, 0.8)",
-                  boxShadow: "0 40px 80px rgba(220, 38, 38, 0.4), 0 0 100px rgba(147, 51, 234, 0.3)",
-                  z: 100
-                }}
-                animate={{
-                  boxShadow: [
-                    "0 20px 40px rgba(0, 0, 0, 0.3)",
-                    `0 25px 50px rgba(220, 38, 38, 0.2)`,
-                    "0 20px 40px rgba(0, 0, 0, 0.3)"
-                  ]
-                }}
-                transition={{
-                  boxShadow: { duration: 3, repeat: Infinity, delay: index * 0.3 }
-                }}
+                className={`bg-gradient-to-br ${item.color} backdrop-blur-sm border border-red-600/50 rounded-xl p-8 relative overflow-hidden`}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.15, duration: 0.8 }}
+                whileHover={{ y: -10 }}
               >
-                {/* Holographic background */}
+                <div className="text-6xl mb-6">{item.icon}</div>
+                <h3 className="text-2xl font-bold text-white mb-4">{item.title}</h3>
+                <p className="text-red-200">{item.description}</p>
+                
+                {/* Blood droplet effect */}
                 <motion.div
-                  className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-0 group-hover:opacity-30`}
+                  className="absolute top-4 right-4 w-6 h-6 bg-red-600 rounded-full"
                   animate={{
-                    background: [
-                      `linear-gradient(45deg, transparent, rgba(220, 38, 38, 0.1), transparent)`,
-                      `linear-gradient(90deg, transparent, rgba(147, 51, 234, 0.1), transparent)`,
-                      `linear-gradient(135deg, transparent, rgba(220, 38, 38, 0.1), transparent)`
-                    ]
+                    y: [0, 15, 0],
+                    scale: [1, 1.2, 1],
+                    opacity: [0.7, 1, 0.7]
                   }}
                   transition={{ 
-                    duration: 4, 
+                    duration: 2, 
                     repeat: Infinity,
-                    ease: "linear"
+                    delay: index * 0.2
                   }}
                 />
-                
-                {/* Plasma effect */}
-                <motion.div
-                  className="absolute inset-0 opacity-20"
-                  animate={{
-                    background: [
-                      "radial-gradient(circle at 20% 20%, rgba(255, 0, 0, 0.2) 0%, transparent 50%)",
-                      "radial-gradient(circle at 80% 80%, rgba(255, 0, 255, 0.2) 0%, transparent 50%)",
-                      "radial-gradient(circle at 50% 50%, rgba(0, 255, 255, 0.2) 0%, transparent 50%)"
-                    ]
-                  }}
-                  transition={{ duration: 5, repeat: Infinity }}
-                />
-                
-                <div className="relative z-10">
-                  {/* 3D Icon */}
-                  <motion.div 
-                    className="text-8xl mb-8 text-center relative"
-                    style={{ transformStyle: "preserve-3d" }}
-                    animate={{ 
-                      rotateY: [0, 360],
-                      scale: [1, 1.2, 1],
-                      filter: [
-                        "drop-shadow(0 0 10px rgba(255, 0, 0, 0.5))",
-                        "drop-shadow(0 0 30px rgba(255, 0, 0, 0.8)) drop-shadow(0 0 50px rgba(255, 255, 255, 0.3))",
-                        "drop-shadow(0 0 10px rgba(255, 0, 0, 0.5))"
-                      ]
-                    }}
-                    transition={{ 
-                      rotateY: { duration: 8, repeat: Infinity, ease: "linear" },
-                      scale: { duration: 3, repeat: Infinity, delay: index * 0.5 },
-                      filter: { duration: 2, repeat: Infinity, delay: index * 0.3 }
-                    }}
-                    whileHover={{
-                      scale: 1.5,
-                      rotateY: 720,
-                      filter: "drop-shadow(0 0 50px rgba(255, 255, 255, 1))"
-                    }}
-                  >
-                    {item.icon}
-                    
-                    {/* Icon aura */}
-                    <motion.div
-                      className="absolute inset-0 flex items-center justify-center text-8xl opacity-30"
-                      animate={{
-                        scale: [1, 1.3, 1],
-                        opacity: [0.3, 0.1, 0.3]
-                      }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    >
-                      {item.icon}
-                    </motion.div>
-                  </motion.div>
-                  
-                  <GlitchText className="text-3xl font-bold text-red-100 mb-6 text-center">
-                    {item.title}
-                  </GlitchText>
-                  
-                  <motion.p 
-                    className="text-red-200 leading-relaxed text-center text-lg"
-                    animate={{
-                      textShadow: [
-                        "0 0 5px rgba(255, 255, 255, 0.1)",
-                        "0 0 15px rgba(255, 255, 255, 0.3)",
-                        "0 0 5px rgba(255, 255, 255, 0.1)"
-                      ]
-                    }}
-                    transition={{ duration: 2.5, repeat: Infinity, delay: index * 0.2 }}
-                  >
-                    {item.description}
-                  </motion.p>
-                </div>
-                
-                {/* Floating elements */}
-                <div className="absolute inset-0 pointer-events-none">
-                  {[...Array(4)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      className="absolute text-2xl opacity-40"
-                      style={{
-                        left: `${10 + i * 25}%`,
-                        top: `${15 + (i % 2) * 60}%`
-                      }}
-                      animate={{
-                        rotate: [0, 360],
-                        scale: [0.8, 1.3, 0.8],
-                        opacity: [0.2, 0.6, 0.2],
-                        x: [0, Math.sin(i) * 20, 0],
-                        y: [0, Math.cos(i) * 15, 0]
-                      }}
-                      transition={{
-                        duration: 6 + Math.random() * 4,
-                        repeat: Infinity,
-                        delay: i * 0.5,
-                        ease: "easeInOut"
-                      }}
-                    >
-                      {['💀', '🩸', '👻', '🕷️'][i]}
-                    </motion.div>
-                  ))}
-                </div>
-                
-                {/* Corner decorations */}
-                {[
-                  { pos: "top-4 left-4", emoji: "🔥" },
-                  { pos: "top-4 right-4", emoji: "⚡" },
-                  { pos: "bottom-4 left-4", emoji: "💀" },
-                  { pos: "bottom-4 right-4", emoji: "👁️" }
-                ].map((corner, i) => (
-                  <motion.div
-                    key={i}
-                    className={`absolute ${corner.pos} text-xl opacity-50 group-hover:opacity-100`}
-                    animate={{
-                      rotate: [0, 180, 360],
-                      scale: [0.8, 1.2, 0.8]
-                    }}
-                    transition={{
-                      duration: 4,
-                      repeat: Infinity,
-                      delay: i * 0.3
-                    }}
-                  >
-                    {corner.emoji}
-                  </motion.div>
-                ))}
               </motion.div>
             ))}
           </div>
         </div>
       </section>
       
-      {/* Ultimate Final CTA Section */}
-      <section className="py-40 px-4 relative z-10">
-        <HorrorBackground />
-        
-        <div className="max-w-6xl mx-auto text-center relative">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.5, rotateX: -90 }}
-            whileInView={{ opacity: 1, scale: 1, rotateX: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 2, ease: "easeOut" }}
-            style={{ transformStyle: "preserve-3d" }}
+      {/* Blood River Section */}
+      <section className="py-24 px-4 relative overflow-hidden">
+        <div className="max-w-6xl mx-auto text-center">
+          <motion.div 
+            className="mb-16"
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1 }}
           >
-            {/* Apocalyptic title */}
-            <motion.div
-              className="relative mb-16"
+            <h2 className="text-4xl md:text-5xl font-bold text-red-500 mb-6">
+              RIVER OF BLOOD
+            </h2>
+            <p className="text-xl text-red-300 max-w-3xl mx-auto">
+              Cross the crimson currents to enter the underworld
+            </p>
+          </motion.div>
+          
+          <div className="relative h-64 rounded-xl overflow-hidden border-4 border-red-800/50">
+            <motion.div 
+              className="absolute inset-0 bg-gradient-to-r from-red-800/80 to-red-600/80"
               animate={{
-                filter: [
-                  "drop-shadow(0 0 20px #ff0000)",
-                  "drop-shadow(0 0 60px #ff0000) drop-shadow(0 0 100px #ff00ff)",
-                  "drop-shadow(0 0 20px #ff0000)"
-                ]
+                backgroundPosition: ['0% 50%', '100% 50%']
               }}
-              transition={{ duration: 3, repeat: Infinity }}
+              transition={{
+                duration: 5,
+                repeat: Infinity,
+                repeatType: "reverse",
+                ease: "linear"
+              }}
+            />
+            
+            <motion.div 
+              className="absolute inset-0 flex items-center justify-center"
+              animate={{
+                y: [0, -10, 0],
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
             >
-              <GlitchText className="text-6xl md:text-8xl lg:text-9xl font-black bg-gradient-to-b from-red-400 via-red-600 to-black bg-clip-text text-transparent">
-                BOOK YOUR DAMNATION
-              </GlitchText>
-              
-              {/* Floating demons around title */}
-              <div className="absolute inset-0 pointer-events-none">
-                {[...Array(8)].map((_, i) => (
-                  <motion.div
-                    key={i}
-                    className="absolute text-6xl"
-                    style={{
-                      left: `${-10 + Math.random() * 120}%`,
-                      top: `${-30 + Math.random() * 160}%`,
-                    }}
-                    animate={{
-                      rotate: [0, 360],
-                      scale: [0.5, 1.5, 0.5],
-                      opacity: [0.3, 0.8, 0.3],
-                      x: [0, Math.sin(i) * 150, 0],
-                      y: [0, Math.cos(i) * 100, 0]
-                    }}
-                    transition={{
-                      duration: 10 + Math.random() * 5,
-                      repeat: Infinity,
-                      delay: i * 0.5,
-                      ease: "easeInOut"
-                    }}
-                  >
-                    {['👹', '💀', '👻', '🔥', '⚡', '🩸', '👁️', '⚰️'][i]}
-                  </motion.div>
-                ))}
-              </div>
+              <span className="text-8xl">🩸</span>
             </motion.div>
             
-            {/* Advanced progress bar */}
-            <div className="mb-20">
-              <div className="flex justify-between items-center mb-6">
-                <GlitchText className="text-red-400 font-bold text-2xl">
-                  {spotsLeft} SOULS REMAINING
-                </GlitchText>
-                <GlitchText className="text-purple-400 font-bold text-2xl">
-                  666 TOTAL CAPACITY
-                </GlitchText>
-              </div>
-              
-              <motion.div 
-                className="w-full h-8 bg-black/80 rounded-full overflow-hidden border-3 border-red-600 relative cursor-pointer"
-                whileHover={{
-                  scale: 1.02,
-                  borderColor: "#ffffff",
-                  boxShadow: "0 0 40px rgba(220, 38, 38, 0.8)"
-                }}
-              >
-                <motion.div 
-                  className="h-full bg-gradient-to-r from-red-600 via-red-500 to-red-700 relative overflow-hidden"
-                  initial={{ width: "0%" }}
-                  whileInView={{ width: `${Math.floor((666 - spotsLeft) / 666 * 100)}%` }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 4, ease: "easeOut" }}
-                >
-                  {/* Liquid effect */}
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
-                    animate={{ x: ["-100%", "100%"] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                  
-                  {/* Bubbles effect */}
-                  {[...Array(10)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      className="absolute w-2 h-2 bg-white/60 rounded-full"
-                      style={{
-                        left: `${i * 10}%`,
-                        bottom: `${Math.random() * 100}%`
-                      }}
-                      animate={{
-                        y: [-20, -40, -20],
-                        opacity: [0, 1, 0],
-                        scale: [0.5, 1, 0.5]
-                      }}
-                      transition={{
-                        duration: 3,
-                        repeat: Infinity,
-                        delay: i * 0.3
-                      }}
-                    />
-                  ))}
-                </motion.div>
-                
-                {/* Danger indicators */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <motion.span
-                    className="text-white font-bold text-lg tracking-widest"
-                    animate={{
-                      opacity: [1, 0.5, 1],
-                      textShadow: [
-                        "0 0 10px #ffffff",
-                        "0 0 20px #ff0000",
-                        "0 0 10px #ffffff"
-                      ]
-                    }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                  >
-                    HELL IS FILLING UP FAST
-                  </motion.span>
-                </div>
-              </motion.div>
-              
-              <motion.div 
-                className="text-center mt-6"
-                animate={{
-                  scale: [1, 1.05, 1],
-                  textShadow: [
-                    "0 0 10px #ff0000",
-                    "0 0 30px #ff0000",
-                    "0 0 10px #ff0000"
-                  ]
-                }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                <span className="text-red-400 text-2xl font-bold">⚠️ WARNING ⚠️</span>
-              </motion.div>
-            </div>
-            
-            {/* Ultimate CTA Button */}
-            <motion.div
-              className="relative"
-              style={{ transformStyle: "preserve-3d" }}
-            >
-              <motion.button
-                className="relative px-24 py-16 bg-gradient-to-r from-red-800 via-red-600 to-red-800 rounded-3xl font-black text-5xl md:text-6xl shadow-2xl overflow-hidden group border-4 border-red-500 cursor-pointer"
+            {/* Floating bodies in blood */}
+            {[...Array(5)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute text-4xl"
                 style={{
-                  transformStyle: "preserve-3d",
-                  rotateX: -10
+                  left: `${10 + i * 20}%`,
+                  top: `${40 + (i % 2) * 30}%`
                 }}
-                whileHover={{ 
-                  scale: 1.1,
-                  rotateX: 0,
-                  boxShadow: [
-                    "0 0 100px rgba(220, 38, 38, 1)",
-                    "0 0 200px rgba(220, 38, 38, 1), 0 0 300px rgba(147, 51, 234, 0.8)",
-                    "0 0 100px rgba(220, 38, 38, 1)"
-                  ],
-                  borderColor: ["#dc2626", "#ffffff", "#dc2626"],
-                  y: -20
-                }}
-                whileTap={{ scale: 0.95, rotateX: -5 }}
                 animate={{
-                  background: [
-                    "linear-gradient(45deg, #991b1b, #dc2626, #991b1b)",
-                    "linear-gradient(90deg, #dc2626, #ef4444, #dc2626)",
-                    "linear-gradient(135deg, #991b1b, #dc2626, #991b1b)",
-                    "linear-gradient(180deg, #dc2626, #991b1b, #dc2626)"
-                  ],
-                  boxShadow: [
-                    "0 20px 60px rgba(0, 0, 0, 0.5)",
-                    "0 30px 80px rgba(220, 38, 38, 0.4)",
-                    "0 20px 60px rgba(0, 0, 0, 0.5)"
-                  ]
+                  y: [0, -20, 0],
+                  rotate: [0, 15, 0, -15, 0]
                 }}
                 transition={{
-                  background: { duration: 4, repeat: Infinity, ease: "linear" },
-                  boxShadow: { duration: 3, repeat: Infinity },
-                  hover: { duration: 0.3 }
+                  duration: 4 + i,
+                  repeat: Infinity,
+                  delay: i * 0.5
                 }}
               >
-                {/* Multiple holographic overlays */}
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-0 group-hover:opacity-100"
-                  animate={{
-                    x: ["-200%", "200%"]
-                  }}
-                  transition={{
-                    duration: 1.5,
-                    repeat: Infinity,
-                    repeatDelay: 1
-                  }}
-                />
-                
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-l from-transparent via-cyan-400/20 to-transparent opacity-0 group-hover:opacity-100"
-                  animate={{
-                    x: ["200%", "-200%"]
-                  }}
-                  transition={{
-                    duration: 1.8,
-                    repeat: Infinity,
-                    repeatDelay: 1.5
-                  }}
-                />
-                
-                {/* Plasma background */}
-                <motion.div
-                  className="absolute inset-0 opacity-40"
-                  animate={{
-                    background: [
-                      "radial-gradient(circle at 20% 20%, rgba(255, 0, 0, 0.4) 0%, transparent 50%)",
-                      "radial-gradient(circle at 80% 80%, rgba(255, 0, 255, 0.4) 0%, transparent 50%)",
-                      "radial-gradient(circle at 50% 50%, rgba(0, 255, 255, 0.4) 0%, transparent 50%)",
-                      "radial-gradient(circle at 20% 80%, rgba(255, 255, 0, 0.4) 0%, transparent 50%)",
-                      "radial-gradient(circle at 80% 20%, rgba(255, 100, 0, 0.4) 0%, transparent 50%)"
-                    ]
-                  }}
-                  transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-                />
-                
-                <div className="relative z-10 flex items-center gap-8">
-                  <motion.span 
-                    className="text-8xl"
-                    animate={{ 
-                      rotate: [0, 360],
-                      scale: [1, 1.5, 1],
-                      filter: [
-                        "drop-shadow(0 0 20px #ff0000)",
-                        "drop-shadow(0 0 50px #ff0000) drop-shadow(0 0 100px #ff00ff)",
-                        "drop-shadow(0 0 20px #ff0000)"
-                      ]
-                    }}
-                    transition={{ 
-                      rotate: { duration: 6, repeat: Infinity, ease: "linear" },
-                      scale: { duration: 2.5, repeat: Infinity },
-                      filter: { duration: 2, repeat: Infinity }
-                    }}
-                  >
-                    👹
-                  </motion.span>
-                  
-                  <GlitchText className="font-black text-5xl md:text-6xl">
-                    SELL YOUR SOUL - ₹666
-                  </GlitchText>
-                  
-                  <motion.span
-                    className="text-8xl"
-                    animate={{ 
-                      scale: [1, 2, 1],
-                      opacity: [1, 0.3, 1],
-                      rotate: [0, 180, 360],
-                      filter: [
-                        "drop-shadow(0 0 15px #ff0000)",
-                        "drop-shadow(0 0 40px #ff0000) drop-shadow(0 0 80px #ffffff)",
-                        "drop-shadow(0 0 15px #ff0000)"
-                      ]
-                    }}
-                    transition={{ 
-                      duration: 2.5, 
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                  >
-                    🔥
-                  </motion.span>
+                {i % 2 === 0 ? '💀' : '🦴'}
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+      
+      {/* Event Details */}
+      <section className="py-24 px-4 bg-gradient-to-b from-black via-red-900/10 to-black">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1 }}
+            >
+              <h2 className="text-3xl md:text-4xl font-bold text-red-400 mb-8">
+                EVENT DETAILS
+              </h2>
+              
+              <div className="space-y-6 mb-10">
+                <div className="flex items-center gap-4 p-4 bg-black/30 rounded-xl border border-red-600/30">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center">
+                    <span>📅</span>
+                  </div>
+                  <div>
+                    <div className="text-sm text-red-300 font-medium">DATE & TIME</div>
+                    <div className="text-white text-xl font-medium">{eventData.date} • {eventData.time}</div>
+                  </div>
                 </div>
                 
-                {/* Button energy field */}
-                <motion.div
-                  className="absolute inset-0 rounded-3xl pointer-events-none"
-                  animate={{
-                    boxShadow: [
-                      "inset 0 0 20px rgba(255, 255, 255, 0.1)",
-                      "inset 0 0 60px rgba(255, 255, 255, 0.3)",
-                      "inset 0 0 20px rgba(255, 255, 255, 0.1)"
-                    ]
-                  }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                />
-              </motion.button>
+                <div className="flex items-center gap-4 p-4 bg-black/30 rounded-xl border border-red-600/30">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center">
+                    <span>📍</span>
+                  </div>
+                  <div>
+                    <div className="text-sm text-red-300 font-medium">LOCATION</div>
+                    <div className="text-white text-xl font-medium">{eventData.venue}</div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-4 p-4 bg-black/30 rounded-xl border border-red-600/30">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center">
+                    <span>🎟️</span>
+                  </div>
+                  <div>
+                    <div className="text-sm text-red-300 font-medium">TICKET PRICE</div>
+                    <div className="text-white text-xl font-medium">{eventData.ticketPrice}</div>
+                  </div>
+                </div>
+              </div>
               
-              {/* Button aura with multiple layers */}
-              <motion.div
-                className="absolute inset-0 rounded-3xl pointer-events-none"
-                animate={{
-                  boxShadow: [
-                    "0 0 60px rgba(220, 38, 38, 0.5), 0 0 120px rgba(147, 51, 234, 0.3)",
-                    "0 0 120px rgba(220, 38, 38, 0.8), 0 0 200px rgba(147, 51, 234, 0.6), 0 0 300px rgba(255, 255, 255, 0.2)",
-                    "0 0 60px rgba(220, 38, 38, 0.5), 0 0 120px rgba(147, 51, 234, 0.3)"
-                  ]
-                }}
-                transition={{ duration: 3, repeat: Infinity }}
-              />
+              <div className="mb-6">
+                <div className="flex justify-between mb-2">
+                  <span className="text-red-400 font-bold">{spotsLeft} SOULS LEFT</span>
+                  <span className="text-red-400 font-bold">500 TOTAL</span>
+                </div>
+                <div className="w-full bg-gray-900/50 h-3 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-red-600 to-red-800 w-2/3"></div>
+                </div>
+              </div>
               
-              {/* Floating energy orbs around button */}
-              {[...Array(6)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  className="absolute w-4 h-4 bg-gradient-to-r from-red-500 to-purple-500 rounded-full"
-                  style={{
-                    left: `${50 + Math.cos(i * 60 * Math.PI / 180) * 200}px`,
-                    top: `${50 + Math.sin(i * 60 * Math.PI / 180) * 200}px`,
-                  }}
-                  animate={{
-                    rotate: [0, 360],
-                    scale: [0.5, 1.5, 0.5],
-                    opacity: [0.3, 1, 0.3],
-                    x: [0, Math.cos(i * 60 * Math.PI / 180) * 50, 0],
-                    y: [0, Math.sin(i * 60 * Math.PI / 180) * 50, 0]
-                  }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    delay: i * 0.3,
-                    ease: "easeInOut"
-                  }}
-                />
-              ))}
-            </motion.div>
-            
-            {/* Apocalyptic warnings */}
-            <motion.div 
-              className="mt-20 space-y-8"
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 1, duration: 1.5 }}
-            >
-              <motion.p 
-                className="text-3xl md:text-4xl text-red-300 max-w-4xl mx-auto font-bold leading-relaxed"
-                animate={{
-                  textShadow: [
-                    "0 0 10px rgba(255, 0, 0, 0.5)",
-                    "0 0 30px rgba(255, 0, 0, 0.8)",
-                    "0 0 10px rgba(255, 0, 0, 0.5)"
-                  ]
-                }}
-                transition={{ duration: 2.5, repeat: Infinity }}
-              >
-                ⚠️ WARNING: Once the gates of hell close, there's no return to the mortal realm ⚠️
-              </motion.p>
-              
-              <div className="flex justify-center items-center gap-12 text-red-400">
-                {[
-                  { emoji: "👁️", text: "THE DEAD ARE WATCHING", delay: 0 },
-                  { emoji: "⚡", text: "APOCALYPSE INCOMING", delay: 0.5 },
-                  { emoji: "👁️", text: "YOUR SOUL IS MARKED", delay: 1 }
-                ].map((item, i) => (
-                  <motion.div
-                    key={i}
-                    className="flex flex-col items-center gap-4 cursor-pointer"
-                    whileHover={{
-                      scale: 1.3,
-                      textShadow: "0 0 20px #ff0000",
-                      filter: "drop-shadow(0 0 30px #ff0000)"
-                    }}
-                    animate={{
-                      y: [0, -10, 0],
-                      textShadow: [
-                        "0 0 10px rgba(255, 0, 0, 0.5)",
-                        "0 0 25px rgba(255, 0, 0, 0.8)",
-                        "0 0 10px rgba(255, 0, 0, 0.5)"
-                      ]
-                    }}
-                    transition={{
-                      y: { duration: 2, repeat: Infinity, delay: item.delay },
-                      textShadow: { duration: 2, repeat: Infinity, delay: item.delay * 0.5 }
-                    }}
+              <div className="flex flex-wrap gap-3 mb-8">
+                {eventData.tags.map((tag, index) => (
+                  <span 
+                    key={index}
+                    className="px-3 py-1.5 rounded-full text-sm bg-red-900/50 text-red-300"
                   >
-                    <motion.span
-                      className="text-6xl"
-                      animate={{ 
-                        rotate: i % 2 === 0 ? [0, 360] : [0, -360],
-                        scale: [1, 1.5, 1],
-                        filter: [
-                          "drop-shadow(0 0 10px #ff0000)",
-                          "drop-shadow(0 0 30px #ff0000) drop-shadow(0 0 50px #ffffff)",
-                          "drop-shadow(0 0 10px #ff0000)"
-                        ]
-                      }}
-                      transition={{ 
-                        rotate: { duration: 4, repeat: Infinity },
-                        scale: { duration: 2, repeat: Infinity, delay: item.delay },
-                        filter: { duration: 1.5, repeat: Infinity, delay: item.delay * 0.7 }
-                      }}
-                    >
-                      {item.emoji}
-                    </motion.span>
-                    <GlitchText className="font-bold text-xl tracking-widest">
-                      {item.text}
-                    </GlitchText>
-                  </motion.div>
+                    {tag}
+                  </span>
                 ))}
               </div>
             </motion.div>
+            
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1 }}
+              className="relative"
+            >
+              <div className="bg-gradient-to-br from-red-900/40 to-black/70 backdrop-blur-sm border border-red-600/50 rounded-xl overflow-hidden aspect-square">
+                <div className="relative h-full flex flex-col items-center justify-center p-8 text-center">
+                  <div className="text-8xl mb-6">👻</div>
+                  <h3 className="text-2xl font-bold text-white mb-4">Portal Opening</h3>
+                  <p className="text-red-200">Experience the dimensional rift between worlds</p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+      
+      {/* Ticket CTA */}
+      <section className="py-32 px-4 relative">
+        <div className="max-w-4xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1 }}
+          >
+            <h2 className="text-4xl md:text-5xl font-bold text-red-500 mb-8">
+              CLAIM YOUR SOUL PASS
+            </h2>
+            
+            <motion.button
+              whileHover={{ 
+                scale: 1.05,
+                boxShadow: "0 0 40px rgba(220, 38, 38, 0.8)"
+              }}
+              whileTap={{ scale: 0.95 }}
+              className="px-16 py-10 bg-gradient-to-r from-red-600 to-red-800 rounded-xl font-bold text-2xl shadow-xl relative overflow-hidden"
+            >
+              <div className="relative z-10 flex items-center gap-4">
+                <span>🎟️</span>
+                <span>SECURE YOUR PLACE</span>
+                <span>🔥</span>
+              </div>
+            </motion.button>
+            
+            <div className="mt-12 space-y-4">
+              <p className="text-xl text-red-300 max-w-2xl mx-auto">
+                ⚠️ Limited to 500 souls - Once sold out, entry is sealed forever ⚠️
+              </p>
+            </div>
           </motion.div>
         </div>
       </section>
       
-      {/* Enhanced Horror Footer */}
-      <footer className="py-32 px-4 border-t-4 border-red-800/60 relative z-10">
-        <HorrorBackground />
-        
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center space-y-12">
-            {/* Footer title with 3D effect */}
-            <motion.div
-              initial={{ opacity: 0, y: 50, rotateX: -45 }}
-              whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 1.5 }}
-              style={{ transformStyle: "preserve-3d" }}
-            >
-              <GlitchText className="text-5xl md:text-7xl font-black bg-gradient-to-r from-red-400 via-red-600 to-purple-600 bg-clip-text text-transparent">
-                RaveYard 2025 - The Final Dance
-              </GlitchText>
-            </motion.div>
+      {/* Footer */}
+      <footer className="py-16 px-4 bg-gradient-to-t from-red-900/20 to-black border-t border-red-800/30">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center space-y-6">
+            <div className="text-3xl font-bold bg-gradient-to-r from-red-500 to-red-700 bg-clip-text text-transparent">
+              RaveYard 2025
+            </div>
             
-            {/* Social links with advanced hover effects */}
-            <div className="flex flex-wrap justify-center gap-16 text-red-300">
+            <div className="flex justify-center gap-8 text-red-300">
               {[
-                { icon: "💀", text: "#RaveYard2025", subtitle: "Join the Hashtag of the Damned" },
-                { icon: "🩸", text: "@raveyard_crypt", subtitle: "Follow us into Darkness" },
-                { icon: "⚰️", text: "Join the Undead Legion", subtitle: "Become One with the Night" }
+                { icon: "📱", text: "#RaveYard2025" },
+                { icon: "👻", text: "@raveyard_official" },
+                { icon: "💀", text: "Join the Undead" }
               ].map((item, index) => (
-                <motion.div
+                <div
                   key={index}
-                  className="flex flex-col items-center gap-4 cursor-pointer group"
-                  whileHover={{ 
-                    scale: 1.3,
-                    y: -20,
-                    textShadow: "0 0 30px #dc2626",
-                    filter: "drop-shadow(0 0 40px #dc2626)"
-                  }}
-                  animate={{
-                    y: [0, -8, 0],
-                    textShadow: [
-                      "0 0 10px rgba(220, 38, 38, 0.3)",
-                      "0 0 25px rgba(220, 38, 38, 0.7)",
-                      "0 0 10px rgba(220, 38, 38, 0.3)"
-                    ]
-                  }}
-                  transition={{
-                    y: { duration: 3, repeat: Infinity, delay: index * 0.4 },
-                    textShadow: { duration: 2, repeat: Infinity, delay: index * 0.3 }
-                  }}
+                  className="flex items-center gap-2"
                 >
-                  <motion.span
-                    className="text-5xl group-hover:text-6xl transition-all duration-300"
-                    animate={{
-                      rotate: [0, 10, -10, 0],
-                      scale: [1, 1.2, 1]
-                    }}
-                    transition={{
-                      duration: 4,
-                      repeat: Infinity,
-                      delay: index * 0.5
-                    }}
-                  >
-                    {item.icon}
-                  </motion.span>
-                  <div className="text-center">
-                    <div className="font-bold text-xl mb-2">{item.text}</div>
-                    <div className="text-sm opacity-70 group-hover:opacity-100 transition-opacity">
-                      {item.subtitle}
-                    </div>
-                  </div>
-                </motion.div>
+                  <span>{item.icon}</span>
+                  <span className="font-medium">{item.text}</span>
+                </div>
               ))}
             </div>
             
-            {/* Animated divider */}
-            <motion.div 
-              className="border-t border-red-800/40 pt-12 relative"
-              initial={{ scaleX: 0 }}
-              whileInView={{ scaleX: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 2 }}
-            >
-              {/* Glowing line effect */}
-              <motion.div
-                className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-red-500 to-transparent"
-                animate={{
-                  opacity: [0.3, 1, 0.3],
-                  scaleX: [0.8, 1.2, 0.8]
-                }}
-                transition={{ duration: 3, repeat: Infinity }}
-              />
-              
-              <div className="space-y-8">
-                <motion.p 
-                  className="text-red-300 text-2xl font-light"
-                  animate={{
-                    textShadow: [
-                      "0 0 10px rgba(220, 38, 38, 0.3)",
-                      "0 0 20px rgba(220, 38, 38, 0.6)",
-                      "0 0 10px rgba(220, 38, 38, 0.3)"
-                    ]
-                  }}
-                  transition={{ duration: 2.5, repeat: Infinity }}
-                >
-                  © 2025 RaveYard. All souls belong to the underworld.
-                </motion.p>
-                
-                <GlitchText className="text-red-400 text-lg opacity-80 font-light max-w-3xl mx-auto leading-relaxed">
-                  "Where the living dance with the dead, nightmares become reality, and the apocalypse begins at midnight"
-                </GlitchText>
-                
-                {/* Floating emoji constellation */}
-                <div className="flex justify-center gap-8 mt-12">
-                  {['💀', '👻', '🦇', '🕷️', '⚰️', '🧟‍♂️', '👹', '🔥'].map((emoji, i) => (
-                    <motion.span
-                      key={i}
-                      className="text-4xl opacity-60 cursor-pointer"
-                      whileHover={{
-                        scale: 2,
-                        opacity: 1,
-                        textShadow: "0 0 30px #ff0000",
-                        filter: "drop-shadow(0 0 20px #ff0000)"
-                      }}
-                      animate={{
-                        rotate: [0, 360],
-                        scale: [1, 1.4, 1],
-                        y: [0, -15, 0],
-                        opacity: [0.6, 1, 0.6]
-                      }}
-                      transition={{
-                        rotate: { duration: 8 + i, repeat: Infinity, ease: "linear" },
-                        scale: { duration: 3, repeat: Infinity, delay: i * 0.3 },
-                        y: { duration: 2.5, repeat: Infinity, delay: i * 0.2 },
-                        opacity: { duration: 2, repeat: Infinity, delay: i * 0.4 }
-                      }}
-                    >
-                      {emoji}
-                    </motion.span>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
+            <div className="border-t border-red-800/30 pt-8 space-y-2">
+              <p className="text-red-300">© 2025 RaveYard. All rights reserved to the underworld.</p>
+              <p className="text-red-400 text-sm opacity-80">
+                A ghostly rite of passage for the undead students of tomorrow
+              </p>
+            </div>
           </div>
         </div>
       </footer>
       
-      {/* Enhanced floating sound toggle */}
-      <motion.div
-        className="fixed bottom-12 right-12 z-50 bg-gradient-to-r from-red-900/90 to-black/90 backdrop-blur-xl border-3 border-red-600 rounded-full p-6 cursor-pointer group"
-        whileHover={{ 
-          scale: 1.3,
-          borderColor: "#ffffff",
-          boxShadow: "0 0 60px rgba(220, 38, 38, 1), 0 0 100px rgba(147, 51, 234, 0.5)"
-        }}
-        animate={{
-          boxShadow: [
-            "0 0 20px rgba(220, 38, 38, 0.4)",
-            "0 0 40px rgba(220, 38, 38, 0.8), 0 0 60px rgba(147, 51, 234, 0.3)",
-            "0 0 20px rgba(220, 38, 38, 0.4)"
-          ],
-          rotate: [0, 5, -5, 0]
-        }}
-        transition={{
-          boxShadow: { duration: 2.5, repeat: Infinity },
-          rotate: { duration: 4, repeat: Infinity }
-        }}
-        onClick={() => setSoundEnabled(!soundEnabled)}
-      >
-        <motion.div
-          className="text-4xl relative"
-          animate={{ 
-            rotate: [0, 15, -15, 0],
-            scale: soundEnabled ? [1, 1.2, 1] : [1, 0.8, 1]
-          }}
-          transition={{ 
-            duration: 1.5, 
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        >
-          {soundEnabled ? "🔊" : "🔇"}
-          
-          {/* Sound waves animation */}
-          {soundEnabled && (
-            <div className="absolute -inset-4">
-              {[...Array(3)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  className="absolute inset-0 border-2 border-red-500/30 rounded-full"
-                  animate={{
-                    scale: [1, 2, 3],
-                    opacity: [0.8, 0.3, 0]
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    delay: i * 0.4
-                  }}
-                />
-              ))}
-            </div>
-          )}
-        </motion.div>
-        
-        {/* Tooltip */}
-        <motion.div
-          className="absolute bottom-full right-0 mb-4 px-4 py-2 bg-black/90 text-red-300 text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none"
-          initial={{ y: 10, opacity: 0 }}
-          whileHover={{ y: 0, opacity: 1 }}
-        >
-          {soundEnabled ? "Mute Hell's Sounds" : "Unleash the Audio Nightmare"}
-        </motion.div>
-      </motion.div>
-      
-      {/* Screen-wide glitch overlay for special effects */}
+      {/* Floating eyes */}
       <AnimatePresence>
-        {screamActive && (
+        {eyesBlinking && (
           <motion.div
-            className="fixed inset-0 pointer-events-none z-40"
+            className="fixed inset-0 pointer-events-none z-20"
             initial={{ opacity: 0 }}
-            animate={{ 
-              opacity: [0, 0.3, 0],
-              background: [
-                "transparent",
-                "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,0,0,0.1) 2px, rgba(255,0,0,0.1) 4px)",
-                "transparent"
-              ]
-            }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-          />
+          >
+            {[...Array(8)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute text-5xl"
+                style={{
+                  left: `${5 + i * 12}%`,
+                  top: `${15 + (i % 3) * 25}%`,
+                }}
+                animate={{ scaleY: [1, 0.05, 1] }}
+                transition={{ duration: 0.3 }}
+              >
+                👁️
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {/* Floating ghosts */}
+      <AnimatePresence>
+        {ghostAppears && (
+          <div className="fixed inset-0 pointer-events-none z-20">
+            {[...Array(3)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute text-6xl"
+                style={{
+                  left: `${i * 30}%`,
+                  top: `${20 + (i % 2) * 40}%`,
+                }}
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ 
+                  opacity: [0, 1, 0.7, 0], 
+                  scale: [0, 1.5, 1.2, 0],
+                  y: [0, -50, -30, -100]
+                }}
+                exit={{ opacity: 0, scale: 0 }}
+                transition={{ duration: 2 }}
+              >
+                👻
+              </motion.div>
+            ))}
+          </div>
         )}
       </AnimatePresence>
     </div>
