@@ -200,23 +200,25 @@ const Navbar = () => {
             `}</style>
 
             <nav
-                className={`fixed top-0 left-0 w-full z-50 navbar bg-cyan-900/80 backdrop-blur-md`}
+                className={`fixed top-0 left-0 w-full z-50 navbar bg-[#0a1120]/80 backdrop-blur-xl`}
                 style={{
                     height: '5rem',
-                    boxShadow: '0 8px 32px 0 rgba(6,182,212,0.10), 0 1.5px 8px 0 #06b6d4',
+                    boxShadow: '0 8px 32px 0 rgba(10,17,32,0.18), 0 1.5px 8px 0 #1e293b',
+                    borderBottom: '1px solid rgba(255,255,255,0.06)',
+                    background: 'linear-gradient(90deg, rgba(10,17,32,0.92) 60%, rgba(30,41,59,0.85) 100%)',
+                    backdropFilter: 'blur(16px)',
                 }}
             >
                 <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between h-full">
                     {/* Brand with animated background */}
                     <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0 relative select-none">
-                        {/* Animated, layered glowing background */}
                         <div
-                            className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shadow-lg border border-cyan-700/40 bg-black"
+                            className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shadow-lg border border-blue-900/40 bg-[#0a1120]/90"
                         >
                             <img
                                 src={logo}
                                 alt="Vibranta Logo"
-                                className="w-9 h-9 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-cyan-400 shadow-md"
+                                className="w-9 h-9 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-blue-400 shadow-md"
                                 loading="lazy"
                                 decoding="async"
                                 style={{
@@ -225,8 +227,8 @@ const Navbar = () => {
                             />
                         </div>
                         <h1
-                            className="text-white font-extrabold text-xl sm:text-2xl lg:text-3xl bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent tracking-wide text-shadow navbar-brand"
-                            style={{ letterSpacing: '0.04em', textShadow: '0 2px 12px #06b6d4' }}
+                            className="text-white font-extrabold text-xl sm:text-2xl lg:text-3xl bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-wide text-shadow navbar-brand"
+                            style={{ letterSpacing: '0.04em', textShadow: '0 2px 12px #1e293b' }}
                         >
                             Vibranta
                         </h1>

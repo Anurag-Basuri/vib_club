@@ -219,7 +219,7 @@ const RaveYardEventPage = () => {
       </div>
     );
   };
-  
+
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden font-sans relative">
       
@@ -232,63 +232,72 @@ const RaveYardEventPage = () => {
       <FloatingElement delay={2.5} size="3" position="bottom-1/3 right-1/3" emoji="🌟" />
       
       {/* Hero Section */}
-      <section
+      <section 
         className="relative min-h-screen flex flex-col justify-center items-center p-4 overflow-hidden"
         style={{
-          background: 'radial-gradient(circle at 30% 40%, #14001a 0%, #1a0630 60%, #000000 100%)'
+          background: 'radial-gradient(circle at 30% 40%, #2d1b69 0%, #1a0630 40%, #0a0015 70%, #000000 100%)'
         }}
       >
-        {/* Animated fog and ghost overlays */}
-        <motion.div
-          className="absolute inset-0 z-0 pointer-events-none"
-          animate={{
-            opacity: [0.85, 1, 0.85],
-            filter: ["blur(16px)", "blur(28px)", "blur(16px)"]
-          }}
-          transition={{
-            duration: 14,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-          style={{
-            background: `
-              url('https://i.ibb.co/0Jm7g7v/fog.png') repeat,
-              url('https://i.ibb.co/6Z2dQkB/ghost-shadow.png') repeat,
-              radial-gradient(ellipse at center, rgba(80,0,80,0.13) 0%, transparent 70%)
-            `,
-            backgroundSize: "cover"
-          }}
-        />
-
-        {/* Floating ghost emojis */}
-        <FloatingElement delay={0} size="5" position="top-20 left-16" emoji="👻" />
-        <FloatingElement delay={1} size="4" position="top-1/2 right-24" emoji="💀" />
-        <FloatingElement delay={2} size="3" position="bottom-32 left-1/3" emoji="🦇" />
-        <FloatingElement delay={2.5} size="4" position="bottom-20 right-1/4" emoji="🕸️" />
-        <FloatingElement delay={3} size="3" position="top-1/3 right-1/3" emoji="🧟" />
-        <FloatingElement delay={3.5} size="2" position="bottom-1/4 left-1/4" emoji="🩸" />
-
-        {/* Main content */}
-        <div className="relative z-10 text-center max-w-3xl px-4">
+        {/* Enhanced animated background */}
+        <div className="absolute inset-0 z-0">
+          <motion.div 
+            className="absolute inset-0 opacity-30"
+            animate={{
+              backgroundPosition: ["0% 0%", "100% 100%"],
+            }}
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              repeatType: "reverse",
+              ease: "linear"
+            }}
+            style={{
+              backgroundImage: `
+                radial-gradient(circle at 20% 20%, rgba(147, 51, 234, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 60%, rgba(59, 130, 246, 0.2) 0%, transparent 50%)
+              `,
+              backgroundSize: "300% 300%"
+            }}
+          />
+          
+          {/* Animated smoke effect */}
           <motion.div
-            initial={{ opacity: 0, y: 60 }}
+            className="absolute inset-0 opacity-20"
+            animate={{
+              scale: [1, 1.1, 1],
+              rotate: [0, 5, 0],
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            style={{
+              background: `
+                radial-gradient(ellipse at center, rgba(255, 255, 255, 0.1) 0%, transparent 70%),
+                conic-gradient(from 0deg, transparent, rgba(147, 51, 234, 0.1), transparent)
+              `
+            }}
+          />
+        </div>
+        
+        {/* Main content */}
+        <div className="relative z-10 text-center max-w-6xl px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.3 }}
+            transition={{ duration: 1.2 }}
           >
-            {/* Glitchy, ghostly title */}
             <motion.div
-              initial={{ scale: 0.7 }}
+              initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               transition={{ duration: 1, ease: "easeOut" }}
               className="mb-8"
             >
-              <GlitchText
-                text="RaveYard"
-                size="text-8xl md:text-[8rem]"
-                className="tracking-widest drop-shadow-[0_0_40px_rgba(120,0,120,0.8)]"
-              />
-              <motion.span
-                className="text-6xl md:text-8xl font-black bg-gradient-to-r from-gray-900 via-purple-700 to-black bg-clip-text text-transparent block mt-4 drop-shadow-[0_0_30px_rgba(80,0,80,0.7)]"
+              <GlitchText text="RaveYard" size="text-6xl md:text-8xl lg:text-9xl" />
+              <motion.span 
+                className="text-5xl md:text-7xl lg:text-8xl font-black bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent block mt-4"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
@@ -296,119 +305,117 @@ const RaveYardEventPage = () => {
                 2025
               </motion.span>
             </motion.div>
-
-            {/* Subtitle with horror font */}
-            <motion.h2
-              className="text-3xl md:text-5xl text-purple-400 mb-4 font-[Creepster,cursive] drop-shadow-[0_0_14px_rgba(168,85,247,0.9)]"
+            
+            <motion.h2 
+              className="text-2xl md:text-4xl lg:text-5xl text-purple-300 mb-4 font-medium"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.8, duration: 1 }}
             >
               A Ghostly Rite of Passage
             </motion.h2>
-
-            {/* Spooky description */}
+            
             <motion.p
-              className="text-xl md:text-2xl text-purple-300 mb-12 max-w-2xl mx-auto leading-relaxed font-[Creepster,cursive] drop-shadow-[0_0_12px_rgba(139,92,246,0.8)]"
+              className="text-lg md:text-xl text-purple-200 mb-12 max-w-4xl mx-auto leading-relaxed"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1, duration: 1 }}
             >
-              Enter the haunted graveyard rave where the undead rise to dance. Shadows swirl, fog creeps, and spectral DJ sets summon the lost. Your initiation into the ghostly side of campus awaits. Beware: not all who enter return the same!
+              Enter the post-apocalyptic graveyard rave where horror meets EDM. Experience nationally acclaimed DJ sets, haunted transformations, and your initiation into the undead side of campus life.
             </motion.p>
-
-            {/* Countdown timer with ghost icons */}
-            <motion.div
-              className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-xl mx-auto mb-12"
+            
+            {/* Enhanced countdown timer */}
+            <motion.div 
+              className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto mb-16"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.2, duration: 0.8 }}
             >
               {Object.entries(countdown).map(([unit, value], index) => (
-                <motion.div
-                  key={unit}
-                  className="bg-gradient-to-br from-gray-900 via-purple-900 to-black backdrop-blur-xl border border-purple-800 rounded-2xl p-5 relative overflow-hidden shadow-[0_0_40px_rgba(80,0,80,0.5)]"
-                  whileHover={{ scale: 1.09, borderColor: "#a855f7" }}
+                <motion.div 
+                  key={unit} 
+                  className="bg-black/40 backdrop-blur-lg border border-purple-500/50 rounded-2xl p-4 relative overflow-hidden"
+                  whileHover={{ scale: 1.05, borderColor: "rgba(147, 51, 234, 0.8)" }}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 1.4 + index * 0.1 }}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 to-black/30" />
-                  <div className="relative z-10 flex flex-col items-center">
-                    <span className="text-4xl md:text-6xl font-black text-purple-400 mb-1 drop-shadow-[0_0_18px_rgba(168,85,247,0.8)]">{value}</span>
-                    <span className="text-base text-purple-300 uppercase font-bold flex items-center gap-1 tracking-widest">
-                      {unit} <span className="text-2xl">{["👻","💀","🦇","🕸️"][index]}</span>
-                    </span>
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 to-pink-600/10" />
+                  <div className="relative z-10">
+                    <div className="text-3xl md:text-5xl font-black text-green-400 mb-1">{value}</div>
+                    <div className="text-sm text-purple-300 uppercase font-medium">{unit}</div>
                   </div>
                 </motion.div>
               ))}
             </motion.div>
-
-            {/* Horror themed CTA button */}
-            <motion.button
-              whileHover={{
-                scale: 1.15,
-                boxShadow: "0 0 80px rgba(120,0,120,0.8)"
-              }}
-              whileTap={{ scale: 0.96 }}
-              className="px-16 py-8 bg-gradient-to-r from-gray-900 via-purple-900 to-black rounded-2xl font-black text-3xl shadow-[0_0_60px rgba(120,0,120,0.5)] relative overflow-hidden group border-4 border-purple-800 drop-shadow-[0_0_30px_rgba(120,0,120,0.7)]"
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 1.6, duration: 0.8 }}
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-800 via-gray-900 to-black transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
-              <div className="relative z-10 flex items-center gap-4 font-[Creepster,cursive]">
-                <span className="text-4xl animate-pulse">💀</span>
-                <span className="tracking-widest">ENTER THE HAUNTED RAVE</span>
-                <motion.span
-                  animate={{ x: [0, 10, 0] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                  className="text-4xl"
-                >
-                  👻
-                </motion.span>
-              </div>
-            </motion.button>
+              <motion.button
+                whileHover={{ 
+                  scale: 1.1,
+                  boxShadow: "0 0 50px rgba(255, 0, 128, 0.8)"
+                }}
+                whileTap={{ scale: 0.95 }}
+                className="px-12 py-6 bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 rounded-2xl font-black text-2xl shadow-2xl relative overflow-hidden group"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-700 via-pink-700 to-red-700 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+                <div className="relative z-10 flex items-center gap-3">
+                  <span className="text-3xl">👻</span>
+                  <span>ENTER THE RAVE</span>
+                  <motion.span
+                    animate={{ x: [0, 5, 0] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  >
+                    ⚡
+                  </motion.span>
+                </div>
+              </motion.button>
+            </motion.div>
           </motion.div>
         </div>
-
-        {/* Scroll indicator with ghost */}
+        
+        {/* Enhanced scroll indicator */}
         <motion.div
           className="absolute bottom-8 flex flex-col items-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 2 }}
         >
-          <span className="text-purple-500 mb-3 text-lg font-bold animate-pulse font-[Creepster,cursive] drop-shadow-[0_0_12px_rgba(168,85,247,0.9)]">DESCEND INTO THE UNDERWORLD</span>
-          <motion.div
-            animate={{ y: [0, 18, 0] }}
+          <span className="text-purple-400 mb-3 text-sm font-medium animate-pulse">DESCEND INTO DARKNESS</span>
+          <motion.div 
+            animate={{ y: [0, 15, 0] }}
             transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-            className="w-12 h-20 rounded-full border-2 border-purple-800 flex justify-center p-2 bg-black/30 backdrop-blur-md"
+            className="w-10 h-16 rounded-full border-2 border-purple-500 flex justify-center p-2 bg-black/20 backdrop-blur-sm"
           >
-            <motion.div
-              className="w-8 h-8 text-3xl flex items-center justify-center"
-              animate={{ y: [0, 14, 0] }}
+            <motion.div 
+              className="w-2 h-3 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"
+              animate={{ y: [0, 12, 0] }}
               transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-            >
-              👻
-            </motion.div>
+            />
           </motion.div>
         </motion.div>
       </section>
-
+      
       {/* About the Event - Enhanced */}
       <section className="py-24 px-4 relative overflow-hidden bg-gradient-to-b from-black via-purple-900/5 to-black">
         {/* Enhanced background elements */}
         <div className="absolute top-20 left-1/4 w-96 h-96 bg-purple-900/20 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-40 right-1/4 w-80 h-80 bg-pink-900/20 rounded-full blur-3xl animate-pulse" />
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-cyan-900/10 rounded-full blur-3xl" />
-
+        
         <div className="max-w-6xl mx-auto">
-          <motion.div
+          <motion.div 
             className="text-center mb-20"
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 1 }}
           >
-            <motion.h2
+            <motion.h2 
               className="mb-6"
               initial={{ scale: 0.8 }}
               whileInView={{ scale: 1 }}
@@ -421,7 +428,7 @@ const RaveYardEventPage = () => {
               {eventData.description}
             </p>
           </motion.div>
-
+          
           {/* Enhanced highlights grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {highlights.map((item, index) => (
