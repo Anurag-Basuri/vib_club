@@ -1,11 +1,13 @@
 import axios from 'axios';
+import { config } from 'dotenv';
+config()
 
 const CASHFREE_BASE_URL = process.env.CASHFREE_BASE_URL || 'https://api.cashfree.com';
 const CASHFREE_APP_ID = process.env.CASHFREE_APP_ID || 'your_cashfree_app_id';
 const CASHFREE_SECRET_KEY = process.env.CASHFREE_SECRET_KEY || 'your_cashfree_secret_key';
-
 async function createCashfreeOrder(orderDetails) {
 	try {
+		console.log(CASHFREE_BASE_URL,orderDetails)
 		const response = await axios.post(
 			`${CASHFREE_BASE_URL}/orders`,
 			orderDetails,

@@ -10,6 +10,17 @@ const HorrorRaveYardPage = () => {
   const [ghostAppears, setGhostAppears] = useState(false);
   const [bloodDrips, setBloodDrips] = useState([]);
   const [eventData, setEventData] = useState(null);
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    amount: '',
+    upiId: '',
+    lpuId: ''
+  });
 
   useEffect(() => {
     const fetchEventData = async () => {
@@ -17,7 +28,7 @@ const HorrorRaveYardPage = () => {
         const response = await publicClient.get('api/events/upcoming-event');
         const event = response.data?.data || response.data;
         setEventData(event);
-
+        console.log(response.data)
         if (event) {
           setTotalSpots(event.totalSpots || 0);
           const registrations = Array.isArray(event.registrations) ? event.registrations.length : 0;
@@ -83,6 +94,112 @@ const HorrorRaveYardPage = () => {
 
     return () => clearInterval(interval);
   }, [bloodDrips]);
+
+  // Payment handler functions
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handlePayment = async () => {
+    try {
+      setLoading(true);
+      setError('');
+
+      // Validate form data
+      const { name, email, phone, amount, upiId, lpuId } = formData;
+      if (!name || !email || !phone || !amount || !upiId || !lpuId) {
+        setError('Please fill in all fields');
+        setLoading(false);
+        return;
+      }
+
+      // Validate amount
+      if (isNaN(amount) || parseFloat(amount) <= 0) {
+        setError('Please enter a valid amount');
+        setLoading(false);
+        return;
+      }
+      // Create order with backend
+      const response = await publicClient.post('/api/cashfree/order', {
+        name,
+        email,
+        phone,
+        amount: parseFloat(amount),
+        upiId,
+        lpuId,
+        eventId: eventData?._id || 'event_raveyard_2025',
+        eventName: eventData?.title || 'RaveYard 2025'
+      });
+      console.log("Full backend response:", response);
+      console.log("Response data:", response.data);
+      console.log("Response data.data:", response.data.data);
+      console.log("Order object:", response.data.data?.order);
+      
+      const orderData = response.data.data;
+      const sessionId = orderData.payment_session_id;
+      const orderId = orderData.order_id;
+      
+      console.log("Extracted sessionId:", sessionId);
+      console.log("Extracted orderId:", orderId);
+
+      // Initialize Cashfree payment
+      if (window.Cashfree) {
+        try {
+          // Create Cashfree instance
+          const cashfree = new window.Cashfree({
+            mode: "sandbox" // Use "sandbox" for testing
+            // mode: "production" // Use "sandbox" for testing
+          });
+
+          // Debug: Check what methods are available on the instance
+          console.log("Cashfree instance:", cashfree);
+          console.log("Instance methods:", Object.getOwnPropertyNames(cashfree));
+
+          // Use checkout method on the instance
+          cashfree.checkout({
+            paymentSessionId: sessionId,
+            redirectTarget: "_self",
+            returnUrl: `${window.location.origin}/payment-success?order_id=${orderId}&event_id=${eventData?._id}&event_name=${encodeURIComponent(eventData?.title || 'RaveYard 2025')}`
+          }).then(function(result) {
+            console.log("Checkout initiated:", result);
+            // Close the payment form since user will be redirected
+            setShowPaymentForm(false);
+          }).catch(function(error) {
+            console.error("Payment error:", error);
+            setError('Payment failed. Please try again.');
+          });
+
+        } catch (paymentError) {
+          console.error("Payment initialization error:", paymentError);
+          setError('Failed to initialize payment. Please try again.');
+        }
+      } else {
+        setError('Payment gateway not available. Please try again.');
+      }
+
+      setLoading(false);
+    } catch (error) {
+      console.error('Payment error:', error);
+      setError(error.message || 'Payment failed. Please try again.');
+      setLoading(false);
+    }
+  };
+
+  const openPaymentForm = () => {
+    setShowPaymentForm(true);
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      amount: eventData?.ticketPrice || '',
+      upiId: '',
+      lpuId: ''
+    });
+  };
 
   const BloodDrips = () => (
     <div className="fixed inset-0 pointer-events-none z-0">
@@ -217,10 +334,6 @@ const HorrorRaveYardPage = () => {
                 RaveYard 2025
               </span>
               <span className="absolute -bottom-4 left-0 right-0 h-1 bg-gradient-to-r from-red-800 via-red-600 to-red-800 rounded-full"></span>
-              <span
-                className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/rust.png')] opacity-20"
-                style={{ mixBlendMode: 'multiply' }}
-              />
             </motion.h1>
             <motion.h2
               className="text-4xl md:text-6xl text-red-400 mb-8 font-bold relative pb-4"
@@ -282,6 +395,7 @@ const HorrorRaveYardPage = () => {
                   boxShadow: "0 0 30px rgba(220, 38, 38, 0.8)"
                 }}
                 whileTap={{ scale: 0.95 }}
+                onClick={openPaymentForm}
                 className="px-10 py-6 relative rounded-xl font-bold text-xl shadow-lg overflow-hidden"
                 style={{
                   background: `linear-gradient(145deg, #8B4513, #5D2919)`,
@@ -289,10 +403,6 @@ const HorrorRaveYardPage = () => {
                   border: '1px solid #5D2919'
                 }}
               >
-                <div
-                  className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/rust.png')] opacity-30 pointer-events-none"
-                  style={{ mixBlendMode: 'overlay' }}
-                />
                 <div className="relative z-10 flex items-center gap-3">
                   <span>ENTER THE CRYPT</span>
                   <span>💀</span>
@@ -361,10 +471,6 @@ const HorrorRaveYardPage = () => {
                 }}
                 whileHover={{ scale: 1.05 }}
               >
-                <div
-                  className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/rust.png')] opacity-20 pointer-events-none"
-                  style={{ mixBlendMode: 'overlay' }}
-                />
                 <div className="absolute top-2 right-2 w-3 h-3 bg-red-900 rounded-full"></div>
                 <div className="absolute bottom-2 left-2 w-4 h-4 bg-red-900 rounded-full opacity-70"></div>
                 <div className="text-3xl md:text-4xl font-black text-red-400 mb-1 relative z-10">
@@ -648,6 +754,167 @@ const HorrorRaveYardPage = () => {
               </motion.div>
             ))}
           </div>
+        )}
+      </AnimatePresence>
+
+      {/* Payment Form Modal */}
+      <AnimatePresence>
+        {showPaymentForm && (
+          <motion.div
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowPaymentForm(false)}
+          >
+            <motion.div
+              className="bg-gradient-to-br from-red-900/90 to-black/90 backdrop-blur-sm border border-red-600/50 rounded-xl p-8 max-w-md w-full relative"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-bold text-red-400 mb-2">Enter the Crypt</h3>
+                <p className="text-red-300">Complete your soul pass purchase</p>
+              </div>
+
+              {error && (
+                <div className="bg-red-900/50 border border-red-600 rounded-lg p-3 mb-4">
+                  <p className="text-red-300 text-sm">{error}</p>
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-red-300 text-sm font-medium mb-2">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className="w-full bg-black/50 border border-red-600/50 rounded-lg px-4 py-3 text-white placeholder-red-400/50 focus:outline-none focus:border-red-500"
+                    placeholder="Enter your full name"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-red-300 text-sm font-medium mb-2">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="w-full bg-black/50 border border-red-600/50 rounded-lg px-4 py-3 text-white placeholder-red-400/50 focus:outline-none focus:border-red-500"
+                    placeholder="Enter your email"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-red-300 text-sm font-medium mb-2">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    className="w-full bg-black/50 border border-red-600/50 rounded-lg px-4 py-3 text-white placeholder-red-400/50 focus:outline-none focus:border-red-500"
+                    placeholder="Enter your phone number"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-red-300 text-sm font-medium mb-2">
+                    Amount (₹)
+                  </label>
+                  <input
+                    type="number"
+                    name="amount"
+                    value={formData.amount}
+                    onChange={handleInputChange}
+                    className="w-full bg-black/50 border border-red-600/50 rounded-lg px-4 py-3 text-white placeholder-red-400/50 focus:outline-none focus:border-red-500"
+                    placeholder="Enter amount"
+                    min="1"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-red-300 text-sm font-medium mb-2">
+                    UPI ID
+                  </label>
+                  <input
+                    type="text"
+                    name="upiId"
+                    value={formData.upiId}
+                    onChange={handleInputChange}
+                    className="w-full bg-black/50 border border-red-600/50 rounded-lg px-4 py-3 text-white placeholder-red-400/50 focus:outline-none focus:border-red-500"
+                    placeholder="yourname@upi"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-red-300 text-sm font-medium mb-2">
+                    LPU Registration Number
+                  </label>
+                  <input
+                    type="text"
+                    name="lpuId"
+                    value={formData.lpuId}
+                    onChange={handleInputChange}
+                    className="w-full bg-black/50 border border-red-600/50 rounded-lg px-4 py-3 text-white placeholder-red-400/50 focus:outline-none focus:border-red-500"
+                    placeholder="Enter your LPU registration number"
+                    required
+                  />
+                </div>
+
+                <div className="flex gap-4 mt-6">
+                  <motion.button
+                    type="button"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setShowPaymentForm(false)}
+                    className="flex-1 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg font-medium text-white transition-colors"
+                  >
+                    Cancel
+                  </motion.button>
+                  <motion.button
+                    type="button"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handlePayment}
+                    disabled={loading}
+                    className="flex-1 py-3 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 rounded-lg font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                        Processing...
+                      </div>
+                    ) : (
+                      'Pay Now 🔥'
+                    )}
+                  </motion.button>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowPaymentForm(false)}
+                className="absolute top-4 right-4 text-red-400 hover:text-red-300 text-xl"
+              >
+                ✕
+              </button>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

@@ -39,6 +39,18 @@ const transactionSchema = new mongoose.Schema(
 			type: String,
 			required: true,
 		},
+		lpuId: {
+			type: Number,
+			required: true,
+		},
+		eventId: {
+			type: String,
+			required: true,
+		},
+		eventName: {
+			type: String,
+			required: true,
+		},
 	},
 	{ timestamps: true }
 );

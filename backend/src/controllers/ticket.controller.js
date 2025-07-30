@@ -66,7 +66,7 @@ const createTicket = asyncHandler(async (req, res) => {
 		await sendRegistrationEmail({
 			to: email,
 			name: fullName,
-			eventName: event.name,
+			eventName: eventName,
 			eventDate: event.date,
 			qrUrl: qrCode.url,
 		});
