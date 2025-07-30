@@ -23,8 +23,9 @@ const createTicket = async (transaction, eventId, eventName) => {
     };
 
     console.log('Creating ticket with data:', ticketData);
-    const response = await publicClient.post('/api/tickets/create', ticketData);
+    const response = await publicClient.post('/tickets/create', ticketData);
     console.log('Ticket created successfully:', response.data);
+    console.log('Full response structure:', response); // Additional debug log
     return response.data;
   } catch (error) {
     console.error('Ticket creation error:', error.response?.data || error.message);
@@ -54,7 +55,7 @@ const PaymentSuccess = () => {
         }
 
         // Call verify payment endpoint
-        const response = await publicClient.post(`/api/cashfree/verify?order_id=${orderId}`, {
+        const response = await publicClient.post(`/cashfree/verify?order_id=${orderId}`, {
           // Send minimal data - backend will use stored transaction data
         });
 
@@ -65,10 +66,13 @@ const PaymentSuccess = () => {
           setStatus('success');
           setMessage('Payment successful! Your ticket has been confirmed.');
           
-          // Create ticket using ticket controller with event data from URL
           try {
             const ticketResponse = await createTicket(data.transaction, eventId, eventName);
-            setTicketData(ticketResponse.data);
+            console.log('Ticket response:', ticketResponse); // Debug log
+            
+            // Handle different response structures
+            const ticket = ticketResponse.data || ticketResponse;
+            setTicketData(ticket);
             setMessage('Payment successful! Your ticket has been sent to your email.');
           } catch (ticketError) {
             console.error('Ticket creation failed:', ticketError);
@@ -119,7 +123,7 @@ const PaymentSuccess = () => {
   };
 
   const goBackToEvent = () => {
-    navigate('/event');
+    navigate('/');
   };
 
   const goHome = () => {
@@ -214,11 +218,19 @@ const PaymentSuccess = () => {
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
                 <span className="text-green-300">Ticket ID:</span>
-                <span className="text-white font-mono">{ticketData.ticketId}</span>
+                <span className="text-white font-mono">{ticketData.ticketId || ticketData._id || 'N/A'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-green-300">Event:</span>
-                <span className="text-white">{ticketData.eventName}</span>
+                <span className="text-white">{ticketData.eventName || eventName || 'RaveYard 2025'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-green-300">Name:</span>
+                <span className="text-white">{ticketData.fullName || transactionData.user?.name || 'N/A'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-green-300">LPU ID:</span>
+                <span className="text-white">{ticketData.LpuId || transactionData.lpuId || 'N/A'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-green-300">Status:</span>

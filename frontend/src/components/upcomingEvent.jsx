@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { publicClient } from "../services/api.js";
+import ENV from '../config/env.js';
 
 const HorrorRaveYardPage = () => {
   const [spotsLeft, setSpotsLeft] = useState(0);
@@ -17,18 +18,18 @@ const HorrorRaveYardPage = () => {
     name: '',
     email: '',
     phone: '',
-    amount: '',
-    upiId: '',
+    amount: '300', // Fixed amount
     lpuId: ''
   });
 
   useEffect(() => {
     const fetchEventData = async () => {
       try {
-        const response = await publicClient.get('api/events/upcoming-event');
+        const response = await publicClient.get('/events/upcoming-event');
         const event = response.data?.data || response.data;
         setEventData(event);
-        console.log(response.data)
+        // Debug log (commented for production)
+        // console.log(response.data)
         if (event) {
           setTotalSpots(event.totalSpots || 0);
           const registrations = Array.isArray(event.registrations) ? event.registrations.length : 0;
@@ -110,62 +111,112 @@ const HorrorRaveYardPage = () => {
       setError('');
 
       // Validate form data
-      const { name, email, phone, amount, upiId, lpuId } = formData;
-      if (!name || !email || !phone || !amount || !upiId || !lpuId) {
+      const { name, email, phone, amount, lpuId } = formData;
+      
+      if (!name || !email || !phone || !lpuId) {
         setError('Please fill in all fields');
         setLoading(false);
         return;
       }
 
-      // Validate amount
-      if (isNaN(amount) || parseFloat(amount) <= 0) {
-        setError('Please enter a valid amount');
+      // Validate amount from backend
+      if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+        setError('Invalid ticket amount from server');
         setLoading(false);
         return;
       }
+
+      // Check email availability before proceeding with payment
+      try {
+        await publicClient.post('/tickets/check-email', {
+          email: email.trim(),
+          eventId: eventData?._id || 'event_raveyard_2025',
+          lpuId: lpuId.trim()
+        });
+      } catch (emailCheckError) {
+        if (emailCheckError.response?.status === 409) {
+          setError(emailCheckError.response.data.message || 'Email or LPU ID already registered for this event');
+        } else {
+          setError('Failed to validate registration details. Please try again.');
+        }
+        setLoading(false);
+        return;
+      }
+
       // Create order with backend
-      const response = await publicClient.post('/api/cashfree/order', {
+      const response = await publicClient.post('/cashfree/order', {
         name,
         email,
         phone,
-        amount: parseFloat(amount),
-        upiId,
+        amount: parseFloat(amount), // Use amount from backend
         lpuId,
         eventId: eventData?._id || 'event_raveyard_2025',
         eventName: eventData?.title || 'RaveYard 2025'
       });
-      console.log("Full backend response:", response);
-      console.log("Response data:", response.data);
-      console.log("Response data.data:", response.data.data);
-      console.log("Order object:", response.data.data?.order);
+      
+      // Debug logs (commented for production)
+      // console.log("Full backend response:", response);
+      // console.log("Response data:", response.data);
+      // console.log("Response data.data:", response.data.data);
       
       const orderData = response.data.data;
       const sessionId = orderData.payment_session_id;
       const orderId = orderData.order_id;
       
-      console.log("Extracted sessionId:", sessionId);
-      console.log("Extracted orderId:", orderId);
+      // Debug logs (commented for production)
+      // console.log("Extracted sessionId:", sessionId);
+      // console.log("Extracted orderId:", orderId);
 
       // Initialize Cashfree payment
       if (window.Cashfree) {
         try {
-          // Create Cashfree instance
+          // Create Cashfree instance with environment-based configuration
           const cashfree = new window.Cashfree({
-            mode: "sandbox" // Use "sandbox" for testing
-            // mode: "production" // Use "sandbox" for testing
+            mode: ENV.CASHFREE_MODE
           });
 
-          // Debug: Check what methods are available on the instance
-          console.log("Cashfree instance:", cashfree);
-          console.log("Instance methods:", Object.getOwnPropertyNames(cashfree));
+          // Debug logging (only in development)
+          if (ENV.DEBUG) {
+            // Commented for production deployment
+            // console.log("Cashfree mode:", ENV.CASHFREE_MODE);
+            // console.log("Environment:", ENV.NODE_ENV);
+            // console.log("Cashfree instance:", cashfree);
+            // console.log("Instance methods:", Object.getOwnPropertyNames(cashfree));
+          }
 
           // Use checkout method on the instance
+          const returnUrl = `${ENV.FRONTEND_URL}/payment-success?order_id=${orderId}&event_id=${eventData?._id}&event_name=${encodeURIComponent(eventData?.title || 'RaveYard 2025')}`;
+          
           cashfree.checkout({
             paymentSessionId: sessionId,
             redirectTarget: "_self",
-            returnUrl: `${window.location.origin}/payment-success?order_id=${orderId}&event_id=${eventData?._id}&event_name=${encodeURIComponent(eventData?.title || 'RaveYard 2025')}`
+            returnUrl: returnUrl,
+            theme: {
+              color: '#dc2626', // Red theme to match your brand
+              backgroundColor: '#1a0630',
+              primaryColor: '#dc2626',
+              secondaryColor: '#1a0630'
+            },
+            components: {
+              style: {
+                backgroundColor: '#1a0630',
+                color: '#ffffff',
+                fontFamily: 'Arial, sans-serif',
+                primaryColor: '#dc2626'
+              }
+            },
+            // Enhanced business branding
+            merchantName: "Vibranta Student Organization",
+            description: "RaveYard 2025 - Official Student Organization - LPU",
+            // Additional branding metadata
+            metadata: {
+              businessName: "Vibranta Student Organization",
+              eventName: "RaveYard 2025",
+              organization: "LPU Student Organization"
+            }
           }).then(function(result) {
-            console.log("Checkout initiated:", result);
+            // Debug logs (commented for production)
+            // console.log("Checkout initiated:", result);
             // Close the payment form since user will be redirected
             setShowPaymentForm(false);
           }).catch(function(error) {
@@ -195,7 +246,7 @@ const HorrorRaveYardPage = () => {
       name: '',
       email: '',
       phone: '',
-      amount: eventData?.ticketPrice || '',
+      amount: eventData?.ticketPrice || '300', // Fetch from backend but show as read-only
       upiId: '',
       lpuId: ''
     });
@@ -588,7 +639,7 @@ const HorrorRaveYardPage = () => {
                   <div>
                     <div className="text-sm text-red-300 font-medium">TICKET PRICE</div>
                     <div className="text-white text-xl font-medium">
-                      {eventData?.ticketPrice ? `₹${eventData.ticketPrice}` : "--"}
+                      {eventData?.ticketPrice ? `₹${eventData.ticketPrice}` : "₹300"}
                     </div>
                   </div>
                 </div>
@@ -657,6 +708,7 @@ const HorrorRaveYardPage = () => {
                 boxShadow: "0 0 40px rgba(220, 38, 38, 0.8)"
               }}
               whileTap={{ scale: 0.95 }}
+              onClick={openPaymentForm}
               className="px-16 py-10 bg-gradient-to-r from-red-600 to-red-800 rounded-xl font-bold text-2xl shadow-xl relative overflow-hidden"
             >
               <div className="relative z-10 flex items-center gap-4">
@@ -768,122 +820,126 @@ const HorrorRaveYardPage = () => {
             onClick={() => setShowPaymentForm(false)}
           >
             <motion.div
-              className="bg-gradient-to-br from-red-900/90 to-black/90 backdrop-blur-sm border border-red-600/50 rounded-xl p-8 max-w-md w-full relative"
+              className="bg-gradient-to-br from-red-900/90 to-black/90 backdrop-blur-sm border border-red-600/50 rounded-xl max-w-md w-full max-h-[90vh] relative overflow-hidden"
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-red-400 mb-2">Enter the Crypt</h3>
-                <p className="text-red-300">Complete your soul pass purchase</p>
+              {/* Header - Fixed */}
+              <div className="p-6 pb-4 border-b border-red-600/30">
+                <div className="text-center">
+                  <h3 className="text-xl font-bold text-red-400 mb-1">Enter the Crypt</h3>
+                  <p className="text-red-300 text-sm">Complete your soul pass purchase</p>
+                </div>
+                <button
+                  onClick={() => setShowPaymentForm(false)}
+                  className="absolute top-4 right-4 text-red-400 hover:text-red-300 text-xl"
+                >
+                  ✕
+                </button>
               </div>
 
-              {error && (
-                <div className="bg-red-900/50 border border-red-600 rounded-lg p-3 mb-4">
-                  <p className="text-red-300 text-sm">{error}</p>
-                </div>
-              )}
+              {/* Scrollable Content */}
+              <div className="overflow-y-auto max-h-[calc(90vh-200px)] p-6 pt-4">
+                {error && (
+                  <div className="bg-red-900/50 border border-red-600 rounded-lg p-3 mb-4">
+                    <p className="text-red-300 text-sm">{error}</p>
+                  </div>
+                )}
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-red-300 text-sm font-medium mb-2">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className="w-full bg-black/50 border border-red-600/50 rounded-lg px-4 py-3 text-white placeholder-red-400/50 focus:outline-none focus:border-red-500"
-                    placeholder="Enter your full name"
-                    required
-                  />
-                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-red-300 text-sm font-medium mb-1">
+                      Full Name
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className="w-full bg-black/50 border border-red-600/50 rounded-lg px-3 py-2 text-white placeholder-red-400/50 focus:outline-none focus:border-red-500 text-sm"
+                      placeholder="Enter your full name"
+                      required
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-red-300 text-sm font-medium mb-2">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="w-full bg-black/50 border border-red-600/50 rounded-lg px-4 py-3 text-white placeholder-red-400/50 focus:outline-none focus:border-red-500"
-                    placeholder="Enter your email"
-                    required
-                  />
-                </div>
+                  <div>
+                    <label className="block text-red-300 text-sm font-medium mb-1">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className="w-full bg-black/50 border border-red-600/50 rounded-lg px-3 py-2 text-white placeholder-red-400/50 focus:outline-none focus:border-red-500 text-sm"
+                      placeholder="Enter your email"
+                      required
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-red-300 text-sm font-medium mb-2">
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    className="w-full bg-black/50 border border-red-600/50 rounded-lg px-4 py-3 text-white placeholder-red-400/50 focus:outline-none focus:border-red-500"
-                    placeholder="Enter your phone number"
-                    required
-                  />
-                </div>
+                  <div>
+                    <label className="block text-red-300 text-sm font-medium mb-1">
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      className="w-full bg-black/50 border border-red-600/50 rounded-lg px-3 py-2 text-white placeholder-red-400/50 focus:outline-none focus:border-red-500 text-sm"
+                      placeholder="Enter your phone number"
+                      required
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-red-300 text-sm font-medium mb-2">
-                    Amount (₹)
-                  </label>
-                  <input
-                    type="number"
-                    name="amount"
-                    value={formData.amount}
-                    onChange={handleInputChange}
-                    className="w-full bg-black/50 border border-red-600/50 rounded-lg px-4 py-3 text-white placeholder-red-400/50 focus:outline-none focus:border-red-500"
-                    placeholder="Enter amount"
-                    min="1"
-                    required
-                  />
-                </div>
+                  <div>
+                    <label className="block text-red-300 text-sm font-medium mb-1">
+                      LPU Registration Number
+                    </label>
+                    <input
+                      type="text"
+                      name="lpuId"
+                      value={formData.lpuId}
+                      onChange={handleInputChange}
+                      className="w-full bg-black/50 border border-red-600/50 rounded-lg px-3 py-2 text-white placeholder-red-400/50 focus:outline-none focus:border-red-500 text-sm"
+                      placeholder="Enter your LPU registration number"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-red-300 text-sm font-medium mb-1">
+                      Amount (₹) - Set by Event
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        name="amount"
+                        value={`₹${formData.amount}`}
+                        readOnly
+                        disabled
+                        className="w-full bg-gray-800/50 border border-red-600/30 rounded-lg px-3 py-2 text-gray-300 text-sm cursor-not-allowed"
+                      />
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <span className="text-red-400 text-xs">� Info</span>
+                      </div>
+                    </div>
+                    <p className="text-red-400/70 text-xs mt-1">Ticket price set by event organizers</p>
+                  </div>
 
-                <div>
-                  <label className="block text-red-300 text-sm font-medium mb-2">
-                    UPI ID
-                  </label>
-                  <input
-                    type="text"
-                    name="upiId"
-                    value={formData.upiId}
-                    onChange={handleInputChange}
-                    className="w-full bg-black/50 border border-red-600/50 rounded-lg px-4 py-3 text-white placeholder-red-400/50 focus:outline-none focus:border-red-500"
-                    placeholder="yourname@upi"
-                    required
-                  />
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-red-300 text-sm font-medium mb-2">
-                    LPU Registration Number
-                  </label>
-                  <input
-                    type="text"
-                    name="lpuId"
-                    value={formData.lpuId}
-                    onChange={handleInputChange}
-                    className="w-full bg-black/50 border border-red-600/50 rounded-lg px-4 py-3 text-white placeholder-red-400/50 focus:outline-none focus:border-red-500"
-                    placeholder="Enter your LPU registration number"
-                    required
-                  />
-                </div>
-
-                <div className="flex gap-4 mt-6">
+              {/* Footer - Fixed */}
+              <div className="p-6 pt-4 border-t border-red-600/30">
+                <div className="flex gap-3">
                   <motion.button
                     type="button"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setShowPaymentForm(false)}
-                    className="flex-1 py-3 bg-gray-700 hover:bg-gray-600 rounded-lg font-medium text-white transition-colors"
+                    className="flex-1 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-lg font-medium text-white transition-colors text-sm"
                   >
                     Cancel
                   </motion.button>
@@ -893,7 +949,7 @@ const HorrorRaveYardPage = () => {
                     whileTap={{ scale: 0.98 }}
                     onClick={handlePayment}
                     disabled={loading}
-                    className="flex-1 py-3 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 rounded-lg font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 py-2.5 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 rounded-lg font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                   >
                     {loading ? (
                       <div className="flex items-center justify-center gap-2">
@@ -906,13 +962,6 @@ const HorrorRaveYardPage = () => {
                   </motion.button>
                 </div>
               </div>
-
-              <button
-                onClick={() => setShowPaymentForm(false)}
-                className="absolute top-4 right-4 text-red-400 hover:text-red-300 text-xl"
-              >
-                ✕
-              </button>
             </motion.div>
           </motion.div>
         )}

@@ -9,7 +9,8 @@ import Navbar from './components/Navbar.jsx';
 function AppContent() {
     useLenis();
     const location = useLocation();
-    const hideNavbar = location.pathname.startsWith('/auth');
+    // const hideNavbar = location.pathname.startsWith('/auth');
+    const hideNavbar = true;
     const [scrolled, setScrolled] = useState(false);
     const [showNavbar, setShowNavbar] = useState(true);
     const lastScrollY = useRef(window.scrollY);
@@ -33,7 +34,6 @@ function AppContent() {
 
     return (
         <Lenis root options={{ lerp: 0.1, smoothWheel: true }}>
-            {/* Smooth slide effect for Navbar */}
             {!hideNavbar && (
                 <div
                     style={{

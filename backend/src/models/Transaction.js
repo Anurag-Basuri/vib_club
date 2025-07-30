@@ -35,9 +35,10 @@ const transactionSchema = new mongoose.Schema(
 		failureReason: {
 			type: String,
 		},
-		upiId: {
+		paymentMethod: {
 			type: String,
-			required: true,
+			enum: ['UPI', 'CARD', 'NET_BANKING', 'WALLET', 'MULTIPLE_OPTIONS'],
+			default: 'MULTIPLE_OPTIONS',
 		},
 		lpuId: {
 			type: Number,

@@ -84,8 +84,8 @@ const createTicket = asyncHandler(async (req, res) => {
 		.json(
 			new ApiResponse(
 				201,
-				'Ticket created successfully',
-				ticket
+				ticket,
+				'Ticket created successfully'
 			)
 		);
 });
@@ -173,10 +173,50 @@ const deleteTicket = asyncHandler(async (req, res) => {
 		);
 });
 
+// Check email and LPU ID availability for an event
+const checkEmailAvailability = asyncHandler(async (req, res) => {
+    const { email, eventId = 'event_raveyard_2025', lpuId } = req.body;
+
+    const trimmedEmail = email.toLowerCase().trim();
+    
+    // Check if email already exists for this event
+    const existingTicketByEmail = await Ticket.findOne({ 
+        email: trimmedEmail,
+        eventId: eventId 
+    });
+
+    if (existingTicketByEmail) {
+        throw new ApiError(409, 'A ticket has already been purchased with this email address for this event');
+    }
+
+    // Also check LPU ID if provided
+    if (lpuId) {
+        const existingTicketByLpu = await Ticket.findOne({ 
+            LpuId: parseInt(lpuId),
+            eventId: eventId 
+        });
+        
+        if (existingTicketByLpu) {
+            throw new ApiError(409, 'A ticket has already been purchased with this LPU ID for this event');
+        }
+    }
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, 'Email and LPU ID are available for registration', { 
+                available: true,
+                email: trimmedEmail,
+                eventId: eventId
+            })
+        );
+});
+
 export {
     createTicket,
     getTicketById,
     updateTicketStatus,
     getTicketsByEvent,
-    deleteTicket
+    deleteTicket,
+    checkEmailAvailability
 };

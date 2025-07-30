@@ -1,4 +1,5 @@
 import Transaction from '../models/Transaction.js';
+import Ticket from '../models/ticket.model.js';
 import createCashfreeOrder from '../services/cashFree.service.js';
 import {asyncHandler} from '../utils/asyncHandler.js';
 import {ApiError} from '../utils/ApiError.js';
@@ -11,16 +12,36 @@ config()
 
 const createOrder = asyncHandler(async (req, res) => {
     try {
-        const { name, email, phone, amount, upiId, lpuId, eventId, eventName } = req.body;
+        const { name, email, phone, amount, lpuId, eventId, eventName } = req.body;
 
-        if (!name || !email || !phone || !amount || !upiId || !lpuId) {
-            throw new ApiError(400, 'Missing required fields: name, email, phone, amount, upiId, and lpuId');
+        if (!name || !email || !phone || !amount || !lpuId) {
+            throw new ApiError(400, 'Missing required fields: name, email, phone, amount, and lpuId');
         }
         if (isNaN(amount) || amount <= 0) {
             throw new ApiError(400, 'Invalid amount');
         }
         if (isNaN(lpuId)) {
             throw new ApiError(400, 'LPU ID must be a valid number');
+        }
+
+        // Check if email already exists in tickets for this event
+        const existingTicketByEmail = await Ticket.findOne({ 
+            email: email.toLowerCase().trim(),
+            eventId: eventId || 'event_raveyard_2025' 
+        });
+        
+        if (existingTicketByEmail) {
+            throw new ApiError(409, 'A ticket has already been purchased with this email address for this event');
+        }
+
+        // Check if LPU ID already exists in tickets for this event
+        const existingTicketByLpu = await Ticket.findOne({ 
+            LpuId: parseInt(lpuId),
+            eventId: eventId || 'event_raveyard_2025' 
+        });
+        
+        if (existingTicketByLpu) {
+            throw new ApiError(409, 'A ticket has already been purchased with this LPU ID for this event');
         }
 
         const order_id = uuidv4();
@@ -45,27 +66,39 @@ const createOrder = asyncHandler(async (req, res) => {
             order_meta: {
                 return_url: `${process.env.CASHFREE_RETURN_URL}?order_id=${order_id}`,
                 notify_url: process.env.CASHFREE_NOTIFY_URL,
+                payment_methods: "upi,nb,cc,dc,app"
             },
-            // The payment_methods object is the correct way to specify UPI Collect
-            payment_methods: {
-                upi: {
-                    channel: 'collect',
-                    upi_id: upiId // Use the ID provided by the user
-                }
-            }
+            order_note: `${process.env.CASHFREE_BUSINESS_NAME || "Vibranta Student Organization"} - Payment for ${eventName || 'RaveYard 2025'} - LPU ID: ${lpuId}`,
+            order_tags: {
+                event_id: eventId,
+                lpu_id: lpuId.toString(),
+                event_name: eventName,
+                payment_for: "event_ticket",
+                business_name: process.env.CASHFREE_BUSINESS_NAME || "Vibranta Student Organization",
+                business_description: process.env.CASHFREE_BUSINESS_DESCRIPTION || "Official Student Organization - LPU",
+                merchant_name: "Vibranta Student Organization",
+                organization: "LPU",
+                event_title: "RaveYard 2025"
+            },
+            // Terminal data for web checkout
+            terminal_data: {
+                terminal_type: "WEB",
+                terminal_id: "vibranta_web_terminal"
+            },
+            // Order expiry (30 minutes - more than 15 min requirement)
+            order_expiry_time: new Date(Date.now() + 30 * 60 * 1000).toISOString()
         };
 
         // Create order with Cashfree
         const order = await createCashfreeOrder(orderPayload);
 
-        // -> Change #4: Add upiId when creating the transaction record
+        // Create transaction record with multiple payment options
         await Transaction.create({
             orderId: order_id,
             user: { name, email },
             amount,
             status: 'PENDING',
-            paymentMethod: 'UPI',
-            upiId: upiId, // Add the missing field here
+            paymentMethod: 'MULTIPLE_OPTIONS', // Updated to support all payment methods
             lpuId: parseInt(lpuId), // Ensure lpuId is stored as number
             eventId: eventId || 'event_raveyard_2025',
             eventName: eventName || 'RaveYard 2025'
@@ -214,4 +247,56 @@ const verifyPayment = asyncHandler(async (req, res) => {
     }
 });
 
-export default { createOrder, verifyPayment };
+// Webhook handler for Cashfree payment notifications (CRITICAL for production)
+const handleWebhook = asyncHandler(async (req, res) => {
+    try {
+        console.log('Received webhook:', req.body);
+        
+        const { order_id, payment_status, payment_amount, order_amount } = req.body;
+        
+        if (!order_id) {
+            throw new ApiError(400, 'Missing order_id in webhook');
+        }
+
+        // Find transaction
+        const transaction = await Transaction.findOne({ orderId: order_id });
+        if (!transaction) {
+            console.log(`Transaction not found for order: ${order_id}`);
+            return res.status(200).json({ status: 'ok', message: 'Transaction not found' });
+        }
+
+        // Update transaction status based on webhook
+        if (payment_status === 'SUCCESS' && payment_amount === order_amount) {
+            transaction.status = 'SUCCESS';
+            transaction.paymentDate = new Date();
+            await transaction.save();
+            
+            console.log(`Payment successful for order: ${order_id}`);
+            
+            // TODO: Send confirmation email here
+            // TODO: Generate ticket/QR code here
+            
+        } else if (payment_status === 'FAILED') {
+            transaction.status = 'FAILED';
+            await transaction.save();
+            
+            console.log(`Payment failed for order: ${order_id}`);
+        }
+
+        // Always respond with 200 to acknowledge webhook
+        return res.status(200).json({ 
+            status: 'ok', 
+            message: 'Webhook processed successfully' 
+        });
+        
+    } catch (error) {
+        console.error('Webhook processing error:', error);
+        // Still return 200 to prevent Cashfree retries
+        return res.status(200).json({ 
+            status: 'error', 
+            message: 'Webhook processing failed' 
+        });
+    }
+});
+
+export default { createOrder, verifyPayment, handleWebhook };

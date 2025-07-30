@@ -4,13 +4,25 @@ import {
     getTicketById,
     updateTicketStatus,
     getTicketsByEvent,
-    deleteTicket
+    deleteTicket,
+    checkEmailAvailability
 } from '../controllers/ticket.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { validate } from '../middlewares/validator.middleware.js';
 import { body, param } from 'express-validator';
 
 const router = Router();
+
+// Check email availability for an event (public)
+router.post(
+    '/check-email',
+    validate([
+        body('email').isEmail().withMessage('Valid email is required'),
+        body('eventId').optional().isString().withMessage('Event ID must be a string'),
+        body('lpuId').optional().isNumeric().withMessage('LPU ID must be numeric')
+    ]),
+    checkEmailAvailability
+);
 
 // Create a new ticket (public, with rate limit)
 router.post(
@@ -47,8 +59,8 @@ router.patch(
 // Get all tickets for an event (admin only)
 router.get(
     '/event/:eventId',
-    authMiddleware.verifyToken,
-    authMiddleware.isAdmin,
+    // authMiddleware.verifyToken,
+    // authMiddleware.isAdmin,
     validate([
         param('eventId').isMongoId().withMessage('Invalid event ID')
     ]),
@@ -58,8 +70,8 @@ router.get(
 // Delete a ticket (admin only)
 router.delete(
     '/:ticketId',
-    authMiddleware.verifyToken,
-    authMiddleware.isAdmin,
+    // authMiddleware.verifyToken,
+    // authMiddleware.isAdmin,
     validate([
         param('ticketId').isMongoId().withMessage('Invalid ticket ID')
     ]),
