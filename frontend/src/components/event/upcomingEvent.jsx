@@ -217,11 +217,13 @@ const HorrorRaveYardPage = () => {
 				setLoading(false);
 				return;
 			}
-			// Example: send payment request (replace with your API logic)
-			const res = await publicClient.post('api/events/register', {
-				...formData,
-				eventId: eventData?._id,
-			});
+			const res = await publicClient.post('api/cashfree/order', {
+                ...formData,
+                eventId: eventData?._id,
+            });
+
+            console.log('Order response:', res.data.data);
+
 			if (res.data.success) {
 				setShowPaymentForm(false);
 				// Optionally show success message or redirect
