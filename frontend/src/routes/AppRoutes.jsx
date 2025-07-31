@@ -7,7 +7,7 @@ import Social from '../pages/socials.jsx';
 import Contact from '../pages/contact.jsx';
 import MemberProfile from '../pages/member.jsx';
 import Auth from '../pages/auth.jsx';
-import Current from '../components/upcomingEvent.jsx';
+import Current from '../components/event/upcomingEvent.jsx';
 import PaymentSuccess from '../pages/payment-success.jsx';
 import Terms from '../pages/terms.jsx';
 import Refund from '../pages/refund.jsx';

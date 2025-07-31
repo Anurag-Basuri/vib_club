@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { publicClient } from '../services/api.js';
-import RaveYardEventPage from '../components/upcomingEvent.jsx';
+// import React, { useState, useEffect } from 'react';
+// import { motion, AnimatePresence } from 'framer-motion';
+// import { publicClient } from '../services/api.js';
+// import RaveYardEventPage from '../components/upcomingEvent.jsx';
 
 // Past Event Card
 // const PastEventCard = ({ event, onClick }) => (

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { publicClient } from "../services/api.js";
-import ENV from '../config/env.js';
+import { publicClient } from "../../services/api.js";
+import ENV from '../../config/env.js';
 
 const HorrorRaveYardPage = () => {
   const [spotsLeft, setSpotsLeft] = useState(0);
