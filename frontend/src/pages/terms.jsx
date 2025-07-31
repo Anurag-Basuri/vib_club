@@ -1,5 +1,5 @@
-import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const termsList = [
   {
@@ -66,43 +66,45 @@ const termsList = [
 
 const Terms = () => {
   const navigate = useNavigate();
-  const location = useLocation();
 
-  // Hide navbar for this page (same as auth)
-  React.useEffect(() => {
+  useEffect(() => {
     const navbar = document.querySelector('[data-navbar]');
     if (navbar) navbar.style.display = 'none';
     return () => {
       if (navbar) navbar.style.display = '';
     };
-  }, [location.pathname]);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-[#0f0f0f] text-white py-16 px-6 flex justify-center items-start">
-      <div className="w-full max-w-5xl bg-gray-900/90 rounded-2xl p-10 shadow-xl border border-red-700/30">
+    <div className="min-h-screen bg-gradient-to-br from-black via-blue-950 to-black text-white px-4 py-16 flex justify-center items-start">
+      <div className="w-full max-w-5xl bg-blue-900/30 backdrop-blur-md rounded-2xl p-10 shadow-2xl border border-blue-500/40">
         <button
           onClick={() => navigate(-1)}
-          className="mb-8 px-5 py-2 bg-red-700 hover:bg-red-800 text-white rounded-lg font-semibold transition-colors"
+          className="mb-8 px-5 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg font-semibold transition-colors"
         >
           ← Back
         </button>
-        <h1 className="text-4xl font-bold text-red-400 mb-6 text-center">
+
+        <h1 className="text-4xl font-bold text-blue-400 mb-6 text-center">
           Terms & Conditions
         </h1>
-        <p className="text-red-200 mb-6 text-sm text-center">
-          Effective from: <span className="text-red-300 font-medium">July 2025</span>
+
+        <p className="text-blue-200 mb-6 text-sm text-center">
+          Effective from: <span className="text-blue-300 font-medium">July 2025</span>
         </p>
-        <ol className="list-decimal pl-6 space-y-6 text-red-100 text-base leading-relaxed">
+
+        <ol className="list-decimal pl-6 space-y-6 text-blue-100 text-base leading-relaxed">
           {termsList.map((term, index) => (
             <li key={index}>
-              <span className="font-semibold text-red-300">{term.title}:</span><br />
+              <span className="font-semibold text-blue-300">{term.title}:</span><br />
               {term.description}
             </li>
           ))}
         </ol>
-        <p className="mt-10 text-sm text-center text-red-300 italic">
+
+        <p className="mt-10 text-sm text-center text-blue-300 italic">
           By participating in our events or using our services, you fully agree to these Terms & Conditions. For any queries, contact us at{' '}
-          <a href="mailto:vibclub@lpu.in" className="underline text-red-400">vibclub@lpu.in</a>.
+          <a href="mailto:vibclub@lpu.in" className="underline text-blue-400">vibclub@lpu.in</a>.
         </p>
       </div>
     </div>
