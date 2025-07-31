@@ -62,7 +62,7 @@ const createOrder = asyncHandler(async (req, res) => {
                 customer_phone: phone,
             },
             order_meta: {
-                return_url: `${process.env.CASHFREE_RETURN_URL}?order_id=${order_id}`,
+                return_url: `${process.env.CASHFREE_RETURN_URL}?order_id=${orderId}`,
                 notify_url: process.env.CASHFREE_NOTIFY_URL,
                 payment_methods: "upi,nb,cc,dc,app"
             },
@@ -75,7 +75,7 @@ const createOrder = asyncHandler(async (req, res) => {
 
         // Create transaction record
         await Transaction.create({
-            orderId: order_id,
+            orderId: orderId,
             user: { name, email, phone, lpuId },
             amount: Number(amount),
             status: 'PENDING',
