@@ -63,6 +63,7 @@ const TicketForm = ({
               onSubmit();
             }}
           >
+            {/* Full Name */}
             <div>
               <label className="block text-red-300 text-sm font-medium mb-1">
                 Full Name
@@ -77,6 +78,8 @@ const TicketForm = ({
                 required
               />
             </div>
+
+            {/* Email*/}
             <div>
               <label className="block text-red-300 text-sm font-medium mb-1">
                 Email Address
@@ -91,6 +94,8 @@ const TicketForm = ({
                 required
               />
             </div>
+
+            {/* Phone Number */}
             <div>
               <label className="block text-red-300 text-sm font-medium mb-1">
                 Phone Number
@@ -105,6 +110,8 @@ const TicketForm = ({
                 required
               />
             </div>
+
+            {/* LPU ID */}
             <div>
               <label className="block text-red-300 text-sm font-medium mb-1">
                 LPU Registration Number
@@ -119,6 +126,7 @@ const TicketForm = ({
                 required
               />
             </div>
+
             <div>
               <label className="block text-red-300 text-sm font-medium mb-1">
                 Amount (₹) - Set by Event

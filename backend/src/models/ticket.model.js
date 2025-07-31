@@ -25,6 +25,17 @@ const ticketSchema = new mongoose.Schema({
             message: 'Invalid email format'
         }
     },
+    phone: {
+        type: String,
+        required: [true, 'Phone number is required'],
+        trim: true,
+        validate: {
+            validator: function(v) {
+                return /^\d{10}$/.test(v);
+            },
+            message: 'Phone number must be 10 digits'
+        }
+    },
     LpuId: {
         type: Number,
         required: [true, 'LPU ID is required'],
