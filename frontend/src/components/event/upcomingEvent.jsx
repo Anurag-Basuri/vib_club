@@ -28,9 +28,19 @@ const HorrorRaveYardPage = () => {
       try {
         const response = await publicClient.get('api/events/upcoming-event');
         const event = response.data?.data || response.data;
+        
+        // Set default tags if not provided by backend
+        if (event && !event.tags) {
+          event.tags = [
+            "DJ Gracy Live", 
+            "Freshers Exclusive", 
+            "Horror Theme", 
+            "VIP Access",
+            "Underground Experience"
+          ];
+        }
+        
         setEventData(event);
-        // Debug log (commented for production)
-        // console.log(response.data)
         if (event) {
           setTotalSpots(event.totalSpots || 0);
           const registrations = Array.isArray(event.registrations) ? event.registrations.length : 0;
@@ -97,6 +107,11 @@ const HorrorRaveYardPage = () => {
     return () => clearInterval(interval);
   }, [bloodDrips]);
 
+  // Validate LPU ID format
+  const validateLpuId = (id) => {
+    return /^\d{8}$/.test(id);
+  };
+
   // Payment handler functions
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -116,6 +131,13 @@ const HorrorRaveYardPage = () => {
       
       if (!name || !email || !phone || !lpuId) {
         setError('Please fill in all fields');
+        setLoading(false);
+        return;
+      }
+
+      // Validate LPU ID format
+      if (!validateLpuId(lpuId)) {
+        setError('LPU ID must be 8 digits');
         setLoading(false);
         return;
       }
@@ -149,43 +171,23 @@ const HorrorRaveYardPage = () => {
         name,
         email,
         phone,
-        amount: parseFloat(amount), // Use amount from backend
+        amount: parseFloat(amount),
         lpuId,
         eventId: eventData?._id || 'event_raveyard_2025',
         eventName: eventData?.title || 'RaveYard 2025'
       });
       
-      // Debug logs (commented for production)
-      // console.log("Full backend response:", response);
-      // console.log("Response data:", response.data);
-      // console.log("Response data.data:", response.data.data);
-      
       const orderData = response.data.data;
       const sessionId = orderData.payment_session_id;
       const orderId = orderData.order_id;
-      
-      // Debug logs (commented for production)
-      // console.log("Extracted sessionId:", sessionId);
-      // console.log("Extracted orderId:", orderId);
 
       // Initialize Cashfree payment
       if (window.Cashfree) {
         try {
-          // Create Cashfree instance with environment-based configuration
           const cashfree = new window.Cashfree({
             mode: ENV.CASHFREE_MODE
           });
 
-          // Debug logging (only in development)
-          if (ENV.DEBUG) {
-            // Commented for production deployment
-            // console.log("Cashfree mode:", ENV.CASHFREE_MODE);
-            // console.log("Environment:", ENV.NODE_ENV);
-            // console.log("Cashfree instance:", cashfree);
-            // console.log("Instance methods:", Object.getOwnPropertyNames(cashfree));
-          }
-
-          // Use checkout method on the instance
           const returnUrl = `${ENV.FRONTEND_URL}/payment-success?order_id=${orderId}&event_id=${eventData?._id}&event_name=${encodeURIComponent(eventData?.title || 'RaveYard 2025')}`;
           
           cashfree.checkout({
@@ -193,7 +195,7 @@ const HorrorRaveYardPage = () => {
             redirectTarget: "_self",
             returnUrl: returnUrl,
             theme: {
-              color: '#dc2626', // Red theme to match your brand
+              color: '#dc2626',
               backgroundColor: '#1a0630',
               primaryColor: '#dc2626',
               secondaryColor: '#1a0630'
@@ -206,19 +208,14 @@ const HorrorRaveYardPage = () => {
                 primaryColor: '#dc2626'
               }
             },
-            // Enhanced business branding
             merchantName: "Vibranta Student Organization",
             description: "RaveYard 2025 - Official Student Organization - LPU",
-            // Additional branding metadata
             metadata: {
               businessName: "Vibranta Student Organization",
               eventName: "RaveYard 2025",
               organization: "LPU Student Organization"
             }
           }).then(function(result) {
-            // Debug logs (commented for production)
-            // console.log("Checkout initiated:", result);
-            // Close the payment form since user will be redirected
             setShowPaymentForm(false);
           }).catch(function(error) {
             console.error("Payment error:", error);
@@ -247,8 +244,7 @@ const HorrorRaveYardPage = () => {
       name: '',
       email: '',
       phone: '',
-      amount: eventData?.ticketPrice || '300', // Fetch from backend but show as read-only
-      upiId: '',
+      amount: eventData?.ticketPrice || '300',
       lpuId: ''
     });
   };
@@ -291,7 +287,7 @@ const HorrorRaveYardPage = () => {
     </div>
   );
 
-  // Event highlights based on your prompt
+  // Event highlights with exact specifications
   const eventHighlights = [
     {
       title: "Headlining Performance by DJ Gracy",
@@ -305,7 +301,7 @@ const HorrorRaveYardPage = () => {
     },
     {
       title: "Haunted Glow Setup",
-      description: "Lasers, fog, UV-reactive horror decor, props, and more. Insta-worthy ghost installations, skull photo booths, and gaming. Tattoo mask transformation booth at entry.",
+      description: "Lasers, fog, UV-reactive horror decor, props, and more. Insta-worthy ghost installations, skull photo booths, and gaming. Tattoo mask transformation booths at entry.",
       icon: "💀"
     },
     {
@@ -314,18 +310,18 @@ const HorrorRaveYardPage = () => {
       icon: "🎟️"
     },
     {
-      title: "Emergency Preparedness",
-      description: "Security with crowd flow control. Emergency medical setup & trained volunteers. Gender-sensitive, inclusive crowd care policy enforced at checkpoints.",
+      title: "Security & Emergency Preparedness",
+      description: "K9 security with crowd flow control. Emergency medical setup & trained volunteers. Gender-sensitive, inclusive crowd care policy enforced at checkpoints.",
       icon: "🚨"
     },
     {
       title: "Social Media Amplification",
-      description: "Hashtag: #RaveYard2025 — Join the undead online! Scream countdowns, ghost transformation content. Influencer strategy & branded social booth for sponsors.",
+      description: "Hashtag: #RaveYard2025 — Join the undead online! Horror filters, scream countdowns, ghost transformation content. Influencer strategy & branded social booth for sponsors.",
       icon: "📱"
     },
     {
       title: "Refreshment Zone @ RaveYard",
-      description: "Dedicated food & beverage stalls near the venue. Chillers: Mojitos, mocktails, soda blends, lemonade, cold coffee. Warmers: Coffee, chai. Snacks: Momos, rolls, nachos, popcorn, samosa. Quick eats: Sandwiches, Maggi, fries. Sweet treats: Cupcakes, brownies, chocolate dipped waffles.",
+      description: "Dedicated food & beverage stalls near venue entry/exit, stage sides & open pathways. Offerings: Chillers (Mojitos, mocktails, soda blends, Lemonade, Cold Coffee), Warmers (Coffee, Chai), Street bites (Mommies, rolls, nachos, popcorn, Samosa), Quick eats (Sandwiches, Maggi, fries), Sweet treats (Cupcakes, candy floss, brownies, Chocolate Dipped Waffles). Themed stall decor with eerie, post-apocalyptic aesthetics.",
       icon: "🍔"
     }
   ];
@@ -334,7 +330,7 @@ const HorrorRaveYardPage = () => {
     <div
       className="min-h-screen bg-black text-white font-sans relative"
       style={{
-        overflow: "hidden" // Prevent double scrollbars
+        overflow: "hidden"
       }}
     >
       <BloodDrips />
@@ -363,13 +359,12 @@ const HorrorRaveYardPage = () => {
         </motion.div>
       ))}
 
-      {/* Hero Section - Attraction Only */}
+      {/* Hero Section */}
       <section className="relative min-h-screen flex flex-col justify-center items-center p-4 overflow-hidden"
         style={{
           background: 'radial-gradient(circle at 30% 40%, #2d1b69 0%, #1a0630 40%, #0a0015 70%, #000000 100%)'
         }}
       >
-        {/* Rust overlays */}
         <div className="relative z-10 text-center max-w-6xl px-4">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -580,6 +575,27 @@ const HorrorRaveYardPage = () => {
                 <div className="text-5xl mb-4">{item.icon}</div>
                 <h3 className="text-xl font-bold text-white mb-2">{item.title}</h3>
                 <p className="text-red-200">{item.description}</p>
+                
+                {/* Special effects for specific highlights */}
+                {item.title === "Security & Emergency Preparedness" && (
+                  <motion.div
+                    className="absolute bottom-4 right-4"
+                    animate={{ x: [0, -10, 0], rotate: [0, 15, 0] }}
+                    transition={{ repeat: Infinity, duration: 2 }}
+                  >
+                    <span className="text-3xl">🐕‍🦺</span>
+                  </motion.div>
+                )}
+
+                {item.title === "Social Media Amplification" && (
+                  <div className="absolute top-4 left-4 bg-black/50 p-2 rounded-lg">
+                    <span className="flex items-center">
+                      <span className="mr-2">📸</span>
+                      <span className="text-xs">#RaveYard2025</span>
+                    </span>
+                  </div>
+                )}
+
                 <motion.div
                   className="absolute top-4 right-4 w-6 h-6 bg-red-600 rounded-full"
                   animate={{
@@ -681,9 +697,9 @@ const HorrorRaveYardPage = () => {
             >
               <div className="bg-gradient-to-br from-red-900/40 to-black/70 backdrop-blur-sm border border-red-600/50 rounded-xl overflow-hidden aspect-square">
                 <div className="relative h-full flex flex-col items-center justify-center p-8 text-center">
-                  <div className="text-8xl mb-6">👻</div>
-                  <h3 className="text-2xl font-bold text-white mb-4">Portal Opening</h3>
-                  <p className="text-red-200">Experience the dimensional rift between worlds</p>
+                  <div className="text-8xl mb-6">🌀</div>
+                  <h3 className="text-2xl font-bold text-white mb-4">Portal Opening Experience</h3>
+                  <p className="text-red-200">Experience the dimensional rift between worlds with immersive ghost installations and scream zones</p>
                 </div>
               </div>
             </motion.div>
@@ -758,6 +774,8 @@ const HorrorRaveYardPage = () => {
           </div>
         </div>
       </footer>
+
+      {/* Animated effects */}
       <AnimatePresence>
         {eyesBlinking && (
           <motion.div
@@ -783,6 +801,7 @@ const HorrorRaveYardPage = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
       <AnimatePresence>
         {ghostAppears && (
           <div className="fixed inset-0 pointer-events-none z-20">
