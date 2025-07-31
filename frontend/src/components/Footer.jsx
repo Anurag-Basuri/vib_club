@@ -1,9 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { FaTwitter, FaGithub, FaLinkedin, FaInstagram } from 'react-icons/fa';
-import { Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const Footer = () => {
+  const navigate = useNavigate();
+
   const socialLinks = [
     { name: 'Twitter', icon: <FaTwitter className="w-5 h-5" />, url: "https://twitter.com/vibrantaclub" },
     { name: 'GitHub', icon: <FaGithub className="w-5 h-5" />, url: "https://github.com/vibrantaclub" },
@@ -15,9 +17,9 @@ const Footer = () => {
     {
       title: "Legal",
       items: [
-        // { name: "Privacy Policy", Navigate: () => <Navigate to="/policy/privacy" /> },
-        { name: "Terms and Conditions", Navigate: () => <Navigate to="/policy/terms" /> },
-        { name: "Cookie Policy", Navigate: () => <Navigate to="/policy/cookie" /> }
+        { name: "Terms and Conditions", to: "/policy/terms" },
+        { name: "Cancellation and Refund", to: "/policy/refund-policy" },
+        { name: "Cookie Policy", to: "/policy/cookie" }
       ]
     }
   ];
@@ -26,7 +28,6 @@ const Footer = () => {
     <footer className="pt-24 pb-12 px-4 relative z-10 overflow-hidden bg-transparent">
       {/* Background elements */}
       <div className="absolute inset-0 -z-10 pointer-events-none">
-        {/* Remove solid backgrounds, keep only subtle gradients and blurs */}
         <div className="absolute bottom-0 left-0 w-full h-full bg-gradient-to-t from-blue-900/20 to-indigo-900/0 backdrop-blur-2xl"></div>
         <div className="absolute top-1/3 left-1/4 w-64 h-64 bg-blue-600/10 rounded-full blur-3xl"></div>
         <div className="absolute top-1/2 right-1/4 w-72 h-72 bg-indigo-600/10 rounded-full blur-3xl"></div>
@@ -65,6 +66,7 @@ const Footer = () => {
                     backgroundColor: 'rgba(99, 102, 241, 0.2)'
                   }}
                   whileTap={{ scale: 0.9 }}
+                  aria-label={social.name}
                 >
                   {social.icon}
                 </motion.a>
@@ -108,16 +110,21 @@ const Footer = () => {
             © 2024 Vibranta Club. All rights reserved.
           </p>
           
-          <div className="flex gap-6">
+          <div className="flex flex-wrap gap-6 justify-center md:justify-end">
             {footerLinks.map((section, index) => (
               <div key={index} className="text-blue-200">
                 <h5 className="font-semibold mb-2">{section.title}</h5>
                 <ul className="space-y-2">
                   {section.items.map((item, idx) => (
                     <li key={idx}>
-                      <item.Navigate className="hover:text-blue-400 transition-colors">
+                      <button
+                        type="button"
+                        onClick={() => navigate(item.to)}
+                        className="hover:text-blue-400 transition-colors bg-transparent p-0 m-0 text-inherit"
+                        style={{ textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer' }}
+                      >
                         {item.name}
-                      </item.Navigate>
+                      </button>
                     </li>
                   ))}
                 </ul>
@@ -126,9 +133,9 @@ const Footer = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Floating elements */}
-      <motion.div 
+      <motion.div
         className="absolute bottom-20 right-20 w-16 h-16 rounded-full bg-gradient-to-r from-blue-600/20 to-indigo-600/20 blur-xl -z-10"
         animate={{
           y: [0, -20, 0],
@@ -141,7 +148,7 @@ const Footer = () => {
           ease: "easeInOut"
         }}
       />
-      
+
       <motion.div 
         className="absolute bottom-40 left-20 w-12 h-12 rounded-full bg-gradient-to-r from-indigo-600/20 to-purple-600/20 blur-xl -z-10"
         animate={{
