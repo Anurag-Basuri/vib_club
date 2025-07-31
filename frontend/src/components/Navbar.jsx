@@ -26,8 +26,8 @@ const navSections = [
         items: [
             { name: 'Home', icon: Home, path: '/', color: '#00d9ff' },
             { name: 'Events', icon: Calendar, path: '/event', color: '#7c3aed' },
-            { name: 'Team', icon: Users, path: '/team', color: '#0ea5e9' },
-            { name: 'Social', icon: Sparkles, path: '/social-page', color: '#06b6d4' },
+            // { name: 'Team', icon: Users, path: '/team', color: '#0ea5e9' },
+            // { name: 'Social', icon: Sparkles, path: '/social-page', color: '#06b6d4' },
             { name: 'Contact', icon: Mail, path: '/contact', color: '#0284c7' },
         ],
     },
