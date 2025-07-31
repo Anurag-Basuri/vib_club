@@ -9,6 +9,7 @@ import MemberProfile from '../pages/member.jsx';
 import Auth from '../pages/auth.jsx';
 import Current from '../components/upcomingEvent.jsx';
 import PaymentSuccess from '../pages/payment-success.jsx';
+import Terms from '../pages/terms.jsx';
 
 const AppRoutes = () => {
     return (
@@ -21,6 +22,8 @@ const AppRoutes = () => {
             <Route path="/team" element={<Team />} />
             <Route path='/social-page' element={<Social />} />
             <Route path="/contact" element={<Contact />} />
+
+            <Route path="/policy/terms" element={<Terms />} />
 
             {/* <Route path="/member" element={<MemberProfile />} /> */}
         </Routes>

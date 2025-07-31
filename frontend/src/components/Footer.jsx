@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { FaTwitter, FaGithub, FaLinkedin, FaInstagram } from 'react-icons/fa';
+import { Navigate } from 'react-router-dom';
 
 const Footer = () => {
   const socialLinks = [
@@ -14,9 +15,9 @@ const Footer = () => {
     {
       title: "Legal",
       items: [
-        { name: "Privacy Policy", url: "#" },
-        { name: "Terms of Use", url: "#" },
-        { name: "Cookie Policy", url: "#" }
+        // { name: "Privacy Policy", Navigate: () => <Navigate to="/policy/privacy" /> },
+        { name: "Terms and Conditions", Navigate: () => <Navigate to="/policy/terms" /> },
+        { name: "Cookie Policy", Navigate: () => <Navigate to="/policy/cookie" /> }
       ]
     }
   ];
@@ -108,14 +109,19 @@ const Footer = () => {
           </p>
           
           <div className="flex gap-6">
-            {footerLinks[0].items.map((item, index) => (
-              <a 
-                key={index} 
-                href={item.url} 
-                className="text-blue-300 hover:text-white transition-colors text-sm"
-              >
-                {item.name}
-              </a>
+            {footerLinks.map((section, index) => (
+              <div key={index} className="text-blue-200">
+                <h5 className="font-semibold mb-2">{section.title}</h5>
+                <ul className="space-y-2">
+                  {section.items.map((item, idx) => (
+                    <li key={idx}>
+                      <item.Navigate className="hover:text-blue-400 transition-colors">
+                        {item.name}
+                      </item.Navigate>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
           </div>
         </div>
