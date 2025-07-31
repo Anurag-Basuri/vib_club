@@ -20,14 +20,14 @@ const TicketForm = ({
 
   return (
     <motion.div
-      className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
     >
       <motion.div
-        className="bg-gradient-to-br from-red-900/90 to-black/90 backdrop-blur-sm border border-red-600/50 rounded-xl max-w-md w-full max-h-[90vh] relative overflow-hidden"
+        className="bg-gradient-to-br from-red-900/90 to-black/90 backdrop-blur-sm border border-red-600/50 rounded-xl max-w-md w-full h-auto relative overflow-visible flex flex-col justify-center"
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.8, opacity: 0 }}
@@ -49,7 +49,7 @@ const TicketForm = ({
         </div>
 
         {/* Form Content */}
-        <div className="overflow-y-auto max-h-[calc(90vh-200px)] p-6 pt-4">
+        <div className="p-6 pt-4">
           {error && (
             <div className="bg-red-900/50 border border-red-600 rounded-lg p-3 mb-4">
               <p className="text-red-300 text-sm">{error}</p>
@@ -78,7 +78,7 @@ const TicketForm = ({
               />
             </div>
 
-            {/* Email*/}
+            {/* Email */}
             <div>
               <label className="block text-red-300 text-sm font-medium mb-1">
                 Email Address
@@ -126,6 +126,7 @@ const TicketForm = ({
               />
             </div>
 
+            {/* Amount */}
             <div>
               <label className="block text-red-300 text-sm font-medium mb-1">
                 Amount (₹) - Set by Event
