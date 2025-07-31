@@ -7,7 +7,6 @@ import {ApiResponse} from '../utils/ApiResponse.js';
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
 import { config } from 'dotenv';
-
 config()
 
 const createOrder = asyncHandler(async (req, res) => {
@@ -18,7 +17,7 @@ const createOrder = asyncHandler(async (req, res) => {
         if (!name || !email || !phone || !amount || !lpuId) {
             throw new ApiError(400, 'Missing required fields: name, email, phone, amount, lpuId');
         }
-        if (isNaN(amount) || Number(amount) <= 0) {
+        if (isNaN(amount) || amount <= 0) {
             throw new ApiError(400, 'Invalid amount');
         }
 
@@ -53,17 +52,19 @@ const createOrder = asyncHandler(async (req, res) => {
 
         // Prepare Cashfree order payload
         const orderPayload = {
+            orderId,
+            order_amount: amount,
+            order_currency: 'INR',
             customer_details: {
                 customer_name: name,
                 customer_id: customerId,
                 customer_email: email,
                 customer_phone: phone,
             },
-            order_id: orderId,
-            order_amount: Number(amount),
-            order_currency: 'INR',
             order_meta: {
-                return_url: `${process.env.CASHFREE_RETURN_URL}/payment/cashfree/verify?order_id=${orderId}`,
+                return_url: `${process.env.CASHFREE_RETURN_URL}?order_id=${order_id}`,
+                notify_url: process.env.CASHFREE_NOTIFY_URL,
+                payment_methods: "upi,nb,cc,dc,app"
             },
             order_note: `${process.env.CASHFREE_BUSINESS_NAME || "Vibranta"} - ${resolvedEventName} - LPU ID: ${lpuId}`,
             order_expiry_time: new Date(Date.now() + 30 * 60 * 1000).toISOString()
@@ -74,7 +75,7 @@ const createOrder = asyncHandler(async (req, res) => {
 
         // Create transaction record
         await Transaction.create({
-            orderId,
+            orderId: order_id,
             user: { name, email, phone, lpuId },
             amount: Number(amount),
             status: 'PENDING',
