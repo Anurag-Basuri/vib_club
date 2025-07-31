@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { publicClient } from '../../services/api.js';
 import TicketForm from './ticketForm.jsx';
+import ENV from '../../config/env.js';
 
 const HorrorRaveYardPage = () => {
 	const [spotsLeft, setSpotsLeft] = useState(0);
@@ -207,6 +208,27 @@ const HorrorRaveYardPage = () => {
 		setShowPaymentForm(true);
 	};
 
+	// useEffect(() => {
+	// 	const loadCashfree = () => {
+	// 	const script = document.createElement('script');
+	// 	script.src = ENV.CASHFREE_MODE === 'production' 
+	// 		? 'https://sdk.cashfree.com/js/ui/2.0.0/cashfree.production.js' 
+	// 		: 'https://sdk.cashfree.com/js/ui/2.0.0/cashfree.sandbox.js';
+	// 	script.async = true;
+	// 	script.onload = () => console.log('Cashfree SDK loaded');
+	// 	document.body.appendChild(script);
+	// 	};
+
+	// 	if (!window.Cashfree) {
+	// 	loadCashfree();
+	// 	}
+		
+	// 	return () => {
+	// 	const script = document.querySelector('script[src*="cashfree"]');
+	// 	if (script) document.body.removeChild(script);
+	// 	};
+	// }, []);
+
 	const handlePayment = async () => {
 		setLoading(true);
 		setError('');
@@ -217,21 +239,31 @@ const HorrorRaveYardPage = () => {
 				setLoading(false);
 				return;
 			}
+
 			const res = await publicClient.post('api/cashfree/order', {
-                ...formData,
-                eventId: eventData?._id,
-            });
+				...formData,
+				eventId: eventData?._id,
+			});
 
-            console.log('Order response:', res.data.data);
+			const { payment_session_id } = res.data.data;
+			console.log('Payment session ID:', payment_session_id);
 
-			if (res.data.success) {
-				setShowPaymentForm(false);
-				// Optionally show success message or redirect
-			} else {
-				setError(res.data.message || 'Payment failed. Try again.');
+			if (!payment_session_id) {
+				throw new Error('Payment session not generated');
 			}
+
+			if (!window.Cashfree) {
+				alert('Cashfree SDK not loaded.');
+				setLoading(false);
+				return;
+			}
+
+			Cashfree.checkout({
+			paymentSessionId: payment_session_id,
+			redirectTarget: '_self', // or '_blank' for new tab
+		});
 		} catch (err) {
-			setError('Payment failed. Please try again.');
+			setError(err.message || 'An error occurred while processing payment.');
 		}
 		setLoading(false);
 	};
@@ -790,6 +822,9 @@ const HorrorRaveYardPage = () => {
 					/>
 				)}
 			</AnimatePresence>
+
+			{showPaymentForm && <div id="cashfree-dropin-container" style={{ width: '100%', height: '500px' }} />}
+
 		</div>
 	);
 };
