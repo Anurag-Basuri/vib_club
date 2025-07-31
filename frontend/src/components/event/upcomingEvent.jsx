@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { publicClient } from "../../services/api.js";
-import ENV from '../../config/env.js';
 import TicketForm from './ticketForm.jsx';
 
 const HorrorRaveYardPage = () => {
@@ -45,6 +44,10 @@ const HorrorRaveYardPage = () => {
           setTotalSpots(event.totalSpots || 0);
           const registrations = Array.isArray(event.registrations) ? event.registrations.length : 0;
           setSpotsLeft((event.totalSpots || 0) - registrations);
+          setFormData(f => ({
+            ...f,
+            amount: event.ticketPrice ? String(event.ticketPrice) : '300'
+          }));
         }
       } catch (error) {
         console.error('Error fetching event data:', error);
@@ -106,137 +109,6 @@ const HorrorRaveYardPage = () => {
 
     return () => clearInterval(interval);
   }, [bloodDrips]);
-
-  // Validate LPU ID format
-  const validateLpuId = (id) => {
-    return /^\d{8}$/.test(id);
-  };
-
-  // Payment handler functions
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handlePayment = async () => {
-    try {
-      setLoading(true);
-      setError('');
-
-      // Validate form data
-      const { name, email, phone, amount, lpuId } = formData;
-      
-      if (!name || !email || !phone || !lpuId) {
-        setError('Please fill in all fields');
-        setLoading(false);
-        return;
-      }
-
-      // Validate LPU ID format
-      if (!validateLpuId(lpuId)) {
-        setError('LPU ID must be 8 digits');
-        setLoading(false);
-        return;
-      }
-
-      // Validate amount from backend
-      if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
-        setError('Invalid ticket amount from server');
-        setLoading(false);
-        return;
-      }
-
-      // Check email availability before proceeding with payment
-      try {
-        await publicClient.post('/tickets/check-email', {
-          email: email.trim(),
-          eventId: eventData?._id || 'event_raveyard_2025',
-          lpuId: lpuId.trim()
-        });
-      } catch (emailCheckError) {
-        if (emailCheckError.response?.status === 409) {
-          setError(emailCheckError.response.data.message || 'Email or LPU ID already registered for this event');
-        } else {
-          setError('Failed to validate registration details. Please try again.');
-        }
-        setLoading(false);
-        return;
-      }
-
-      // Create order with backend
-      const response = await publicClient.post('/cashfree/order', {
-        name,
-        email,
-        phone,
-        amount: parseFloat(amount),
-        lpuId,
-        eventId: eventData?._id || 'event_raveyard_2025',
-        eventName: eventData?.title || 'RaveYard 2025'
-      });
-      
-      const orderData = response.data.data;
-      const sessionId = orderData.payment_session_id;
-      const orderId = orderData.order_id;
-
-      // Initialize Cashfree payment
-      if (window.Cashfree) {
-        try {
-          const cashfree = new window.Cashfree({
-            mode: ENV.CASHFREE_MODE
-          });
-
-          const returnUrl = `${ENV.FRONTEND_URL}/payment-success?order_id=${orderId}&event_id=${eventData?._id}&event_name=${encodeURIComponent(eventData?.title || 'RaveYard 2025')}`;
-          
-          cashfree.checkout({
-            paymentSessionId: sessionId,
-            redirectTarget: "_self",
-            returnUrl: returnUrl,
-            theme: {
-              color: '#dc2626',
-              backgroundColor: '#1a0630',
-              primaryColor: '#dc2626',
-              secondaryColor: '#1a0630'
-            },
-            components: {
-              style: {
-                backgroundColor: '#1a0630',
-                color: '#ffffff',
-                fontFamily: 'Arial, sans-serif',
-                primaryColor: '#dc2626'
-              }
-            },
-            merchantName: "Vibranta Student Organization",
-            description: "RaveYard 2025 - Official Student Organization - LPU",
-            metadata: {
-              businessName: "Vibranta Student Organization",
-              eventName: "RaveYard 2025",
-              organization: "LPU Student Organization"
-            }
-          }).then(function(result) {
-            setShowPaymentForm(false);
-          }).catch(function(error) {
-            console.error("Payment error:", error);
-            setError('Payment failed. Please try again.');
-          });
-
-        } catch (paymentError) {
-          console.error("Payment initialization error:", paymentError);
-          setError('Failed to initialize payment. Please try again.');
-        }
-      } else {
-        setError('Payment gateway not available. Please try again.');
-      }
-
-      setLoading(false);
-    } catch (error) {
-      console.error('Payment error:', error);
-      setError(error.message || 'Payment failed. Please try again.');
-      setLoading(false);
-    }
-  };
 
   const BloodDrips = () => (
     <div className="fixed inset-0 pointer-events-none z-0">
@@ -314,6 +186,38 @@ const HorrorRaveYardPage = () => {
       icon: "🍔"
     }
   ];
+
+  const openPaymentForm = () => {
+    setError('');
+    setShowPaymentForm(true);
+  };
+
+  const handlePayment = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      // Validate form
+      if (!formData.name || !formData.email || !formData.phone || !formData.lpuId) {
+        setError('Please fill all fields.');
+        setLoading(false);
+        return;
+      }
+      // Example: send payment request (replace with your API logic)
+      const res = await publicClient.post('api/events/register', {
+        ...formData,
+        eventId: eventData?._id
+      });
+      if (res.data.success) {
+        setShowPaymentForm(false);
+        // Optionally show success message or redirect
+      } else {
+        setError(res.data.message || 'Payment failed. Try again.');
+      }
+    } catch (err) {
+      setError('Payment failed. Please try again.');
+    }
+    setLoading(false);
+  };
 
   return (
     <div

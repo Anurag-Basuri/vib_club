@@ -29,7 +29,7 @@ const createOrder = asyncHandler(async (req, res) => {
             email: email.toLowerCase().trim(),
             eventId: eventId || 'event_raveyard_2025' 
         });
-        
+
         if (existingTicketByEmail) {
             throw new ApiError(409, 'A ticket has already been purchased with this email address for this event');
         }
