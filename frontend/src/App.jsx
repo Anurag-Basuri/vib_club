@@ -9,8 +9,7 @@ import Navbar from './components/Navbar.jsx';
 function AppContent() {
     useLenis();
     const location = useLocation();
-    // const hideNavbar = location.pathname.startsWith('/auth');
-    const hideNavbar = true;
+    const hideNavbar = location.pathname.startsWith('/auth');
     const [scrolled, setScrolled] = useState(false);
     const [showNavbar, setShowNavbar] = useState(true);
     const lastScrollY = useRef(window.scrollY);

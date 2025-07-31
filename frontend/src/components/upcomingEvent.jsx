@@ -25,7 +25,7 @@ const HorrorRaveYardPage = () => {
   useEffect(() => {
     const fetchEventData = async () => {
       try {
-        const response = await publicClient.get('/events/upcoming-event');
+        const response = await publicClient.get('api/events/upcoming-event');
         const event = response.data?.data || response.data;
         setEventData(event);
         // Debug log (commented for production)
