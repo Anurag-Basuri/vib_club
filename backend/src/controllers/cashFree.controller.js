@@ -12,67 +12,80 @@ config()
 
 const createOrder = asyncHandler(async (req, res) => {
     try {
-        const { name, email, phone, amount, eventId } = req.body;
+        const { name, email, phone, amount, eventId, lpuId } = req.body;
 
-        if (!name || !email || !phone || !amount) {
-            throw new ApiError(400, 'Missing required fields: name, email, phone, amount, and lpuId');
+        // Validate required fields
+        if (!name || !email || !phone || !amount || !lpuId) {
+            throw new ApiError(400, 'Missing required fields: name, email, phone, amount, lpuId');
         }
-        if (isNaN(amount) || amount <= 0) {
+        if (isNaN(amount) || Number(amount) <= 0) {
             throw new ApiError(400, 'Invalid amount');
         }
 
-        // Check if email already exists in tickets for this event
-        const existingTicketByEmail = await Ticket.findOne({
+        // Check for duplicate ticket by email for this event
+        const eventIdToUse = eventId || '68859a199ec482166f0e8523';
+        const existingTicket = await Ticket.findOne({
             email: email.trim(),
-            eventId: eventId || '68859a199ec482166f0e8523'
+            eventId: eventIdToUse
         });
-        if (existingTicketByEmail) {
+        if (existingTicket) {
             throw new ApiError(409, 'A ticket has already been purchased with this email address for this event');
         }
 
-        const order_id = uuidv4() + '-' + Date.now();
+        // Generate unique order and customer IDs
+        const orderId = uuidv4() + '-' + Date.now();
+        const customerId = uuidv4();
 
-        // Check for duplicate order_id
-        const existing = await Transaction.findOne({ orderId: order_id });
-        if (existing) {
+        // Check for duplicate orderId
+        const existingOrder = await Transaction.findOne({ orderId });
+        if (existingOrder) {
             throw new ApiError(409, 'Duplicate orderId — try again');
         }
-        const customer_id = uuidv4();
 
+        // Resolve event name for order note
+        let resolvedEventName = 'Vibranta Event';
+        if (eventIdToUse) {
+            const eventDoc = await Ticket.findOne({ eventId: eventIdToUse });
+            if (eventDoc && eventDoc.eventName) {
+                resolvedEventName = eventDoc.eventName;
+            }
+        }
+
+        // Prepare Cashfree order payload
         const orderPayload = {
             customer_details: {
-				customer_name: name,
-				customer_id: customer_id,
-				customer_email: email,
-				customer_phone: phone,
-			},
+                customer_name: name,
+                customer_id: customerId,
+                customer_email: email,
+                customer_phone: phone,
+            },
             order_id: orderId,
-			order_amount: amount,
-			order_currency: 'INR',
+            order_amount: Number(amount),
+            order_currency: 'INR',
             order_meta: {
-				return_url: `${process.env.CASHFREE_RETURN_URL}/payment/cashfree/verify?order_id=${orderId}`,
-			},
+                return_url: `${process.env.CASHFREE_RETURN_URL}/payment/cashfree/verify?order_id=${orderId}`,
+            },
             order_note: `${process.env.CASHFREE_BUSINESS_NAME || "Vibranta"} - ${resolvedEventName} - LPU ID: ${lpuId}`,
-			order_expiry_time: new Date(Date.now() + 30 * 60 * 1000).toISOString()
+            order_expiry_time: new Date(Date.now() + 30 * 60 * 1000).toISOString()
         };
 
         // Create order with Cashfree
         const order = await createCashfreeOrder(orderPayload);
 
-        // Create transaction record with multiple payment options
+        // Create transaction record
         await Transaction.create({
-            orderId: order_id,
-            user: { name, email },
-            amount,
+            orderId,
+            user: { name, email, phone, lpuId },
+            amount: Number(amount),
             status: 'PENDING',
             paymentMethod: 'UPI',
-            eventId: eventId || '68859a199ec482166f0e8523',
+            eventId: eventIdToUse,
         });
 
         return res.status(200).json(
             new ApiResponse(
-                200, // Status code should be first argument
-                 order ,
+                200,
+                order,
                 'Order created successfully'
             )
         );

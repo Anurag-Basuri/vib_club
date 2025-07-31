@@ -16,6 +16,14 @@ const transactionSchema = new mongoose.Schema(
                 type: String,
                 required: true
             },
+			phone: {
+				type: String,
+				required: true
+			},
+			lpuId: {
+				type: String,
+				required: true
+			}
 		},
 		amount: {
 			type: Number,
