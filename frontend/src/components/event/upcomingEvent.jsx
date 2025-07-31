@@ -238,17 +238,6 @@ const HorrorRaveYardPage = () => {
     }
   };
 
-  const openPaymentForm = () => {
-    setShowPaymentForm(true);
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      amount: eventData?.ticketPrice || '300',
-      lpuId: ''
-    });
-  };
-
   const BloodDrips = () => (
     <div className="fixed inset-0 pointer-events-none z-0">
       {bloodDrips.map((drip) => (
