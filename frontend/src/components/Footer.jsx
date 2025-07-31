@@ -15,7 +15,6 @@ const Footer = () => {
 
   const footerLinks = [
     {
-      title: "Legal",
       items: [
         { name: "Terms and Conditions", to: "/policy/terms" },
         { name: "Cancellation and Refund", to: "/policy/refund-policy" },
@@ -113,7 +112,6 @@ const Footer = () => {
           <div className="flex flex-wrap gap-6 justify-center md:justify-end">
             {footerLinks.map((section, index) => (
               <div key={index} className="text-blue-200">
-                <h5 className="font-semibold mb-2">{section.title}</h5>
                 <ul className="space-y-2">
                   {section.items.map((item, idx) => (
                     <li key={idx}>

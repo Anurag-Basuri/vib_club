@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const termsList = [
@@ -66,14 +66,6 @@ const termsList = [
 
 const Terms = () => {
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const navbar = document.querySelector('[data-navbar]');
-    if (navbar) navbar.style.display = 'none';
-    return () => {
-      if (navbar) navbar.style.display = '';
-    };
-  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-blue-950 to-black text-white px-4 py-16 flex justify-center items-start">

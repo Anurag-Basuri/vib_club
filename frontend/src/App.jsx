@@ -9,7 +9,13 @@ import Navbar from './components/Navbar.jsx';
 function AppContent() {
     useLenis();
     const location = useLocation();
-    const hideNavbar = location.pathname.startsWith('/auth');
+    // Hide navbar for /auth, /terms, /refund, or /policy routes
+    const hideNavbar =
+        location.pathname.startsWith('/auth') ||
+        location.pathname.startsWith('/terms') ||
+        location.pathname.startsWith('/refund') ||
+        location.pathname.startsWith('/policy');
+
     const [scrolled, setScrolled] = useState(false);
     const [showNavbar, setShowNavbar] = useState(true);
     const lastScrollY = useRef(window.scrollY);
