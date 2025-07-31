@@ -26,11 +26,9 @@ const transactionSchema = new mongoose.Schema(
 			enum: ['PENDING', 'SUCCESS', 'FAILED', 'REFUNDED'],
 			default: 'PENDING',
 		},
-		referenceId: {
-			type: String,
-		},
 		paymentTime: {
 			type: Date,
+			default: Date.now,
 		},
 		failureReason: {
 			type: String,
@@ -39,10 +37,6 @@ const transactionSchema = new mongoose.Schema(
 			type: String,
 			enum: ['UPI', 'CARD', 'NET_BANKING', 'WALLET', 'MULTIPLE_OPTIONS'],
 			default: 'MULTIPLE_OPTIONS',
-		},
-		lpuId: {
-			type: Number,
-			required: true,
 		},
 		eventId: {
 			type: String,

@@ -12,39 +12,25 @@ config()
 
 const createOrder = asyncHandler(async (req, res) => {
     try {
-        const { name, email, phone, amount, lpuId, eventId, eventName } = req.body;
+        const { name, email, phone, amount, eventId } = req.body;
 
-        if (!name || !email || !phone || !amount || !lpuId) {
+        if (!name || !email || !phone || !amount) {
             throw new ApiError(400, 'Missing required fields: name, email, phone, amount, and lpuId');
         }
         if (isNaN(amount) || amount <= 0) {
             throw new ApiError(400, 'Invalid amount');
         }
-        if (isNaN(lpuId)) {
-            throw new ApiError(400, 'LPU ID must be a valid number');
-        }
 
         // Check if email already exists in tickets for this event
-        const existingTicketByEmail = await Ticket.findOne({ 
-            email: email.toLowerCase().trim(),
-            eventId: eventId || 'event_raveyard_2025' 
+        const existingTicketByEmail = await Ticket.findOne({
+            email: email.trim(),
+            eventId: eventId || '68859a199ec482166f0e8523'
         });
-
         if (existingTicketByEmail) {
             throw new ApiError(409, 'A ticket has already been purchased with this email address for this event');
         }
 
-        // Check if LPU ID already exists in tickets for this event
-        const existingTicketByLpu = await Ticket.findOne({ 
-            LpuId: parseInt(lpuId),
-            eventId: eventId || 'event_raveyard_2025' 
-        });
-        
-        if (existingTicketByLpu) {
-            throw new ApiError(409, 'A ticket has already been purchased with this LPU ID for this event');
-        }
-
-        const order_id = uuidv4();
+        const order_id = uuidv4() + '-' + Date.now();
 
         // Check for duplicate order_id
         const existing = await Transaction.findOne({ orderId: order_id });
@@ -54,39 +40,20 @@ const createOrder = asyncHandler(async (req, res) => {
         const customer_id = uuidv4();
 
         const orderPayload = {
-            order_id,
-            order_amount: amount,
-            order_currency: 'INR',
             customer_details: {
-                customer_name: name, 
-                customer_id,
-                customer_email: email,
-                customer_phone: phone,
-            },
+				customer_name: name,
+				customer_id: customer_id,
+				customer_email: email,
+				customer_phone: phone,
+			},
+            order_id: orderId,
+			order_amount: amount,
+			order_currency: 'INR',
             order_meta: {
-                return_url: `${process.env.CASHFREE_RETURN_URL}?order_id=${order_id}`,
-                notify_url: process.env.CASHFREE_NOTIFY_URL,
-                payment_methods: "upi,nb,cc,dc,app"
-            },
-            order_note: `${process.env.CASHFREE_BUSINESS_NAME || "Vibranta Student Organization"} - Payment for ${eventName || 'RaveYard 2025'} - LPU ID: ${lpuId}`,
-            order_tags: {
-                event_id: eventId,
-                lpu_id: lpuId.toString(),
-                event_name: eventName,
-                payment_for: "event_ticket",
-                business_name: process.env.CASHFREE_BUSINESS_NAME || "Vibranta Student Organization",
-                business_description: process.env.CASHFREE_BUSINESS_DESCRIPTION || "Official Student Organization - LPU",
-                merchant_name: "Vibranta Student Organization",
-                organization: "LPU",
-                event_title: "RaveYard 2025"
-            },
-            // Terminal data for web checkout
-            terminal_data: {
-                terminal_type: "WEB",
-                terminal_id: "vibranta_web_terminal"
-            },
-            // Order expiry (30 minutes - more than 15 min requirement)
-            order_expiry_time: new Date(Date.now() + 30 * 60 * 1000).toISOString()
+				return_url: `${process.env.CASHFREE_RETURN_URL}/payment/cashfree/verify?order_id=${orderId}`,
+			},
+            order_note: `${process.env.CASHFREE_BUSINESS_NAME || "Vibranta"} - ${resolvedEventName} - LPU ID: ${lpuId}`,
+			order_expiry_time: new Date(Date.now() + 30 * 60 * 1000).toISOString()
         };
 
         // Create order with Cashfree
@@ -98,10 +65,8 @@ const createOrder = asyncHandler(async (req, res) => {
             user: { name, email },
             amount,
             status: 'PENDING',
-            paymentMethod: 'MULTIPLE_OPTIONS', // Updated to support all payment methods
-            lpuId: parseInt(lpuId), // Ensure lpuId is stored as number
-            eventId: eventId || 'event_raveyard_2025',
-            eventName: eventName || 'RaveYard 2025'
+            paymentMethod: 'UPI',
+            eventId: eventId || '68859a199ec482166f0e8523',
         });
 
         return res.status(200).json(
