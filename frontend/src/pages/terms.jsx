@@ -1,79 +1,95 @@
-import React from 'react';
-
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const termsList = [
   {
     title: "Eligibility",
     description:
-      "Only students, faculty, or invited guests of Lovely Professional University (LPU) with valid credentials are eligible to participate in any VIBRANTA event."
+      "Participation in VIBRANTA events and use of our services is open to eligible students, faculty, and invited guests of Lovely Professional University (LPU) only. Valid credentials or registration may be required."
   },
   {
     title: "Code of Conduct",
     description:
-      "All participants are expected to maintain respectful, inclusive, and responsible behavior throughout the event. Any violation may lead to removal from the event without any refund."
+      "All participants must maintain respectful, inclusive, and responsible behavior. Any misconduct or violation of campus rules may result in removal without refund."
   },
   {
-    title: "Event Registration",
+    title: "Registration",
     description:
-      "Registration is mandatory for all events. Ensure accurate personal and academic information during registration. VIBRANTA reserves the right to reject incomplete or fraudulent registrations."
+      "Accurate personal and academic information is required for registration. Incomplete or fraudulent registrations may be rejected."
   },
   {
     title: "Payment and Invoicing",
     description:
-      "All payments must be made via the official platform using supported gateways like Cashfree. An invoice or confirmation will be shared via registered email."
+      "Payments must be made via the official platform using supported gateways like Cashfree. Confirmation will be sent to your registered email."
   },
   {
     title: "Refund & Cancellation",
     description:
-      "Once paid, fees are non-refundable unless explicitly mentioned. Visit our Refund Policy for specific event exceptions or contact support."
+      "Fees are non-refundable unless explicitly stated. For details, refer to our separate Refund & Cancellation Policy page."
   },
   {
     title: "Event Changes",
     description:
-      "VIBRANTA reserves the right to change the event schedule, format, venue, or cancel events due to unforeseen circumstances. All changes will be communicated via our official platform or email."
+      "VIBRANTA reserves the right to change event schedules, formats, venues, or cancel events due to unforeseen circumstances. Updates will be communicated via official channels."
   },
   {
     title: "Data Privacy & Security",
     description:
-      "We are committed to protecting your personal data. Information collected will only be used for communication, analytics, and event-related updates. No data will be sold to third parties."
+      "Your personal data is protected and used only for event communication, analytics, and updates. We do not sell data to third parties."
   },
   {
     title: "Photography & Media Consent",
     description:
-      "By attending, you grant permission to be photographed, recorded, or featured in promotional material used by VIBRANTA or LPU."
+      "By attending, you consent to being photographed or recorded for promotional purposes by VIBRANTA or LPU."
   },
   {
     title: "Health and Safety",
     description:
-      "Attendees must comply with all safety guidelines. VIBRANTA is not responsible for any injuries, lost items, or damage incurred during the event."
+      "Attendees must follow all safety guidelines. VIBRANTA is not responsible for injuries, lost items, or damages during events."
   },
   {
     title: "Technical Glitches",
     description:
-      "In case of technical failures (platform errors, payment glitches, etc.), VIBRANTA will attempt resolution but holds no liability for delays or losses."
+      "In case of technical issues (platform errors, payment glitches, etc.), VIBRANTA will attempt resolution but is not liable for delays or losses."
   },
   {
     title: "Liability Disclaimer",
     description:
-      "Participation is voluntary. VIBRANTA, its members, and LPU shall not be held responsible for any loss, damage, or injury during or after the event."
+      "Participation is voluntary. VIBRANTA, its members, and LPU are not responsible for any loss, damage, or injury during or after events."
   },
   {
     title: "Support and Dispute Resolution",
     description:
-      "All support requests can be directed to vibclub@lpu.in. Disputes will be handled internally and escalated only if necessary."
+      "For support, contact vibclub@lpu.in. Disputes will be handled internally and escalated only if necessary."
   }
 ];
 
-
 const Terms = () => {
+  const navigate = useNavigate();
+
+  // Hide navbar when this page is open
+  useEffect(() => {
+    const navbar = document.querySelector('[data-navbar]');
+    if (navbar) navbar.style.display = 'none';
+    return () => {
+      if (navbar) navbar.style.display = '';
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#0f0f0f] text-white py-16 px-6 flex justify-center items-start">
       <div className="w-full max-w-5xl bg-gray-900/90 rounded-2xl p-10 shadow-xl border border-red-700/30">
+        <button
+          onClick={() => navigate(-1)}
+          className="mb-8 px-5 py-2 bg-red-700 hover:bg-red-800 text-white rounded-lg font-semibold transition-colors"
+        >
+          ← Back
+        </button>
         <h1 className="text-4xl font-bold text-red-500 mb-6 text-center">
           Terms & Conditions
         </h1>
         <p className="text-center text-red-300 mb-10">
-          These terms apply to all VIBRANTA events, registrations, and services. Please read carefully before participating.
+          These Terms & Conditions apply to all VIBRANTA events, registrations, and services. Please read carefully before participating.
         </p>
 
         <div className="space-y-6">
@@ -86,7 +102,7 @@ const Terms = () => {
         </div>
 
         <p className="mt-10 text-center text-sm text-red-400">
-          By participating in our events or using our services, you fully agree to the terms outlined above. For any queries, contact us at{" "}
+          By participating in our events or using our services, you fully agree to these Terms & Conditions. For any queries, contact us at{" "}
           <a href="mailto:vibclub@lpu.in" className="underline text-red-300">vibclub@lpu.in</a>.
         </p>
       </div>
