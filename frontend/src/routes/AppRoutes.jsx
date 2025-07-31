@@ -15,7 +15,7 @@ import Refund from '../pages/refund.jsx';
 const AppRoutes = () => {
     return (
         <Routes>
-            {/* <Route path="/auth/*" element={<Auth />} /> */}
+            <Route path="/auth/*" element={<Auth />} />
 
             <Route path="/" element={<Home />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />

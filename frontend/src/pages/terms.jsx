@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const termsList = [
   {
@@ -66,15 +66,16 @@ const termsList = [
 
 const Terms = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Hide navbar when this page is open
-  useEffect(() => {
+  // Hide navbar for this page (same as auth)
+  React.useEffect(() => {
     const navbar = document.querySelector('[data-navbar]');
     if (navbar) navbar.style.display = 'none';
     return () => {
       if (navbar) navbar.style.display = '';
     };
-  }, []);
+  }, [location.pathname]);
 
   return (
     <div className="min-h-screen bg-[#0f0f0f] text-white py-16 px-6 flex justify-center items-start">
@@ -85,25 +86,23 @@ const Terms = () => {
         >
           ← Back
         </button>
-        <h1 className="text-4xl font-bold text-red-500 mb-6 text-center">
+        <h1 className="text-4xl font-bold text-red-400 mb-6 text-center">
           Terms & Conditions
         </h1>
-        <p className="text-center text-red-300 mb-10">
-          These Terms & Conditions apply to all VIBRANTA events, registrations, and services. Please read carefully before participating.
+        <p className="text-red-200 mb-6 text-sm text-center">
+          Effective from: <span className="text-red-300 font-medium">July 2025</span>
         </p>
-
-        <div className="space-y-6">
+        <ol className="list-decimal pl-6 space-y-6 text-red-100 text-base leading-relaxed">
           {termsList.map((term, index) => (
-            <div key={index} className="border-b border-red-700/30 pb-4">
-              <h3 className="text-xl font-semibold text-red-400 mb-2">{index + 1}. {term.title}</h3>
-              <p className="text-red-100 leading-relaxed">{term.description}</p>
-            </div>
+            <li key={index}>
+              <span className="font-semibold text-red-300">{term.title}:</span><br />
+              {term.description}
+            </li>
           ))}
-        </div>
-
-        <p className="mt-10 text-center text-sm text-red-400">
-          By participating in our events or using our services, you fully agree to these Terms & Conditions. For any queries, contact us at{" "}
-          <a href="mailto:vibclub@lpu.in" className="underline text-red-300">vibclub@lpu.in</a>.
+        </ol>
+        <p className="mt-10 text-sm text-center text-red-300 italic">
+          By participating in our events or using our services, you fully agree to these Terms & Conditions. For any queries, contact us at{' '}
+          <a href="mailto:vibclub@lpu.in" className="underline text-red-400">vibclub@lpu.in</a>.
         </p>
       </div>
     </div>
