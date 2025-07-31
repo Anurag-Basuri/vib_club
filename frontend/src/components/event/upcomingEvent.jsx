@@ -208,64 +208,85 @@ const HorrorRaveYardPage = () => {
 		setShowPaymentForm(true);
 	};
 
-	// useEffect(() => {
-	// 	const loadCashfree = () => {
-	// 	const script = document.createElement('script');
-	// 	script.src = ENV.CASHFREE_MODE === 'production' 
-	// 		? 'https://sdk.cashfree.com/js/ui/2.0.0/cashfree.production.js' 
-	// 		: 'https://sdk.cashfree.com/js/ui/2.0.0/cashfree.sandbox.js';
-	// 	script.async = true;
-	// 	script.onload = () => console.log('Cashfree SDK loaded');
-	// 	document.body.appendChild(script);
-	// 	};
-
-	// 	if (!window.Cashfree) {
-	// 	loadCashfree();
-	// 	}
-		
-	// 	return () => {
-	// 	const script = document.querySelector('script[src*="cashfree"]');
-	// 	if (script) document.body.removeChild(script);
-	// 	};
-	// }, []);
-
 	const handlePayment = async () => {
 		setLoading(true);
 		setError('');
+
 		try {
-			// Validate form
+			// Basic form validation
 			if (!formData.name || !formData.email || !formData.phone || !formData.lpuId) {
 				setError('Please fill all fields.');
 				setLoading(false);
 				return;
 			}
 
-			const res = await publicClient.post('api/cashfree/order', {
+			// Create order
+			const response = await publicClient.post('api/cashfree/order', {
 				...formData,
 				eventId: eventData?._id,
 			});
 
-			const { payment_session_id } = res.data.data;
-			console.log('Payment session ID:', payment_session_id);
+			const orderData = response.data.data;
+			const sessionId = orderData.payment_session_id;
+			const orderId = orderData.order_id;
 
-			if (!payment_session_id) {
-				throw new Error('Payment session not generated');
-			}
+			if (window.Cashfree) {
+        try {
+          // Create Cashfree instance with environment-based configuration
+          const cashfree = new window.Cashfree({
+            mode: ENV.CASHFREE_MODE
+          });
 
-			if (!window.Cashfree) {
-				alert('Cashfree SDK not loaded.');
-				setLoading(false);
-				return;
-			}
+          // Use checkout method on the instance
+          const returnUrl = `${ENV.FRONTEND_URL}/payment-success?order_id=${orderId}&event_id=${eventData?._id}&event_name=${encodeURIComponent(eventData?.title || 'RaveYard 2025')}`;
+          
+          cashfree.checkout({
+            paymentSessionId: sessionId,
+            redirectTarget: "_self",
+            returnUrl: returnUrl,
+            theme: {
+              color: '#dc2626', // Red theme to match your brand
+              backgroundColor: '#1a0630',
+              primaryColor: '#dc2626',
+              secondaryColor: '#1a0630'
+            },
+            components: {
+              style: {
+                backgroundColor: '#1a0630',
+                color: '#ffffff',
+                fontFamily: 'Arial, sans-serif',
+                primaryColor: '#dc2626'
+              }
+            },
 
-			Cashfree.checkout({
-			paymentSessionId: payment_session_id,
-			redirectTarget: '_self', // or '_blank' for new tab
-		});
-		} catch (err) {
-			setError(err.message || 'An error occurred while processing payment.');
+            merchantName: "Vibranta Student Organization",
+            description: "RaveYard 2025 - Official Student Organization - LPU",
+            metadata: {
+              businessName: "Vibranta Student Organization",
+              eventName: "RaveYard 2025",
+              organization: "LPU Student Organization"
+            }
+          }).then(function(result) {
+            setShowPaymentForm(false);
+          }).catch(function(error) {
+            console.error("Payment error:", error);
+            setError('Payment failed. Please try again.');
+          });
+
+        } catch (paymentError) {
+          console.error("Payment initialization error:", paymentError);
+          setError('Failed to initialize payment. Please try again.');
+        }
+      } else {
+        setError('Payment gateway not available. Please try again.');
+      }
+
+      setLoading(false);
+		} catch (error) {
+			console.error('Payment error:', error);
+			setError(error.message || 'Payment failed. Please try again.');
+			setLoading(false);
 		}
-		setLoading(false);
 	};
 
 	return (
@@ -623,7 +644,7 @@ const HorrorRaveYardPage = () => {
 										<div className="text-white text-xl font-medium">
 											{eventData?.ticketPrice
 												? `₹${eventData.ticketPrice}`
-												: '₹300'}
+												: '₹1'}
 										</div>
 									</div>
 								</div>
@@ -822,9 +843,6 @@ const HorrorRaveYardPage = () => {
 					/>
 				)}
 			</AnimatePresence>
-
-			{showPaymentForm && <div id="cashfree-dropin-container" style={{ width: '100%', height: '500px' }} />}
-
 		</div>
 	);
 };

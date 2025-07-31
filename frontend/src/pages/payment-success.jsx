@@ -123,7 +123,7 @@ const PaymentSuccess = () => {
   };
 
   const goBackToEvent = () => {
-    navigate('/');
+    navigate('/event');
   };
 
   const goHome = () => {
