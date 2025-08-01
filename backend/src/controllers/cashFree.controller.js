@@ -108,6 +108,8 @@ const createOrder = asyncHandler(async (req, res) => {
 	}
 });
 
+
+// Verify payment and generate ticket
 const verifyPayment = asyncHandler(async (req, res) => {
 	try {
 		const { order_id } = req.query;

@@ -7,7 +7,7 @@ const router = express.Router();
 router.post('/create-order', cashFreeController.createOrder);
 
 // Verify payment and generate ticket
-router.post('/verify', cashFreeController.verifyPayment);
+router.post('/verify/', cashFreeController.verifyPayment);
 
 // Webhook endpoint for Cashfree notifications (CRITICAL for production)
 router.post('/webhook', cashFreeController.handleWebhook);
