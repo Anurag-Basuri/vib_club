@@ -20,6 +20,7 @@ const ticketSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Email is required'],
         trim: true,
+        unique: true,
         validate: {
             validator: validator.isEmail,
             message: 'Invalid email format'
@@ -41,6 +42,7 @@ const ticketSchema = new mongoose.Schema({
     lpuId: {
         type: Number,
         required: [true, 'LPU ID is required'],
+        unique: true,
         validate: {
             validator: function(v) {
                 return /^\d{8}$/.test(v);
