@@ -26,8 +26,6 @@ const navSections = [
         items: [
             { name: 'Home', icon: Home, path: '/', color: '#00d9ff' },
             { name: 'Events', icon: Calendar, path: '/event', color: '#7c3aed' },
-            // { name: 'Team', icon: Users, path: '/team', color: '#0ea5e9' },
-            // { name: 'Social', icon: Sparkles, path: '/social-page', color: '#06b6d4' },
             { name: 'Contact', icon: Mail, path: '/contact', color: '#0284c7' },
         ],
     },
@@ -47,9 +45,10 @@ const Navbar = () => {
     const [activeLink, setActiveLink] = useState('Home');
     const { user, isAuthenticated, loading, logoutMember, logoutAdmin } = useAuth();
     const [isScrolled, setIsScrolled] = useState(false);
-    const [isUserOpen, setIsUserOpen] = useState(false);
     const [showNavbar, setShowNavbar] = useState(true);
+    const [isUserOpen, setIsUserOpen] = useState(false);
     const userRef = useRef(null);
+    const menuButtonRef = useRef(null);
     const lastScrollY = useRef(window.scrollY);
     const navigate = useNavigate();
     const location = useLocation();
@@ -78,7 +77,8 @@ const Navbar = () => {
 
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (userRef.current && !userRef.current.contains(event.target)) {
+            if (userRef.current && !userRef.current.contains(event.target) &&
+                menuButtonRef.current && !menuButtonRef.current.contains(event.target)) {
                 setIsUserOpen(false);
             }
         };
@@ -108,6 +108,11 @@ const Navbar = () => {
         if (found) {
             navigate(found.path);
         }
+    };
+
+    const handleLogoClick = () => {
+        navigate('/');
+        setActiveLink('Home');
     };
 
     const handleLogout = () => {
@@ -159,6 +164,11 @@ const Navbar = () => {
                     from { transform: translateX(-100%); }
                     to { transform: translateX(0); }
                 }
+                @keyframes pulse-glow {
+                    0% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.5); }
+                    70% { box-shadow: 0 0 0 10px rgba(6, 182, 212, 0); }
+                    100% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0); }
+                }
                 .navbar {
                     transition: transform 0.4s ease, background 0.4s, box-shadow 0.4s, backdrop-filter 0.4s;
                 }
@@ -197,6 +207,14 @@ const Navbar = () => {
                 .logo-glow {
                     filter: drop-shadow(0 0 12px rgba(6, 182, 212, 0.5));
                 }
+                .logo-container {
+                    animation: pulse-glow 3s infinite;
+                    transition: all 0.3s ease;
+                }
+                .logo-container:hover {
+                    transform: scale(1.05);
+                    animation: none;
+                }
             `}</style>
 
             <div data-navbar>
@@ -212,9 +230,12 @@ const Navbar = () => {
                 >
                     <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between h-full">
                         {/* Brand with animated background */}
-                        <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0 relative select-none">
+                        <button 
+                            onClick={handleLogoClick}
+                            className="flex items-center gap-3 sm:gap-4 flex-shrink-0 relative select-none"
+                        >
                             <div
-                                className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shadow-lg border border-blue-900/40 bg-[#0a1120]/90"
+                                className="logo-container w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shadow-lg border border-blue-900/40 bg-[#0a1120]/90"
                             >
                                 <img
                                     src={logo}
@@ -233,7 +254,7 @@ const Navbar = () => {
                             >
                                 Vibranta
                             </h1>
-                        </div>
+                        </button>
 
                         {/* Navigation Links */}
                         <div className="hidden lg:flex items-center gap-1 xl:gap-2">
@@ -260,7 +281,7 @@ const Navbar = () => {
                                         )}
                                     </button>
                                 ))
-							)}
+                            )}
                         </div>
 
                         {/* Right Side Actions */}
@@ -338,11 +359,13 @@ const Navbar = () => {
                             )}
                             {/* Mobile Menu Button */}
                             <button
-                                className="lg:hidden p-2.5 sm:p-3 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                                ref={menuButtonRef}
+                                className="lg:hidden p-3 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                                 onClick={() => setIsOpen(true)}
                                 aria-label="Open menu"
+                                style={{ zIndex: 60 }}
                             >
-                                <Menu size={window.innerWidth < 640 ? 20 : 24} />
+                                <Menu className="w-6 h-6 sm:w-7 sm:h-7" />
                             </button>
                         </div>
                     </div>
