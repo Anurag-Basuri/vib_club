@@ -8,12 +8,8 @@ import {
     LayoutDashboard,
     Menu,
     X,
-    Sparkles,
     User,
     LogOut,
-    Users,
-    Share2,
-    Settings,
     ChevronDown,
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -34,8 +30,6 @@ const navSections = [
 const pathToNavName = (pathname) => {
     if (pathname === '/') return 'Home';
     if (pathname.startsWith('/event')) return 'Events';
-    if (pathname.startsWith('/team')) return 'Team';
-    if (pathname.startsWith('/social-page')) return 'Social';
     if (pathname.startsWith('/contact')) return 'Contact';
     return 'Home';
 };
@@ -49,15 +43,17 @@ const Navbar = () => {
     const [isUserOpen, setIsUserOpen] = useState(false);
     const userRef = useRef(null);
     const menuButtonRef = useRef(null);
-    const lastScrollY = useRef(window.scrollY);
+    const lastScrollY = useRef(typeof window !== 'undefined' ? window.scrollY : 0);
     const navigate = useNavigate();
     const location = useLocation();
+    const drawerRef = useRef(null);
 
     // Sync active link with route
     useEffect(() => {
         setActiveLink(pathToNavName(location.pathname));
     }, [location.pathname]);
 
+    // Hide/show navbar on scroll
     useEffect(() => {
         const handleScroll = () => {
             const currentScrollY = window.scrollY;
@@ -65,20 +61,25 @@ const Navbar = () => {
                 setShowNavbar(true);
             } else if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
                 setShowNavbar(false);
-            } else if (currentScrollY < lastScrollY.current) {
+            } else if (currentScrollY < lastScrollY.current - 2) {
                 setShowNavbar(true);
             }
             lastScrollY.current = currentScrollY;
             setIsScrolled(currentScrollY > 20);
         };
-        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+    // Close user dropdown on outside click
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (userRef.current && !userRef.current.contains(event.target) &&
-                menuButtonRef.current && !menuButtonRef.current.contains(event.target)) {
+            if (
+                userRef.current &&
+                !userRef.current.contains(event.target) &&
+                menuButtonRef.current &&
+                !menuButtonRef.current.contains(event.target)
+            ) {
                 setIsUserOpen(false);
             }
         };
@@ -88,14 +89,30 @@ const Navbar = () => {
         };
     }, []);
 
+    // Prevent background scroll when drawer is open
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
         } else {
-            document.body.style.overflow = 'unset';
+            document.body.style.overflow = '';
         }
         return () => {
-            document.body.style.overflow = 'unset';
+            document.body.style.overflow = '';
+        };
+    }, [isOpen]);
+
+    // Close drawer when clicked outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (drawerRef.current && !drawerRef.current.contains(event.target)) {
+                setIsOpen(false);
+            }
+        };
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [isOpen]);
 
@@ -113,6 +130,8 @@ const Navbar = () => {
     const handleLogoClick = () => {
         navigate('/');
         setActiveLink('Home');
+        setIsOpen(false);
+        setIsUserOpen(false);
     };
 
     const handleLogout = () => {
@@ -132,6 +151,7 @@ const Navbar = () => {
             logoutMember();
         }
         setIsUserOpen(false);
+        setIsOpen(false);
         navigate('/auth');
     };
 
@@ -163,6 +183,10 @@ const Navbar = () => {
                 @keyframes slideIn {
                     from { transform: translateX(-100%); }
                     to { transform: translateX(0); }
+                }
+                @keyframes fadeOut {
+                    from { opacity: 1; transform: translateX(0); }
+                    to { opacity: 0; transform: translateX(-100%); }
                 }
                 @keyframes pulse-glow {
                     0% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.5); }
@@ -196,7 +220,10 @@ const Navbar = () => {
                     animation: float 4s ease-in-out infinite;
                 }
                 .drawer-open {
-                    animation: slideIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+                    animation: slideIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+                }
+                .drawer-close {
+                    animation: fadeOut 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
                 }
                 .fade-in {
                     animation: fadeIn 0.6s ease-out forwards;
@@ -215,6 +242,13 @@ const Navbar = () => {
                     transform: scale(1.05);
                     animation: none;
                 }
+                @keyframes backdropFadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                .backdrop-fade-in {
+                    animation: backdropFadeIn 0.3s ease-out forwards;
+                }
             `}</style>
 
             <div data-navbar>
@@ -226,11 +260,15 @@ const Navbar = () => {
                         borderBottom: '1px solid rgba(255,255,255,0.06)',
                         background: 'linear-gradient(90deg, rgba(10,17,32,0.92) 60%, rgba(30,41,59,0.85) 100%)',
                         backdropFilter: 'blur(16px)',
+                        transform: showNavbar ? 'translateY(0)' : 'translateY(-100%)',
+                        transition: 'transform 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.3s',
+                        opacity: showNavbar ? 1 : 0,
+                        pointerEvents: showNavbar ? 'auto' : 'none',
                     }}
                 >
                     <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between h-full">
                         {/* Brand with animated background */}
-                        <button 
+                        <button
                             onClick={handleLogoClick}
                             className="flex items-center gap-3 sm:gap-4 flex-shrink-0 relative select-none"
                         >
@@ -373,14 +411,19 @@ const Navbar = () => {
             </div>
             {/* Mobile Drawer */}
             {isOpen && (
-                <div className="fixed inset-0 z-50 lg:hidden">
+                <div className="fixed inset-0 z-[60] lg:hidden">
                     {/* Backdrop */}
-                    <div
-                        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
+                    <div 
+                        className="absolute inset-0 bg-black/60 backdrop-blur-sm backdrop-fade-in"
                         onClick={() => setIsOpen(false)}
+                        style={{ zIndex: 10 }}
                     />
                     {/* Drawer */}
-                    <div className="absolute top-0 left-0 h-full mobile-drawer w-80 max-w-sm mobile-menu-enter bg-cyan-900/95 backdrop-blur-lg border-r border-white/20 shadow-2xl overflow-hidden">
+                    <div
+                        ref={drawerRef}
+                        className="absolute top-0 left-0 h-full w-80 max-w-[85%] bg-cyan-900/95 backdrop-blur-lg border-r border-white/20 shadow-2xl overflow-hidden drawer-open"
+                        style={{ zIndex: 20 }}
+                    >
                         <div className="h-full flex flex-col">
                             {/* Header */}
                             <div className="flex justify-between items-center p-4 sm:p-6 border-b border-white/10 bg-gradient-to-r from-cyan-500/10 to-purple-500/10">
@@ -403,8 +446,8 @@ const Navbar = () => {
                             {/* Navigation */}
                             <div className="flex-1 overflow-y-auto p-4 sm:p-6">
                                 <div className="space-y-6">
-                                    {navSections.map((section) => (
-                                        <div key={section.title}>
+                                    {navSections.map((section, idx) => (
+                                        <div key={section.title || idx}>
                                             <ul className="space-y-2">
                                                 {section.items.map((item) => (
                                                     <button
