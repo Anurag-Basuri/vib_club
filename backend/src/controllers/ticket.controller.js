@@ -10,7 +10,7 @@ import { deleteFile } from '../utils/cloudinary.js';
 
 // Create a new ticket
 const createTicket = asyncHandler(async (req, res) => {
-	const { fullName, email, LpuId, eventId, eventName } = req.body;
+	const { fullName, email, lpuId, eventId, eventName } = req.body;
 
 	if (!fullName || !email || !lpuId || !eventId || !eventName) {
 		throw new ApiError(400, 'All fields are required');
