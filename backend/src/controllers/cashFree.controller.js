@@ -122,7 +122,8 @@ const verifyPayment = asyncHandler(async (req, res) => {
 		// Use transaction data if not provided in request body
 		const fullName = transaction.user?.name;
 		const email = transaction.user?.email;
-		const LpuId = transaction.lpuId;
+		const LpuId = transaction.user?.lpuId;
+		const phone = transaction.user?.phone;
 		const eventId = transaction.eventId;
 		const eventName = transaction.eventName || 'RaveYard 2025';
 
@@ -173,6 +174,7 @@ const verifyPayment = asyncHandler(async (req, res) => {
 					fullName,
 					email,
 					lpuId: LpuId,
+					phone,
 					eventId,
 					eventName,
 					isUsed: false,
