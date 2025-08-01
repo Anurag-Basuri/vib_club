@@ -276,9 +276,10 @@ const handleWebhook = asyncHandler(async (req, res) => {
 			try {
 				await sendRegistrationEmail({
 					to: email,
-					name: fullName,
+					name: name,
 					eventName: eventName,
-					eventDate: event.date,
+					eventDate: '22nd August 2025',
+					eventTime: '5:00 PM',
 					qrUrl: qrCode.url,
 				});
 			} catch (emailErr) {
