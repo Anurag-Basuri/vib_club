@@ -9,31 +9,39 @@ import Navbar from './components/Navbar.jsx';
 function AppContent() {
     useLenis();
     const location = useLocation();
-    // Hide navbar for /auth, /terms, /refund, or /policy routes
+
+     // Hide navbar for /auth, /terms, /refund, or /policy routes
     const hideNavbar =
         location.pathname.startsWith('/auth') ||
         location.pathname.startsWith('/terms') ||
         location.pathname.startsWith('/refund') ||
         location.pathname.startsWith('/policy');
 
-    const [scrolled, setScrolled] = useState(false);
     const [showNavbar, setShowNavbar] = useState(true);
     const lastScrollY = useRef(window.scrollY);
+    const ticking = useRef(false);
 
     useEffect(() => {
         const handleScroll = () => {
-            const currentScrollY = window.scrollY;
-            if (currentScrollY <= 0) {
-                setShowNavbar(true);
-            } else if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
-                setShowNavbar(false);
-            } else if (currentScrollY < lastScrollY.current) {
-                setShowNavbar(true);
+            if (!ticking.current) {
+                window.requestAnimationFrame(() => {
+                    const currentScrollY = window.scrollY;
+                    // Show if at top or scrolling up, hide if scrolling down and past 100px
+                    if (currentScrollY <= 0) {
+                        setShowNavbar(true);
+                    } else if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
+                        setShowNavbar(false);
+                    } else if (currentScrollY < lastScrollY.current - 2) {
+                        // Add a small threshold to avoid flicker on minor scrolls
+                        setShowNavbar(true);
+                    }
+                    lastScrollY.current = currentScrollY;
+                    ticking.current = false;
+                });
+                ticking.current = true;
             }
-            lastScrollY.current = currentScrollY;
-            setScrolled(currentScrollY > 10);
         };
-        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
@@ -50,6 +58,7 @@ function AppContent() {
                         transition: 'transform 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.3s',
                         transform: showNavbar ? 'translateY(0)' : 'translateY(-100%)',
                         opacity: showNavbar ? 1 : 0,
+                        pointerEvents: showNavbar ? 'auto' : 'none',
                     }}
                 >
                     <Navbar />
