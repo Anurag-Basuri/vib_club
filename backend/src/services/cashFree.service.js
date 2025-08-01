@@ -21,7 +21,6 @@ async function createCashfreeOrder(orderDetails) {
 			}
 		);
 
-		console.log('Cashfree order created successfully:', response.data);
 		return response.data;
 	} catch (err) {
 		throw new Error(err.response?.data?.message || 'Cashfree order creation failed');

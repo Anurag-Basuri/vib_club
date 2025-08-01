@@ -24,11 +24,14 @@ const createOrder = asyncHandler(async (req, res) => {
         // Check for duplicate ticket by email for this event
         const eventIdToUse = eventId || '68859a199ec482166f0e8523';
         const existingTicket = await Ticket.findOne({
-            email: email.trim(),
+            $or: [
+            { email: email.trim() },
+            { lpuId: lpuId.trim() }
+            ],
             eventId: eventIdToUse
         });
         if (existingTicket) {
-            throw new ApiError(409, 'A ticket has already been purchased with this email address for this event');
+            throw new ApiError(409, 'A ticket has already been purchased with this email address or LPU ID for this event');
         }
 
         // Generate unique order and customer IDs
@@ -42,7 +45,7 @@ const createOrder = asyncHandler(async (req, res) => {
         }
 
         // Resolve event name for order note
-        let resolvedEventName = 'Vibranta Event';
+        let resolvedEventName = 'RaveYard 2025';
         if (eventIdToUse) {
             const eventDoc = await Ticket.findOne({ eventId: eventIdToUse });
             if (eventDoc && eventDoc.eventName) {
@@ -64,7 +67,7 @@ const createOrder = asyncHandler(async (req, res) => {
             order_meta: {
                 return_url: `${process.env.CASHFREE_RETURN_URL}?order_id=${orderId}`,
                 notify_url: process.env.CASHFREE_NOTIFY_URL,
-                payment_methods: "upi,nb,cc,dc,app"
+                payment_methods: "upi"
             },
             order_note: `${process.env.CASHFREE_BUSINESS_NAME || "Vibranta"} - ${resolvedEventName} - LPU ID: ${lpuId}`,
             order_expiry_time: new Date(Date.now() + 30 * 60 * 1000).toISOString()
@@ -72,6 +75,11 @@ const createOrder = asyncHandler(async (req, res) => {
 
         // Create order with Cashfree
         const order = await createCashfreeOrder(orderPayload);
+
+        // Check if order creation was successful
+        if (!order || !order.payment_session_id) {
+            throw new ApiError(500, 'Failed to create order with Cashfree');
+        }
 
         // Create transaction record
         await Transaction.create({
