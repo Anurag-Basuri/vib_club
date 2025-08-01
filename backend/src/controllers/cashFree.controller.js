@@ -1,5 +1,6 @@
 import Transaction from '../models/Transaction.js';
 import Ticket from '../models/ticket.model.js';
+import Event from '../models/event.model.js';
 import createCashfreeOrder from '../services/cashFree.service.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiError } from '../utils/ApiError.js';
@@ -182,6 +183,17 @@ const verifyPayment = asyncHandler(async (req, res) => {
 				});
 				await ticket.save();
 
+				// Add ticket to event registrations
+				try {
+					await Event.findByIdAndUpdate(
+						eventId,
+						{ $addToSet: { registrations: ticket._id } },
+						{ new: true }
+					);
+				} catch (eventUpdateErr) {
+					console.error('Failed to add ticket to event registrations:', eventUpdateErr);
+				}
+
 				let qrCode;
 				try {
 					qrCode = await generateTicketQR(ticket.ticketId);
@@ -283,6 +295,17 @@ const handleWebhook = asyncHandler(async (req, res) => {
 			});
 
 			await ticket.save();
+
+			// Add ticket to event registrations
+			try {
+				await Event.findByIdAndUpdate(
+					eventId,
+					{ $addToSet: { registrations: ticket._id } },
+					{ new: true }
+				);
+			} catch (eventUpdateErr) {
+				console.error('Failed to add ticket to event registrations:', eventUpdateErr);
+			}
 
 			let qrCode;
 			try {

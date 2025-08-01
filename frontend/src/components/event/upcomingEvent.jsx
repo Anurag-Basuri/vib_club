@@ -27,7 +27,7 @@ const HorrorRaveYardPage = () => {
 	useEffect(() => {
 		const fetchEventData = async () => {
 			try {
-				const response = await publicClient.get('api/events/upcoming-event');
+				const response = await publicClient.get('api/events/by-id/68859a199ec482166f0e8523');
 				const event = response.data?.data || response.data;
 
 				// Set default tags if not provided by backend
