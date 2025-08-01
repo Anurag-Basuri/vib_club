@@ -8,7 +8,7 @@ import Contact from '../pages/contact.jsx';
 import MemberProfile from '../pages/member.jsx';
 import Auth from '../pages/auth.jsx';
 import Current from '../components/event/upcomingEvent.jsx';
-import PaymentVerify from '../components/event/payment-success.jsx';
+import PaymentVerify from '../components/event/paymentVerify.jsx';
 import Terms from '../pages/terms.jsx';
 import Refund from '../pages/refund.jsx';
 import CookiePolicy from '../pages/cookie.jsx';
