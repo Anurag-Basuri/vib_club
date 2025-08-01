@@ -6,6 +6,7 @@ import { ApiError } from '../utils/ApiError.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { generateTicketQR } from '../services/qrcode.service.js';
 import { sendRegistrationEmail } from '../services/email.service.js';
+import { deleteFile } from '../utils/cloudinary.js';
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
 import { config } from 'dotenv';
@@ -238,7 +239,7 @@ const handleWebhook = asyncHandler(async (req, res) => {
 
 			const ticket = new Ticket({
 				ticketId: uuidv4(),
-				fullName,
+				fullName: name,
 				email,
 				lpuId,
 				eventId,
