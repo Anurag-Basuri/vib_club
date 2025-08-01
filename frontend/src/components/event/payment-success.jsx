@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { publicClient } from '../services/api.js';
+import { publicClient } from '../../services/api.js';
 
 // Function to create ticket using ticket controller
 const createTicket = async (transaction, eventId, eventName) => {
