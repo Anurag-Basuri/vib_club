@@ -12,6 +12,7 @@ import axios from 'axios';
 import { config } from 'dotenv';
 config();
 
+// Initialize Cashfree payment gateway
 const createOrder = asyncHandler(async (req, res) => {
 	try {
 		const { name, email, phone, amount, eventId, lpuId } = req.body;
@@ -115,44 +116,28 @@ const verifyPayment = asyncHandler(async (req, res) => {
 		if (!order_id) throw new ApiError(400, 'Missing order_id');
 
 		// Fetch transaction
-		let transaction = await Transaction.findOne({ orderId: order_id });
+		const transaction = await Transaction.findOne({ orderId: order_id });
 		if (!transaction) throw new ApiError(404, 'Transaction not found');
 
 		// Use transaction data if not provided in request body
-		if (!fullName && transaction.user?.name) {
-			fullName = transaction.user.name;
-		}
-		if (!email && transaction.user?.email) {
-			email = transaction.user.email;
-		}
-		if (!LpuId && transaction.lpuId) {
-			LpuId = transaction.lpuId;
-		}
-		if (!eventId && transaction.eventId) {
-			eventId = transaction.eventId;
-		}
-		if (!eventName && transaction.eventName) {
-			eventName = transaction.eventName;
-		} else if (!eventName) {
-			eventName = 'RaveYard 2025'; // Default event name
-		}
+		fullName = fullName || transaction.user?.name;
+		email = email || transaction.user?.email;
+		LpuId = LpuId || transaction.lpuId;
+		eventId = eventId || transaction.eventId;
+		eventName = eventName || transaction.eventName || 'RaveYard 2025';
 
 		// Already completed
 		if (transaction.status === 'SUCCESS') {
-			return res
-				.status(200)
-				.json(new ApiResponse(200, { transaction }, 'Payment already verified'));
+			// Try to find ticket and QR
+			const ticket = await Ticket.findOne({ email, eventId });
+			return res.status(200).json(
+				new ApiResponse(200, { transaction, ticket }, 'Payment already verified')
+			);
 		}
 
 		// Verify with Cashfree
 		let cashfreeResponse;
 		try {
-			console.log('Verifying payment with Cashfree for order:', order_id);
-			console.log('Cashfree Base URL:', process.env.CASHFREE_BASE_URL);
-			console.log('App ID:', process.env.CASHFREE_APP_ID ? 'Present' : 'Missing');
-			console.log('Secret Key:', process.env.CASHFREE_SECRET_KEY ? 'Present' : 'Missing');
-
-			// Use the same credentials as in the service
 			const baseURL = process.env.CASHFREE_BASE_URL || 'https://sandbox.cashfree.com/pg';
 			const clientId = process.env.CASHFREE_APP_ID;
 			const clientSecret = process.env.CASHFREE_SECRET_KEY;
@@ -166,11 +151,7 @@ const verifyPayment = asyncHandler(async (req, res) => {
 					accept: 'application/json',
 				},
 			});
-			console.log('Cashfree verification response:', cashfreeResponse.data);
 		} catch (err) {
-			console.error('Cashfree verification error:', err.response?.data || err.message);
-			console.error('Error status:', err.response?.status);
-			console.error('Error headers:', err.response?.headers);
 			throw new ApiError(
 				502,
 				`Failed to verify payment with Cashfree: ${err.response?.data?.message || err.message}`
@@ -183,15 +164,66 @@ const verifyPayment = asyncHandler(async (req, res) => {
 			transaction.status = 'SUCCESS';
 			await transaction.save();
 
+			// Check if ticket already exists
+			let ticket = await Ticket.findOne({ email, eventId });
+			if (!ticket) {
+				// Create ticket and QR
+				ticket = new Ticket({
+					ticketId: uuidv4(),
+					fullName,
+					email,
+					lpuId: LpuId,
+					eventId,
+					eventName,
+					isUsed: false,
+					isCancelled: false,
+				});
+				await ticket.save();
+
+				let qrCode;
+				try {
+					qrCode = await generateTicketQR(ticket.ticketId);
+					if (!qrCode || !qrCode.url || !qrCode.public_id) {
+						throw new Error('Invalid QR code generated');
+					}
+					ticket.qrCode = {
+						url: qrCode.url,
+						publicId: qrCode.public_id,
+					};
+					await ticket.save();
+				} catch (qrErr) {
+					await Ticket.findByIdAndDelete(ticket._id);
+					if (qrCode?.public_id && qrCode.url) {
+						await deleteFile({ public_id: qrCode.public_id, resource_type: 'image' });
+					}
+					throw new ApiError(500, 'Failed to generate QR code for the ticket');
+				}
+
+				try {
+					await sendRegistrationEmail({
+						to: email,
+						name: fullName,
+						eventName,
+						eventDate: '22nd August 2025',
+						eventTime: '5:00 PM',
+						qrUrl: qrCode.url,
+					});
+				} catch (emailErr) {
+					await Ticket.findByIdAndDelete(ticket._id);
+					if (qrCode?.public_id && qrCode.url) {
+						await deleteFile({ public_id: qrCode.public_id, resource_type: 'image' });
+					}
+					throw new ApiError(500, 'Failed to send registration email, ticket deleted');
+				}
+			}
+
 			return res
 				.status(200)
-				.json(new ApiResponse(200, { transaction }, 'Payment verified successfully'));
+				.json(new ApiResponse(200, { transaction, ticket }, 'Payment verified and ticket issued'));
 		} else if (status === 'ACTIVE') {
 			return res
 				.status(202)
-				.json(
-					new ApiResponse(202, null, 'Payment is still processing. Try again shortly.')
-				);
+				.json(new ApiResponse(202, null, 'Payment is still processing. Try again shortly.'));
 		} else {
 			transaction.status = 'FAILED';
 			await transaction.save();
