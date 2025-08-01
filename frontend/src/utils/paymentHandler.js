@@ -39,14 +39,15 @@ export const handlePayment = async ({
         });
 
 		// Close the payment form before redirecting
-		if (setShowPaymentForm) {
-			setShowPaymentForm(false);
-		}
+		// if (setShowPaymentForm) {
+		// 	setShowPaymentForm(false);
+		// }
 
 		// Initiate payment
 		await cashfree.checkout({
 			paymentSessionId: orderData.payment_session_id,
-			redirectTarget: '_self', // Change to '_blank' for new tab
+			container: 'cashfree-dropin-container',
+			redirectTarget: '_self',
 		});
 
 		// Call success callback if provided

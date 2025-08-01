@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { publicClient } from '../../services/api.js';
 import TicketForm from './ticketForm.jsx';
 import ENV from '../../config/env.js';
+import handlePayment from "../../utils/paymentHandler.js";
 
 const HorrorRaveYardPage = () => {
 	const [spotsLeft, setSpotsLeft] = useState(0);
@@ -208,85 +209,22 @@ const HorrorRaveYardPage = () => {
 		setShowPaymentForm(true);
 	};
 
-	const handlePayment = async () => {
-		setLoading(true);
-		setError('');
-
-		try {
-			// Basic form validation
-			if (!formData.name || !formData.email || !formData.phone || !formData.lpuId) {
-				setError('Please fill all fields.');
-				setLoading(false);
-				return;
+	const onPaymentSubmit = () => {
+		handlePayment({
+			formData,
+			eventData,
+			setLoading,
+			setError,
+			setShowPaymentForm,
+			onSuccess: (orderData) => {
+			console.log('Payment initiated successfully:', orderData);
+			// Additional success handling
+			},
+			onFailure: (error) => {
+			console.error('Payment failed:', error);
+			// Additional error handling
 			}
-
-			// Create order
-			const response = await publicClient.post('api/cashfree/order', {
-				...formData,
-				eventId: eventData?._id,
-			});
-
-			const orderData = response.data.data;
-			const sessionId = orderData.payment_session_id;
-			const orderId = orderData.order_id;
-
-			if (window.Cashfree) {
-        try {
-          // Create Cashfree instance with environment-based configuration
-          const cashfree = new window.Cashfree({
-            mode: ENV.CASHFREE_MODE
-          });
-
-          // Use checkout method on the instance
-          const returnUrl = `${ENV.FRONTEND_URL}/payment-success?order_id=${orderId}&event_id=${eventData?._id}&event_name=${encodeURIComponent(eventData?.title || 'RaveYard 2025')}`;
-          
-          cashfree.checkout({
-            paymentSessionId: sessionId,
-            redirectTarget: "_self",
-            returnUrl: returnUrl,
-            theme: {
-              color: '#dc2626', // Red theme to match your brand
-              backgroundColor: '#1a0630',
-              primaryColor: '#dc2626',
-              secondaryColor: '#1a0630'
-            },
-            components: {
-              style: {
-                backgroundColor: '#1a0630',
-                color: '#ffffff',
-                fontFamily: 'Arial, sans-serif',
-                primaryColor: '#dc2626'
-              }
-            },
-
-            merchantName: "Vibranta Student Organization",
-            description: "RaveYard 2025 - Official Student Organization - LPU",
-            metadata: {
-              businessName: "Vibranta Student Organization",
-              eventName: "RaveYard 2025",
-              organization: "LPU Student Organization"
-            }
-          }).then(function(result) {
-            setShowPaymentForm(false);
-          }).catch(function(error) {
-            console.error("Payment error:", error);
-            setError('Payment failed. Please try again.');
-          });
-
-        } catch (paymentError) {
-          console.error("Payment initialization error:", paymentError);
-          setError('Failed to initialize payment. Please try again.');
-        }
-      } else {
-        setError('Payment gateway not available. Please try again.');
-      }
-
-      setLoading(false);
-		} catch (error) {
-			console.error('Payment error:', error);
-			setError(error.message || 'Payment failed. Please try again.');
-			setLoading(false);
-		}
+		});
 	};
 
 	return (
@@ -832,15 +770,18 @@ const HorrorRaveYardPage = () => {
 			{/* Payment Form Modal */}
 			<AnimatePresence>
 				{showPaymentForm && (
-					<TicketForm
-						eventData={eventData}
-						formData={formData}
-						setFormData={setFormData}
-						loading={loading}
-						error={error}
-						onClose={() => setShowPaymentForm(false)}
-						onSubmit={handlePayment}
-					/>
+					<>
+						<TicketForm
+							eventData={eventData}
+							formData={formData}
+							setFormData={setFormData}
+							loading={loading}
+							error={error}
+							onClose={() => setShowPaymentForm(false)}
+							onSubmit={onPaymentSubmit}
+						/>
+						<div id="cashfree-dropin-container" style={{ width: '100%', minHeight: '500px' }}></div>
+					</>
 				)}
 			</AnimatePresence>
 		</div>
