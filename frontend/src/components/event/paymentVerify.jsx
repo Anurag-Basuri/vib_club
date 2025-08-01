@@ -3,6 +3,9 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { publicClient } from '../../services/api.js';
 
+const CONTACT_EMAIL = 'vibranta.studorg@gmail.com';
+const CONTACT_PHONE = '+91-9140253374';
+
 const PaymentSuccess = () => {
 	const [searchParams] = useSearchParams();
 	const navigate = useNavigate();
@@ -11,62 +14,61 @@ const PaymentSuccess = () => {
 	const [transactionData, setTransactionData] = useState(null);
 	const [ticketData, setTicketData] = useState(null);
 	const [errorDetails, setErrorDetails] = useState('');
+	const [retryCount, setRetryCount] = useState(0);
+
+	const verifyPayment = async () => {
+		try {
+			const orderId = searchParams.get('order_id');
+			if (!orderId) {
+				setStatus('failed');
+				setMessage('Order ID not found in the URL.');
+				return;
+			}
+
+			// Call verify payment endpoint
+			const response = await publicClient.post(`api/cashfree/verify?order_id=${orderId}`);
+			const { data } = response.data;
+
+			if (!data || !data.transaction) {
+				setStatus('failed');
+				setMessage('No transaction data received from server.');
+				return;
+			}
+
+			setTransactionData(data.transaction);
+
+			if (data.transaction.status === 'SUCCESS') {
+				setStatus('success');
+				setMessage('Payment successful! Your ticket has been sent to your email.');
+				if (data.ticket) setTicketData(data.ticket);
+			} else if (
+				data.transaction.status === 'PENDING' ||
+				data.transaction.status === 'ACTIVE'
+			) {
+				setStatus('pending');
+				setMessage('Payment is being processed. You will receive confirmation shortly.');
+			} else {
+				setStatus('failed');
+				setMessage(
+					`Payment failed or expired. Status: ${data.transaction.status || 'Unknown'}`
+				);
+			}
+		} catch (error) {
+			setStatus('failed');
+			let errMsg =
+				error?.response?.data?.message ||
+				error?.message ||
+				'Payment verification failed due to a network/server error.';
+			setMessage('Payment verification failed.');
+			setErrorDetails(errMsg);
+			console.error('Payment verification error:', error);
+		}
+	};
 
 	useEffect(() => {
-		const verifyPayment = async () => {
-			try {
-				const orderId = searchParams.get('order_id');
-				if (!orderId) {
-					setStatus('failed');
-					setMessage('Order ID not found in the URL.');
-					return;
-				}
-
-				// Call verify payment endpoint
-				const response = await publicClient.post(`/cashfree/verify?order_id=${orderId}`);
-				const { data } = response.data;
-
-				if (!data || !data.transaction) {
-					setStatus('failed');
-					setMessage('No transaction data received from server.');
-					return;
-				}
-
-				setTransactionData(data.transaction);
-
-				if (data.transaction.status === 'SUCCESS') {
-					setStatus('success');
-					setMessage('Payment successful! Your ticket has been sent to your email.');
-					if (data.ticket) setTicketData(data.ticket);
-				} else if (
-					data.transaction.status === 'PENDING' ||
-					data.transaction.status === 'ACTIVE'
-				) {
-					setStatus('pending');
-					setMessage(
-						'Payment is being processed. You will receive confirmation shortly.'
-					);
-				} else {
-					setStatus('failed');
-					setMessage(
-						`Payment failed or expired. Status: ${data.transaction.status || 'Unknown'}`
-					);
-				}
-			} catch (error) {
-				setStatus('failed');
-				let errMsg =
-					error?.response?.data?.message ||
-					error?.message ||
-					'Payment verification failed due to a network/server error.';
-				setMessage('Payment verification failed.');
-				setErrorDetails(errMsg);
-				console.error('Payment verification error:', error);
-			}
-		};
-
 		verifyPayment();
 		// eslint-disable-next-line
-	}, [searchParams]);
+	}, [searchParams, retryCount]);
 
 	const getStatusIcon = () => {
 		switch (status) {
@@ -100,6 +102,13 @@ const PaymentSuccess = () => {
 
 	const goHome = () => {
 		navigate('/');
+	};
+
+	const handleRetry = () => {
+		setStatus('loading');
+		setMessage('');
+		setErrorDetails('');
+		setRetryCount((c) => c + 1);
 	};
 
 	return (
@@ -262,6 +271,16 @@ const PaymentSuccess = () => {
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ delay: 0.6 }}
 					>
+						{status !== 'success' && (
+							<motion.button
+								whileHover={{ scale: 1.02 }}
+								whileTap={{ scale: 0.98 }}
+								onClick={handleRetry}
+								className="w-full py-3 bg-gradient-to-r from-yellow-600 to-yellow-800 hover:from-yellow-700 hover:to-yellow-900 rounded-lg font-medium text-white transition-colors"
+							>
+								Retry Verification
+							</motion.button>
+						)}
 						<motion.button
 							whileHover={{ scale: 1.02 }}
 							whileTap={{ scale: 0.98 }}
@@ -281,6 +300,45 @@ const PaymentSuccess = () => {
 					</motion.div>
 				)}
 
+				{status === 'failed' && (
+					<motion.div
+						className="mt-6 p-4 bg-red-900/20 border border-red-600/50 rounded-lg"
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						transition={{ delay: 0.7 }}
+					>
+						<p className="text-red-400 text-sm mb-2">
+							💀 Something went wrong with your payment.
+							<br />
+							Please try again using the Retry button above.
+						</p>
+						<p className="text-red-300 text-xs mt-2">
+							If your payment is still not registered after retrying, please&nbsp;
+							<a
+								href="/contact"
+								className="underline text-blue-300 hover:text-blue-400"
+							>
+								contact us
+							</a>
+							&nbsp;or reach out at&nbsp;
+							<a
+								href={`mailto:${CONTACT_EMAIL}`}
+								className="underline text-blue-300 hover:text-blue-400"
+							>
+								{CONTACT_EMAIL}
+							</a>
+							&nbsp;or call&nbsp;
+							<a
+								href={`tel:${CONTACT_PHONE}`}
+								className="underline text-blue-300 hover:text-blue-400"
+							>
+								{CONTACT_PHONE}
+							</a>
+							.
+						</p>
+					</motion.div>
+				)}
+
 				{status === 'success' && (
 					<motion.div
 						className="mt-6 p-4 bg-green-900/20 border border-green-600/50 rounded-lg"
@@ -294,21 +352,6 @@ const PaymentSuccess = () => {
 							📧 Check your inbox for the QR code ticket.
 							<br />
 							👻 Welcome to RaveYard 2025!
-						</p>
-					</motion.div>
-				)}
-
-				{status === 'failed' && (
-					<motion.div
-						className="mt-6 p-4 bg-red-900/20 border border-red-600/50 rounded-lg"
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						transition={{ delay: 0.7 }}
-					>
-						<p className="text-red-400 text-sm">
-							💀 Something went wrong with your payment.
-							<br />
-							Please try again or contact support.
 						</p>
 					</motion.div>
 				)}

@@ -108,12 +108,10 @@ const createOrder = asyncHandler(async (req, res) => {
 	}
 });
 
-
 // Verify payment and generate ticket
 const verifyPayment = asyncHandler(async (req, res) => {
 	try {
 		const { order_id } = req.query;
-		let { fullName, email, LpuId, eventId, eventName } = req.body;
 
 		if (!order_id) throw new ApiError(400, 'Missing order_id');
 
@@ -122,11 +120,11 @@ const verifyPayment = asyncHandler(async (req, res) => {
 		if (!transaction) throw new ApiError(404, 'Transaction not found');
 
 		// Use transaction data if not provided in request body
-		fullName = fullName || transaction.user?.name;
-		email = email || transaction.user?.email;
-		LpuId = LpuId || transaction.lpuId;
-		eventId = eventId || transaction.eventId;
-		eventName = eventName || transaction.eventName || 'RaveYard 2025';
+		const fullName = transaction.user?.name;
+		const email = transaction.user?.email;
+		const LpuId = transaction.lpuId;
+		const eventId = transaction.eventId;
+		const eventName = transaction.eventName || 'RaveYard 2025';
 
 		// Already completed
 		if (transaction.status === 'SUCCESS') {
