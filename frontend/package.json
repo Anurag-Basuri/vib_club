@@ -13,6 +13,7 @@
     "check-env": "node scripts/check-env.js"
   },
   "dependencies": {
+    "@cashfreepayments/cashfree-js": "^1.0.5",
     "@studio-freight/lenis": "^1.0.42",
     "@studio-freight/react-lenis": "^0.0.47",
     "@tailwindcss/vite": "^4.1.11",
