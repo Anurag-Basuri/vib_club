@@ -9,7 +9,7 @@ const CONTACT_PHONE = '+91-9140253374';
 const PaymentSuccess = () => {
 	const [searchParams] = useSearchParams();
 	const navigate = useNavigate();
-	const [status, setStatus] = useState('loading'); // loading, success, failed, pending
+	const [status, setStatus] = useState('loading');
 	const [message, setMessage] = useState('');
 	const [transactionData, setTransactionData] = useState(null);
 	const [ticketData, setTicketData] = useState(null);

@@ -33,7 +33,7 @@ const HorrorRaveYardPage = () => {
 				// Set default tags if not provided by backend
 				if (event && !event.tags) {
 					event.tags = [
-						'DJ Gracy Live',
+						'DJ Anshika',
 						'Freshers Exclusive',
 						'Horror Theme',
 						'VIP Access',
@@ -161,7 +161,7 @@ const HorrorRaveYardPage = () => {
 	// Event highlights with exact specifications
 	const eventHighlights = [
 		{
-			title: 'Headlining Performance by DJ Gracy',
+			title: 'Headlining Performance by DJ Anshika',
 			description:
 				'Nationally renowned DJ bringing an exclusive high-energy haunted set. Remix segments: Bollywood x EOH Desi Bass, with dark glitchy FX. Interactive crowd drops, live horror-themed AV sync.',
 			icon: '🎧',
@@ -319,7 +319,7 @@ const HorrorRaveYardPage = () => {
 							<div className="flex flex-col items-center">
 								<span className="text-6xl mb-2">🎧</span>
 								<span className="text-lg font-bold text-red-300">
-									DJ Gracy Live
+									DJ Anshika
 								</span>
 							</div>
 							<div className="flex flex-col items-center">
