@@ -30,7 +30,7 @@ router.post(
     validate([
         body('fullName').notEmpty().withMessage('Full name is required'),
         body('email').isEmail().withMessage('Valid email is required'),
-        body('LpuId').notEmpty().withMessage('LPU ID is required'),
+        body('lpuId').notEmpty().withMessage('LPU ID is required'),
         body('eventId').isMongoId().withMessage('Valid event ID is required')
     ]),
     createTicket

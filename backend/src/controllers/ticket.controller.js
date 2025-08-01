@@ -12,7 +12,7 @@ import { deleteFile } from '../utils/cloudinary.js';
 const createTicket = asyncHandler(async (req, res) => {
 	const { fullName, email, LpuId, eventId, eventName } = req.body;
 
-	if (!fullName || !email || !LpuId || !eventId || !eventName) {
+	if (!fullName || !email || !lpuId || !eventId || !eventName) {
 		throw new ApiError(400, 'All fields are required');
 	}
 
@@ -21,7 +21,7 @@ const createTicket = asyncHandler(async (req, res) => {
 		throw new ApiError(404, 'Event not found');
 	}
 
-	const existingTicket = await Ticket.findOne({ LpuId, eventId });
+	const existingTicket = await Ticket.findOne({ lpuId, eventId });
 	if (existingTicket) {
 		throw new ApiError(409, 'You have already registered for this event');
 	}
@@ -30,7 +30,7 @@ const createTicket = asyncHandler(async (req, res) => {
 		ticketId: uuidv4(),
 		fullName,
 		email,
-		LpuId,
+		lpuId,
 		eventId,
 		eventName,
 		isUsed: false,
@@ -175,7 +175,7 @@ const deleteTicket = asyncHandler(async (req, res) => {
 
 // Check email and LPU ID availability for an event
 const checkEmailAvailability = asyncHandler(async (req, res) => {
-    const { email, eventId = 'event_raveyard_2025', lpuId } = req.body;
+    const { email, eventId = '68859a199ec482166f0e8523', lpuId } = req.body;
 
     const trimmedEmail = email.toLowerCase().trim();
     

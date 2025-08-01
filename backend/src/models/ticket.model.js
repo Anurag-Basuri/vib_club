@@ -36,7 +36,7 @@ const ticketSchema = new mongoose.Schema({
             message: 'Phone number must be 10 digits'
         }
     },
-    LpuId: {
+    lpuId: {
         type: Number,
         required: [true, 'LPU ID is required'],
         validate: {
