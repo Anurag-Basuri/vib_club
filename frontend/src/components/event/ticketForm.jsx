@@ -181,6 +181,24 @@ const TicketForm = ({
                 </select>
               </div>
 
+              {/* Club */}
+              <div>
+                <label className="block text-red-200 text-sm font-medium mb-1">
+                  Club
+                </label>
+                <select
+                  name="club"
+                  value={formData.club || ""}
+                  onChange={handleInputChange}
+                  className="w-full bg-black/60 border border-red-700/60 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-red-500 text-base transition-all"
+                  required
+                >
+                  <option value="">Select your club</option>
+                  <option value="SML">SML</option>
+                  <option value="Vibranta">Vibranta</option>
+                </select>
+              </div>
+
               {/* Hosteler Status */}
               <div>
                 <label className="block text-red-200 text-sm font-medium mb-1">

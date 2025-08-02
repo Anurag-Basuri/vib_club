@@ -26,6 +26,7 @@ const HorrorRaveYardPage = () => {
 		hosteler: false,
 		hostel: '',
 		course: '',
+		club: ''
 	});
 
 	useEffect(() => {
