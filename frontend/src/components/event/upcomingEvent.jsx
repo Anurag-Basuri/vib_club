@@ -22,6 +22,10 @@ const HorrorRaveYardPage = () => {
 		phone: '',
 		amount: '300', // Fixed amount
 		lpuId: '',
+		gender: '',
+		hosteler: false,
+		hostel: '',
+		course: '',
 	});
 
 	useEffect(() => {
