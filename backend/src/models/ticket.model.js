@@ -71,6 +71,10 @@ const ticketSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Course is required'],
     },
+    club: {
+        type:String,
+        enum: ['SML', 'Vibranta']
+    },
 
     eventId: {
         type: mongoose.Schema.Types.ObjectId,

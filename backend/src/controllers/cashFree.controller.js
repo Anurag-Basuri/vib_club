@@ -16,7 +16,7 @@ config();
 // Initialize Cashfree payment gateway
 const createOrder = asyncHandler(async (req, res) => {
 	try {
-		const { fullName, email, phone, amount, eventId, lpuId, gender, hosteler, hostel, course } =
+		const { fullName, email, phone, amount, eventId, lpuId, gender, hosteler, hostel, course, club="" } =
 			req.body;
 
 		// Validate required fields
@@ -92,7 +92,7 @@ const createOrder = asyncHandler(async (req, res) => {
 		// Create transaction record
 		await Transaction.create({
 			orderId: orderId,
-			user: { fullName, email, phone, lpuId, gender, hosteler, hostel, course },
+			user: { fullName, email, phone, lpuId, gender, hosteler, hostel, course, club },
 			amount: Number(amount),
 			status: 'PENDING',
 			paymentMethod: 'UPI',
@@ -132,6 +132,7 @@ const verifyPayment = asyncHandler(async (req, res) => {
 		const hosteler = transaction.user?.hosteler;
 		const hostel = transaction.user?.hostel;
 		const course = transaction.user?.course;
+		const club = transaction.user?.club || '';
 		const eventId = transaction.eventId;
 		const eventName = transaction.eventName || 'RaveYard 2025';
 
@@ -191,6 +192,7 @@ const verifyPayment = asyncHandler(async (req, res) => {
 					eventName,
 					isUsed: false,
 					isCancelled: false,
+					club
 				});
 				await ticket.save();
 
@@ -292,7 +294,7 @@ const handleWebhook = asyncHandler(async (req, res) => {
 			return res.status(200).json({ status: 'ok', message: 'Transaction not found' });
 		}
 
-		const { fullName, email, phone, lpuId, gender, hosteler, hostel, course } =
+		const { fullName, email, phone, lpuId, gender, hosteler, hostel, course, club } =
 			transaction.user;
 		const eventId = transaction.eventId || '68859a199ec482166f0e8523';
 		const eventName = transaction.eventName || 'RaveYard 2025';
@@ -317,6 +319,7 @@ const handleWebhook = asyncHandler(async (req, res) => {
 				eventName,
 				isUsed: false,
 				isCancelled: false,
+				club
 			});
 
 			await ticket.save();

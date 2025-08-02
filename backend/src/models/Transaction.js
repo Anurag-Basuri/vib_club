@@ -69,6 +69,9 @@ const transactionSchema = new mongoose.Schema(
 				type: String,
 				required: [true, 'Course is required'],
 			},
+			club: {
+				type: String
+			},
 		},
 		amount: {
 			type: Number,
