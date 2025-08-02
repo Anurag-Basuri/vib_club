@@ -56,16 +56,20 @@ const ticketSchema = new mongoose.Schema({
         required: [true, 'Gender is required'],
         enum: ['Male', 'Female']
     },
-    hosteller:{
+    hosteler: {
         type: Boolean,
-        required: [true, 'Hosteller status is required'],
+        required: [true, 'Hosteler status is required'],
         default: false
     },
-    hostel:{
+    hostel: {
         type: String,
         required: function() {
-            return this.hosteller; // Only required if hosteller is true
+            return this.hosteler; // Only required if hosteler is true
         }
+    },
+    course: {
+        type: String,
+        required: [true, 'Course is required'],
     },
 
     eventId: {

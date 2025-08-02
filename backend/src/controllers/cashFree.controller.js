@@ -16,11 +16,11 @@ config();
 // Initialize Cashfree payment gateway
 const createOrder = asyncHandler(async (req, res) => {
 	try {
-		const { name, email, phone, amount, eventId, lpuId } = req.body;
+		const { name, email, phone, amount, eventId, lpuId, gender, hosteller, hostel, course } = req.body;
 
 		// Validate required fields
-		if (!name || !email || !phone || !amount || !lpuId) {
-			throw new ApiError(400, 'Missing required fields: name, email, phone, amount, lpuId');
+		if (!name || !email || !phone || !amount || !lpuId || !gender || !hosteller || !course) {
+			throw new ApiError(400, 'Missing required fields: name, email, phone, amount, lpuId, gender, hosteller, course');
 		}
 		if (isNaN(amount) || amount <= 0) {
 			throw new ApiError(400, 'Invalid amount');
@@ -68,7 +68,7 @@ const createOrder = asyncHandler(async (req, res) => {
 				customer_id: customerId,
 				customer_email: email,
 				customer_phone: phone,
-				customer_lpu_id: lpuId,
+				customer_lpu_id: lpuId
 			},
 			order_meta: {
 				return_url: `${process.env.CASHFREE_RETURN_URL}?order_id=${orderId}`,
@@ -90,7 +90,7 @@ const createOrder = asyncHandler(async (req, res) => {
 		// Create transaction record
 		await Transaction.create({
 			orderId: orderId,
-			user: { name, email, phone, lpuId },
+			user: { name, email, phone, lpuId, gender, hosteler, hostel, course },
 			amount: Number(amount),
 			status: 'PENDING',
 			paymentMethod: 'UPI',
@@ -125,6 +125,10 @@ const verifyPayment = asyncHandler(async (req, res) => {
 		const email = transaction.user?.email;
 		const LpuId = transaction.user?.lpuId;
 		const phone = transaction.user?.phone;
+		const gender = transaction.user?.gender;
+		const hosteler = transaction.user?.hosteler;
+		const hostel = transaction.user?.hostel;
+		const course = transaction.user?.course;
 		const eventId = transaction.eventId;
 		const eventName = transaction.eventName || 'RaveYard 2025';
 
@@ -176,6 +180,10 @@ const verifyPayment = asyncHandler(async (req, res) => {
 					email,
 					lpuId: LpuId,
 					phone,
+					gender,
+					hosteler,
+					hostel,
+					course,
 					eventId,
 					eventName,
 					isUsed: false,
@@ -273,7 +281,7 @@ const handleWebhook = asyncHandler(async (req, res) => {
 			return res.status(200).json({ status: 'ok', message: 'Transaction not found' });
 		}
 
-		const { name, email, phone, lpuId } = transaction.user;
+		const { name, email, phone, lpuId, gender, hosteler, hostel, course } = transaction.user;
 		const eventId = transaction.eventId || '68859a199ec482166f0e8523';
 		const eventName = 'RaveYard 2025';
 
@@ -287,7 +295,12 @@ const handleWebhook = asyncHandler(async (req, res) => {
 				ticketId: uuidv4(),
 				fullName: name,
 				email,
+				phone,
 				lpuId,
+				gender,
+				hosteler,
+				hostel,
+				course,
 				eventId,
 				eventName,
 				isUsed: false,
