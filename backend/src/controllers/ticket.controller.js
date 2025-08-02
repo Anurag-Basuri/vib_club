@@ -10,9 +10,9 @@ import { deleteFile } from '../utils/cloudinary.js';
 
 // Create a new ticket
 const createTicket = asyncHandler(async (req, res) => {
-	const { fullName, email, lpuId, eventId, eventName } = req.body;
+	const { fullName, email, lpuId, eventId, eventName, gender, hosteler, hostel, course } = req.body;
 
-	if (!fullName || !email || !lpuId || !eventId || !eventName) {
+	if (!fullName || !email || !lpuId || !eventId || !eventName || !gender || !hosteler || !hostel || !course) {
 		throw new ApiError(400, 'All fields are required');
 	}
 
@@ -21,7 +21,14 @@ const createTicket = asyncHandler(async (req, res) => {
 		throw new ApiError(404, 'Event not found');
 	}
 
-	const existingTicket = await Ticket.findOne({ lpuId, eventId });
+	// Check for duplicate ticket by email or lpuId for this event
+	const existingTicket = await Ticket.findOne({
+		eventId,
+		$or: [
+			{ email: email.trim().toLowerCase() },
+			{ lpuId: typeof lpuId === 'string' ? lpuId.trim() : lpuId },
+		],
+	});
 	if (existingTicket) {
 		throw new ApiError(409, 'You have already registered for this event');
 	}
@@ -29,12 +36,16 @@ const createTicket = asyncHandler(async (req, res) => {
 	const ticket = new Ticket({
 		ticketId: uuidv4(),
 		fullName,
-		email,
-		lpuId,
+		email: email.trim().toLowerCase(),
+		lpuId: typeof lpuId === 'string' ? lpuId.trim() : lpuId,
 		eventId,
 		eventName,
+		gender,
+		hosteler,
+		hostel,
+		course,
 		isUsed: false,
-		isCancelled: false
+		isCancelled: false,
 	});
 
 	await ticket.save();
@@ -64,7 +75,7 @@ const createTicket = asyncHandler(async (req, res) => {
 
 	try {
 		await sendRegistrationEmail({
-			to: email,
+			to: email.trim().toLowerCase(),
 			name: fullName,
 			eventName: eventName,
 			eventDate: event.date,
@@ -79,35 +90,19 @@ const createTicket = asyncHandler(async (req, res) => {
 		throw new ApiError(500, 'Failed to send registration email, ticket deleted');
 	}
 
-	return res
-		.status(201)
-		.json(
-			new ApiResponse(
-				201,
-				ticket,
-				'Ticket created successfully'
-			)
-		);
+	return res.status(201).json(new ApiResponse(201, ticket, 'Ticket created successfully'));
 });
 
 // Get ticket by ID
 const getTicketById = asyncHandler(async (req, res) => {
-	const { ticketId } = req.params || req.body.ticketId;
+	const ticketId = req.params.ticketId || req.body.ticketId;
 
 	const ticket = await Ticket.findById(ticketId);
 	if (!ticket) {
 		throw new ApiError(404, 'Ticket not found');
 	}
 
-	return res
-		.status(200)
-		.json(
-			new ApiResponse(
-				200,
-				'Ticket retrieved successfully',
-				ticket
-			)
-		);
+	return res.status(200).json(new ApiResponse(200, ticket, 'Ticket retrieved successfully'));
 });
 
 // Update ticket status (used/cancelled)
@@ -128,11 +123,7 @@ const updateTicketStatus = asyncHandler(async (req, res) => {
 
 	await ticket.save();
 
-	return res
-		.status(200)
-		.json(
-			new ApiResponse(200, 'Ticket status updated successfully', ticket)
-		);
+	return res.status(200).json(new ApiResponse(200, ticket, 'Ticket status updated successfully'));
 });
 
 // Get all tickets for an event
@@ -149,13 +140,8 @@ const getTicketsByEvent = asyncHandler(async (req, res) => {
 		throw new ApiError(404, 'No tickets found for this event');
 	}
 
-	return res
-		.status(200)
-		.json(
-			new ApiResponse(200, 'Tickets retrieved successfully', tickets)
-		);
+	return res.status(200).json(new ApiResponse(200, tickets, 'Tickets retrieved successfully'));
 });
-
 
 const deleteTicket = asyncHandler(async (req, res) => {
 	const { ticketId } = req.params;
@@ -165,58 +151,59 @@ const deleteTicket = asyncHandler(async (req, res) => {
 		throw new ApiError(404, 'Ticket not found or already deleted');
 	}
 
-	return res
-		.status(200)
-		.json(
-			new ApiResponse(
-				200, 'Ticket deleted successfully')
-		);
+	return res.status(200).json(new ApiResponse(200, null, 'Ticket deleted successfully'));
 });
 
 // Check email and LPU ID availability for an event
 const checkEmailAvailability = asyncHandler(async (req, res) => {
-    const { email, eventId = '68859a199ec482166f0e8523', lpuId } = req.body;
+	const { email, eventId = '68859a199ec482166f0e8523', lpuId } = req.body;
 
-    const trimmedEmail = email.toLowerCase().trim();
-    
-    // Check if email already exists for this event
-    const existingTicketByEmail = await Ticket.findOne({ 
-        email: trimmedEmail,
-        eventId: eventId 
-    });
+	const trimmedEmail = email.toLowerCase().trim();
 
-    if (existingTicketByEmail) {
-        throw new ApiError(409, 'A ticket has already been purchased with this email address for this event');
-    }
+	// Check if email already exists for this event
+	const existingTicketByEmail = await Ticket.findOne({
+		email: trimmedEmail,
+		eventId: eventId,
+	});
 
-    // Also check LPU ID if provided
-    if (lpuId) {
-        const existingTicketByLpu = await Ticket.findOne({ 
-            LpuId: parseInt(lpuId),
-            eventId: eventId 
-        });
-        
-        if (existingTicketByLpu) {
-            throw new ApiError(409, 'A ticket has already been purchased with this LPU ID for this event');
-        }
-    }
+	if (existingTicketByEmail) {
+		throw new ApiError(
+			409,
+			'A ticket has already been purchased with this email address for this event'
+		);
+	}
 
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(200, 'Email and LPU ID are available for registration', { 
-                available: true,
-                email: trimmedEmail,
-                eventId: eventId
-            })
-        );
+	// Also check LPU ID if provided
+	if (lpuId) {
+		const existingTicketByLpu = await Ticket.findOne({
+			lpuId: typeof lpuId === 'string' ? lpuId.trim() : lpuId,
+			eventId: eventId,
+		});
+
+		if (existingTicketByLpu) {
+			throw new ApiError(
+				409,
+				'A ticket has already been purchased with this LPU ID for this event'
+			);
+		}
+	}
+
+	return res
+		.status(200)
+		.json(
+			new ApiResponse(
+				200,
+				{ available: true, email: trimmedEmail, eventId: eventId },
+				'Email and LPU ID are available for registration'
+			)
+		);
 });
 
 export {
-    createTicket,
-    getTicketById,
-    updateTicketStatus,
-    getTicketsByEvent,
-    deleteTicket,
-    checkEmailAvailability
+	createTicket,
+	getTicketById,
+	updateTicketStatus,
+	getTicketsByEvent,
+	deleteTicket,
+	checkEmailAvailability,
 };
