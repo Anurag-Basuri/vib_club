@@ -84,8 +84,10 @@ const Navbar = () => {
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('touchstart', handleClickOutside);
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('touchstart', handleClickOutside);
         };
     }, []);
 
@@ -93,11 +95,14 @@ const Navbar = () => {
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
+            document.body.style.touchAction = 'none';
         } else {
             document.body.style.overflow = '';
+            document.body.style.touchAction = '';
         }
         return () => {
             document.body.style.overflow = '';
+            document.body.style.touchAction = '';
         };
     }, [isOpen]);
 
@@ -110,9 +115,11 @@ const Navbar = () => {
         };
         if (isOpen) {
             document.addEventListener('mousedown', handleClickOutside);
+            document.addEventListener('touchstart', handleClickOutside);
         }
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('touchstart', handleClickOutside);
         };
     }, [isOpen]);
 
@@ -248,6 +255,9 @@ const Navbar = () => {
                 }
                 .backdrop-fade-in {
                     animation: backdropFadeIn 0.3s ease-out forwards;
+                }
+                .mobile-nav-item {
+                    touch-action: manipulation;
                 }
             `}</style>
 
@@ -411,18 +421,17 @@ const Navbar = () => {
             </div>
             {/* Mobile Drawer */}
             {isOpen && (
-                <div className="fixed inset-0 z-[60] lg:hidden">
+                <div className="fixed inset-0 z-[100] lg:hidden">
                     {/* Backdrop */}
                     <div 
-                        className="absolute inset-0 bg-black/60 backdrop-blur-sm backdrop-fade-in"
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm backdrop-fade-in"
                         onClick={() => setIsOpen(false)}
-                        style={{ zIndex: 10 }}
+                        style={{ zIndex: 90 }}
                     />
                     {/* Drawer */}
                     <div
                         ref={drawerRef}
-                        className="absolute top-0 left-0 h-full w-80 max-w-[85%] bg-cyan-900/95 backdrop-blur-lg border-r border-white/20 shadow-2xl overflow-hidden drawer-open"
-                        style={{ zIndex: 20 }}
+                        className="fixed top-0 left-0 h-[100dvh] w-80 max-w-[85%] bg-cyan-900/95 backdrop-blur-lg border-r border-white/20 shadow-2xl overflow-hidden z-[100] drawer-open"
                     >
                         <div className="h-full flex flex-col">
                             {/* Header */}
@@ -444,7 +453,7 @@ const Navbar = () => {
                                 </button>
                             </div>
                             {/* Navigation */}
-                            <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+                            <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
                                 <div className="space-y-6">
                                     {navSections.map((section, idx) => (
                                         <div key={section.title || idx}>
@@ -508,6 +517,26 @@ const Navbar = () => {
                     </div>
                 </div>
             )}
+            {/* Custom scrollbar styling */}
+            <style jsx>{`
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 6px;
+                    height: 6px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: linear-gradient(to bottom, #0891b2, #0d9488);
+                    border-radius: 6px;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: rgba(0, 0, 0, 0.2);
+                    border-radius: 6px;
+                }
+                .custom-scrollbar {
+                    scrollbar-width: thin;
+                    scrollbar-color: #0891b2 rgba(0, 0, 0, 0.2);
+                }
+            `}</style>
         </>
     );
 };
