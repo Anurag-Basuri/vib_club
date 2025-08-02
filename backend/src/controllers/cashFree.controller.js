@@ -16,21 +16,25 @@ config();
 // Initialize Cashfree payment gateway
 const createOrder = asyncHandler(async (req, res) => {
 	try {
-		const { name, email, phone, amount, eventId, lpuId, gender, hosteller, hostel, course } = req.body;
+		const { fullName, email, phone, amount, eventId, lpuId, gender, hosteler, hostel, course } =
+			req.body;
 
 		// Validate required fields
-		if (!name || !email || !phone || !amount || !lpuId || !gender || !hosteller || !course) {
-			throw new ApiError(400, 'Missing required fields: name, email, phone, amount, lpuId, gender, hosteller, course');
+		if (!fullName || !email || !phone || !amount || !lpuId || !gender || !hosteler || !course) {
+			throw new ApiError(
+				400,
+				'Missing required fields: fullName, email, phone, amount, lpuId, gender, hosteler, course'
+			);
 		}
 		if (isNaN(amount) || amount <= 0) {
 			throw new ApiError(400, 'Invalid amount');
 		}
 
-		// Check for duplicate ticket by email for this event
+		// Check for duplicate ticket by email/lpuId for this event
 		const eventIdToUse = eventId || '68859a199ec482166f0e8523';
 		const existingTicket = await Ticket.findOne({
-			$or: [{ email: email.trim() }, { lpuId: lpuId.trim() }],
 			eventId: eventIdToUse,
+			$or: [{ email: email.trim() }, { lpuId: lpuId.trim() }],
 		});
 		if (existingTicket) {
 			throw new ApiError(
@@ -51,11 +55,9 @@ const createOrder = asyncHandler(async (req, res) => {
 
 		// Resolve event name for order note
 		let resolvedEventName = 'RaveYard 2025';
-		if (eventIdToUse) {
-			const eventDoc = await Ticket.findOne({ eventId: eventIdToUse });
-			if (eventDoc && eventDoc.eventName) {
-				resolvedEventName = eventDoc.eventName;
-			}
+		const eventDoc = await Event.findById(eventIdToUse);
+		if (eventDoc && eventDoc.name) {
+			resolvedEventName = eventDoc.name;
 		}
 
 		// Prepare Cashfree order payload
@@ -64,11 +66,11 @@ const createOrder = asyncHandler(async (req, res) => {
 			order_amount: amount,
 			order_currency: 'INR',
 			customer_details: {
-				customer_name: name,
+				customer_name: fullName,
 				customer_id: customerId,
 				customer_email: email,
 				customer_phone: phone,
-				customer_lpu_id: lpuId
+				customer_lpu_id: lpuId,
 			},
 			order_meta: {
 				return_url: `${process.env.CASHFREE_RETURN_URL}?order_id=${orderId}`,
@@ -90,11 +92,12 @@ const createOrder = asyncHandler(async (req, res) => {
 		// Create transaction record
 		await Transaction.create({
 			orderId: orderId,
-			user: { name, email, phone, lpuId, gender, hosteler, hostel, course },
+			user: { fullName, email, phone, lpuId, gender, hosteler, hostel, course },
 			amount: Number(amount),
 			status: 'PENDING',
 			paymentMethod: 'UPI',
 			eventId: eventIdToUse,
+			eventName: resolvedEventName,
 		});
 
 		return res.status(200).json(new ApiResponse(200, order, 'Order created successfully'));
@@ -121,9 +124,9 @@ const verifyPayment = asyncHandler(async (req, res) => {
 		if (!transaction) throw new ApiError(404, 'Transaction not found');
 
 		// Use transaction data if not provided in request body
-		const fullName = transaction.user?.name;
+		const fullName = transaction.user?.fullName;
 		const email = transaction.user?.email;
-		const LpuId = transaction.user?.lpuId;
+		const lpuId = transaction.user?.lpuId;
 		const phone = transaction.user?.phone;
 		const gender = transaction.user?.gender;
 		const hosteler = transaction.user?.hosteler;
@@ -136,9 +139,9 @@ const verifyPayment = asyncHandler(async (req, res) => {
 		if (transaction.status === 'SUCCESS') {
 			// Try to find ticket and QR
 			const ticket = await Ticket.findOne({ email, eventId });
-			return res.status(200).json(
-				new ApiResponse(200, { transaction, ticket }, 'Payment already verified')
-			);
+			return res
+				.status(200)
+				.json(new ApiResponse(200, { transaction, ticket }, 'Payment already verified'));
 		}
 
 		// Verify with Cashfree
@@ -178,7 +181,7 @@ const verifyPayment = asyncHandler(async (req, res) => {
 					ticketId: uuidv4(),
 					fullName,
 					email,
-					lpuId: LpuId,
+					lpuId,
 					phone,
 					gender,
 					hosteler,
@@ -241,11 +244,19 @@ const verifyPayment = asyncHandler(async (req, res) => {
 
 			return res
 				.status(200)
-				.json(new ApiResponse(200, { transaction, ticket }, 'Payment verified and ticket issued'));
+				.json(
+					new ApiResponse(
+						200,
+						{ transaction, ticket },
+						'Payment verified and ticket issued'
+					)
+				);
 		} else if (status === 'ACTIVE') {
 			return res
 				.status(202)
-				.json(new ApiResponse(202, null, 'Payment is still processing. Try again shortly.'));
+				.json(
+					new ApiResponse(202, null, 'Payment is still processing. Try again shortly.')
+				);
 		} else {
 			transaction.status = 'FAILED';
 			await transaction.save();
@@ -281,19 +292,20 @@ const handleWebhook = asyncHandler(async (req, res) => {
 			return res.status(200).json({ status: 'ok', message: 'Transaction not found' });
 		}
 
-		const { name, email, phone, lpuId, gender, hosteler, hostel, course } = transaction.user;
+		const { fullName, email, phone, lpuId, gender, hosteler, hostel, course } =
+			transaction.user;
 		const eventId = transaction.eventId || '68859a199ec482166f0e8523';
-		const eventName = 'RaveYard 2025';
+		const eventName = transaction.eventName || 'RaveYard 2025';
 
 		// Update transaction status based on webhook
-		if (payment_status === 'SUCCESS' && payment_amount === order_amount) {
+		if (payment_status === 'SUCCESS' && Number(payment_amount) === Number(order_amount)) {
 			transaction.status = 'SUCCESS';
 			transaction.paymentDate = new Date();
 			await transaction.save();
 
 			const ticket = new Ticket({
 				ticketId: uuidv4(),
-				fullName: name,
+				fullName,
 				email,
 				phone,
 				lpuId,
@@ -346,7 +358,7 @@ const handleWebhook = asyncHandler(async (req, res) => {
 			try {
 				await sendRegistrationEmail({
 					to: email,
-					name: name,
+					name: fullName,
 					eventName: eventName,
 					eventDate: '22nd August 2025',
 					eventTime: '5:00 PM',
