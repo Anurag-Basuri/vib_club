@@ -1,6 +1,7 @@
 import mongoose from "mongoose"
 import validator from "validator";
 import { v4 as uuidv4 } from "uuid";
+import { type } from "os";
 
 const ticketSchema = new mongoose.Schema({
     ticketId: {
@@ -48,6 +49,22 @@ const ticketSchema = new mongoose.Schema({
                 return /^\d{8}$/.test(v);
             },
             message: 'LPU ID must be 8 digits'
+        }
+    },
+    gender:{
+        type: String,
+        required: [true, 'Gender is required'],
+        enum: ['Male', 'Female']
+    },
+    hosteller:{
+        type: Boolean,
+        required: [true, 'Hosteller status is required'],
+        default: false
+    },
+    hostel:{
+        type: String,
+        required: function() {
+            return this.hosteller; // Only required if hosteller is true
         }
     },
 

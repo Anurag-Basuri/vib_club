@@ -3,31 +3,72 @@ import mongoose from 'mongoose';
 const transactionSchema = new mongoose.Schema(
 	{
 		orderId: {
-            type: String,
-            required: true,
-            unique: true
-        },
+			type: String,
+			required: true,
+			unique: true,
+		},
 		user: {
-			name: {
-                type: String,
-                required: true
-            },
+			fullName: {
+				type: String,
+				required: [true, 'Full name is required'],
+				trim: true,
+				minlength: [2, 'Full name must be at least 2 characters'],
+				maxlength: [50, 'Full name cannot exceed 50 characters'],
+			},
 			email: {
-                type: String,
-                required: true
-            },
+				type: String,
+				required: [true, 'Email is required'],
+				trim: true,
+				unique: true,
+				validate: {
+					validator: validator.isEmail,
+					message: 'Invalid email format',
+				},
+			},
 			phone: {
 				type: String,
-				required: true
+				required: [true, 'Phone number is required'],
+				trim: true,
+				validate: {
+					validator: function (v) {
+						// Remove leading 0 or +91 if present
+						const normalized = v.replace(/^(\+91|0)/, '');
+						return /^\d{10}$/.test(normalized);
+					},
+					message: 'Phone number must be 10 digits (ignore leading 0 or +91)',
+				},
 			},
 			lpuId: {
+				type: Number,
+				required: [true, 'LPU ID is required'],
+				unique: true,
+				validate: {
+					validator: function (v) {
+						return /^\d{8}$/.test(v);
+					},
+					message: 'LPU ID must be 8 digits',
+				},
+			},
+			gender: {
 				type: String,
-				required: true
-			}
+				required: [true, 'Gender is required'],
+				enum: ['Male', 'Female'],
+			},
+			hosteller: {
+				type: Boolean,
+				required: [true, 'Hosteller status is required'],
+				default: false,
+			},
+			hostel: {
+				type: String,
+				required: function () {
+					return this.hosteller; // Only required if hosteller is true
+				},
+			},
 		},
 		amount: {
 			type: Number,
-			required: true
+			required: true,
 		},
 		status: {
 			type: String,

@@ -140,7 +140,7 @@ const verifyPayment = asyncHandler(async (req, res) => {
 		// Verify with Cashfree
 		let cashfreeResponse;
 		try {
-			const baseURL = process.env.CASHFREE_BASE_URL || 'https://sandbox.cashfree.com/pg';
+			const baseURL = process.env.CASHFREE_BASE_URL || 'https://api.cashfree.com';
 			const clientId = process.env.CASHFREE_APP_ID;
 			const clientSecret = process.env.CASHFREE_SECRET_KEY;
 
