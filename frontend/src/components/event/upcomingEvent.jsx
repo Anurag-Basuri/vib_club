@@ -5,6 +5,21 @@ import TicketForm from './ticketForm.jsx';
 import ENV from '../../config/env.js';
 import handlePayment from "../../utils/paymentHandler.js";
 
+const usePreventBodyScroll = (preventScroll) => {
+  useEffect(() => {
+    if (preventScroll) {
+      const originalStyle = window.getComputedStyle(document.body).overflow;
+      const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.overflow = 'hidden';
+      document.body.style.paddingRight = `${scrollBarWidth}px`;
+      return () => {
+        document.body.style.overflow = originalStyle;
+        document.body.style.paddingRight = '';
+      };
+    }
+  }, [preventScroll]);
+};
+
 const HorrorRaveYardPage = () => {
     const [spotsLeft, setSpotsLeft] = useState(0);
     const [totalSpots, setTotalSpots] = useState(0);
@@ -18,7 +33,7 @@ const HorrorRaveYardPage = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [formData, setFormData] = useState({
-        name: '',
+        fullName: '',
         email: '',
         phone: '',
         amount: '300', // Fixed amount
@@ -213,8 +228,8 @@ const HorrorRaveYardPage = () => {
     // Show "Starting Soon" modal instead of form
     const openPaymentForm = () => {
         setError('');
-        setShowStartingSoon(true);
-        // setShowPaymentForm(true); // Commented out for now
+        // setShowStartingSoon(true);
+        setShowPaymentForm(true);
     };
 
     const onPaymentSubmit = () => {
@@ -234,6 +249,8 @@ const HorrorRaveYardPage = () => {
             }
         });
     };
+
+    usePreventBodyScroll(showPaymentForm || showStartingSoon);
 
     return (
         <div
