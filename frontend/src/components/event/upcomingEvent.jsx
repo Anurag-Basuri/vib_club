@@ -13,7 +13,7 @@ const HorrorRaveYardPage = () => {
     const [bloodDrips, setBloodDrips] = useState([]);
     const [eventData, setEventData] = useState(null);
     const [showPaymentForm, setShowPaymentForm] = useState(false);
-    const [showStartingSoon, setShowStartingSoon] = useState(false); // NEW STATE
+    const [showStartingSoon, setShowStartingSoon] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [formData, setFormData] = useState({

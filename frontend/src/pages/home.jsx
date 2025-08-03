@@ -21,7 +21,7 @@ const Home = () => {
 			{/* Content */}
 			<div className="relative z-10">
 				<Hero />
-				<ClubDescription />
+				{/* <ClubDescription /> */}
 				<EventsPreview />
 				<TeamPreview />
 				{/* <Testimonials /> */}
