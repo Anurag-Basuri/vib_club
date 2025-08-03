@@ -1,8 +1,8 @@
-// Environment validation script
-// Run this before building for production: npm run check-env
-
 import fs from 'fs';
 import path from 'path';
+
+// Ensure process is defined (for environments where process is not global)
+const proc = typeof process !== 'undefined' ? process : { exit: (code) => { throw new Error('process.exit called with code ' + code); } };
 
 const requiredProdVars = [
   'VITE_BACKEND_URL',
@@ -15,7 +15,7 @@ const checkEnvironment = () => {
   
   // Check if .env.production exists
   const prodEnvPath = path.resolve('.env.production');
-  if (!fs.existsSync(prodEnvPath)) {
+    proc.exit(1);
     console.error('❌ .env.production file not found!');
     console.log('💡 Copy .env.production.template to .env.production and fill in your values');
     process.exit(1);
