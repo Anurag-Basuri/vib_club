@@ -3,111 +3,34 @@ import { motion } from 'framer-motion';
 
 const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }) => {
   const modalRef = useRef(null);
-  const scrollPositionRef = useRef(0);
-  const originalStylesRef = useRef({});
 
-  // Comprehensive scroll prevention with proper cleanup
+  // Focus management and Escape key
   useEffect(() => {
-    // Store current scroll position
-    scrollPositionRef.current = window.pageYOffset;
-    
-    // Get scrollbar width to prevent layout shift
-    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-    
-    // Store original styles
-    originalStylesRef.current = {
-      bodyOverflow: document.body.style.overflow,
-      bodyPosition: document.body.style.position,
-      bodyTop: document.body.style.top,
-      bodyWidth: document.body.style.width,
-      bodyPaddingRight: document.body.style.paddingRight,
-      htmlOverflow: document.documentElement.style.overflow
-    };
-
-    // Apply comprehensive scroll lock
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollPositionRef.current}px`;
-    document.body.style.width = '100%';
-    document.body.style.paddingRight = `${scrollbarWidth}px`;
-    document.documentElement.style.overflow = 'hidden';
-
-    // Focus modal for accessibility
-    const focusModal = () => {
-      if (modalRef.current) {
-        modalRef.current.focus();
-      }
-    };
-    
-    // Small delay to ensure modal is rendered
-    const focusTimeout = setTimeout(focusModal, 100);
-
-    // Cleanup function
-    return () => {
-      clearTimeout(focusTimeout);
-      
-      // Restore original styles
-      const styles = originalStylesRef.current;
-      document.body.style.overflow = styles.bodyOverflow || '';
-      document.body.style.position = styles.bodyPosition || '';
-      document.body.style.top = styles.bodyTop || '';
-      document.body.style.width = styles.bodyWidth || '';
-      document.body.style.paddingRight = styles.bodyPaddingRight || '';
-      document.documentElement.style.overflow = styles.htmlOverflow || '';
-      
-      // Restore scroll position
-      window.scrollTo(0, scrollPositionRef.current);
-    };
-  }, []);
-
-  // Enhanced keyboard handling with focus trapping
-  useEffect(() => {
+    if (modalRef.current) {
+      modalRef.current.focus();
+    }
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        onClose();
-        return;
-      }
-      
+      if (e.key === 'Escape') onClose();
       // Trap focus within modal
       if (e.key === 'Tab') {
-        const focusableElements = modalRef.current?.querySelectorAll(
+        const focusable = modalRef.current?.querySelectorAll(
           'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
         );
-        
-        if (focusableElements && focusableElements.length > 0) {
-          const firstElement = focusableElements[0];
-          const lastElement = focusableElements[focusableElements.length - 1];
-          
-          if (e.shiftKey && document.activeElement === firstElement) {
+        if (focusable && focusable.length > 0) {
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+          if (e.shiftKey && document.activeElement === first) {
             e.preventDefault();
-            lastElement.focus();
-          } else if (!e.shiftKey && document.activeElement === lastElement) {
+            last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
             e.preventDefault();
-            firstElement.focus();
+            first.focus();
           }
         }
       }
     };
-
-    // Prevent any scroll events on the window
-    const preventScroll = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      return false;
-    };
-
     document.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('scroll', preventScroll, { passive: false });
-    window.addEventListener('wheel', preventScroll, { passive: false });
-    window.addEventListener('touchmove', preventScroll, { passive: false });
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('scroll', preventScroll);
-      window.removeEventListener('wheel', preventScroll);
-      window.removeEventListener('touchmove', preventScroll);
-    };
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
   const handleInputChange = useCallback((e) => {
@@ -115,23 +38,14 @@ const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }
     setFormData((prev) => ({ ...prev, [name]: value }));
   }, [setFormData]);
 
-  const handleSubmit = useCallback(() => {
-    if (onSubmit) {
-      onSubmit();
-    }
+  const handleSubmit = useCallback((e) => {
+    e.preventDefault();
+    if (onSubmit) onSubmit();
   }, [onSubmit]);
 
   const handleBackdropClick = useCallback((e) => {
-    // Only close if clicking the backdrop, not the modal content
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
+    if (e.target === e.currentTarget) onClose();
   }, [onClose]);
-
-  // Prevent any event bubbling that might cause scrolling
-  const handleModalClick = useCallback((e) => {
-    e.stopPropagation();
-  }, []);
 
   return (
     <motion.div
@@ -140,29 +54,23 @@ const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={handleBackdropClick}
-      style={{ 
+      style={{
         position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
+        top: 0, left: 0, right: 0, bottom: 0,
         overflow: 'hidden'
       }}
     >
       <motion.div
         ref={modalRef}
         tabIndex={-1}
-        className="bg-gradient-to-br from-red-900/95 to-black/95 backdrop-blur-lg border border-red-700/60 shadow-2xl rounded-2xl max-w-lg w-full max-h-[85vh] relative flex flex-col overflow-hidden"
+        className="bg-gradient-to-br from-red-900/95 to-black/95 backdrop-blur-lg border border-red-700/60 shadow-2xl rounded-2xl max-w-lg w-full max-h-[90vh] relative flex flex-col overflow-hidden"
         initial={{ scale: 0.85, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.85, opacity: 0 }}
-        onClick={handleModalClick}
-        style={{ 
-          position: 'relative',
-          zIndex: 10000
-        }}
+        onClick={e => e.stopPropagation()}
+        style={{ position: 'relative', zIndex: 10000 }}
       >
-        {/* Header - Fixed */}
+        {/* Header */}
         <div className="p-5 sm:p-7 border-b border-red-700/40 relative flex-shrink-0 bg-gradient-to-r from-red-900/60 to-black/60">
           <div className="text-center">
             <h3
@@ -186,7 +94,11 @@ const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }
         </div>
 
         {/* Scrollable Form Content */}
-        <div className="flex-1 flex flex-col min-h-0">
+        <form
+          className="flex-1 flex flex-col min-h-0"
+          onSubmit={handleSubmit}
+          autoComplete="off"
+        >
           <div
             className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar"
             style={{
@@ -210,10 +122,7 @@ const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }
               <div className="grid grid-cols-1 gap-4 sm:gap-5">
                 {/* Full Name */}
                 <div>
-                  <label
-                    htmlFor="fullName"
-                    className="block text-red-200 text-sm font-medium mb-1"
-                  >
+                  <label htmlFor="fullName" className="block text-red-200 text-sm font-medium mb-1">
                     Full Name
                   </label>
                   <input
@@ -228,13 +137,9 @@ const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }
                     autoFocus
                   />
                 </div>
-
                 {/* Email */}
                 <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-red-200 text-sm font-medium mb-1"
-                  >
+                  <label htmlFor="email" className="block text-red-200 text-sm font-medium mb-1">
                     Email Address
                   </label>
                   <input
@@ -249,13 +154,9 @@ const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }
                     autoComplete="email"
                   />
                 </div>
-
                 {/* Phone Number */}
                 <div>
-                  <label
-                    htmlFor="phone"
-                    className="block text-red-200 text-sm font-medium mb-1"
-                  >
+                  <label htmlFor="phone" className="block text-red-200 text-sm font-medium mb-1">
                     Phone Number
                   </label>
                   <input
@@ -270,13 +171,9 @@ const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }
                     autoComplete="tel"
                   />
                 </div>
-
                 {/* LPU ID */}
                 <div>
-                  <label
-                    htmlFor="lpuId"
-                    className="block text-red-200 text-sm font-medium mb-1"
-                  >
+                  <label htmlFor="lpuId" className="block text-red-200 text-sm font-medium mb-1">
                     LPU Registration Number
                   </label>
                   <input
@@ -290,13 +187,9 @@ const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }
                     required
                   />
                 </div>
-
                 {/* Gender */}
                 <div>
-                  <label
-                    htmlFor="gender"
-                    className="block text-red-200 text-sm font-medium mb-1"
-                  >
+                  <label htmlFor="gender" className="block text-red-200 text-sm font-medium mb-1">
                     Gender
                   </label>
                   <select
@@ -313,13 +206,9 @@ const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }
                     <option value="other">Other</option>
                   </select>
                 </div>
-
                 {/* Club */}
                 <div>
-                  <label
-                    htmlFor="club"
-                    className="block text-red-200 text-sm font-medium mb-1"
-                  >
+                  <label htmlFor="club" className="block text-red-200 text-sm font-medium mb-1">
                     Club
                   </label>
                   <select
@@ -335,13 +224,9 @@ const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }
                     <option value="Vibranta">Vibranta</option>
                   </select>
                 </div>
-
                 {/* Hosteler Status */}
                 <div>
-                  <label
-                    htmlFor="hosteler"
-                    className="block text-red-200 text-sm font-medium mb-1"
-                  >
+                  <label htmlFor="hosteler" className="block text-red-200 text-sm font-medium mb-1">
                     Are you a Hosteler?
                   </label>
                   <select
@@ -357,7 +242,6 @@ const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }
                     <option value="false">No</option>
                   </select>
                 </div>
-
                 {/* Hostel Name - Conditional */}
                 {formData.hosteler === 'true' && (
                   <motion.div
@@ -366,10 +250,7 @@ const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <label
-                      htmlFor="hostel"
-                      className="block text-red-200 text-sm font-medium mb-1"
-                    >
+                    <label htmlFor="hostel" className="block text-red-200 text-sm font-medium mb-1">
                       Hostel Name
                     </label>
                     <input
@@ -384,13 +265,9 @@ const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }
                     />
                   </motion.div>
                 )}
-
                 {/* Course */}
                 <div>
-                  <label
-                    htmlFor="course"
-                    className="block text-red-200 text-sm font-medium mb-1"
-                  >
+                  <label htmlFor="course" className="block text-red-200 text-sm font-medium mb-1">
                     Course
                   </label>
                   <input
@@ -404,7 +281,6 @@ const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }
                     required
                   />
                 </div>
-
                 {/* Amount */}
                 <div className="bg-gray-900/30 p-3 rounded-lg border border-red-700/30">
                   <label className="block text-red-200 text-sm font-medium mb-1">
@@ -425,73 +301,67 @@ const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }
               </div>
             </div>
           </div>
-
-          {/* Actions - Fixed at bottom */}
-          <div className="flex-shrink-0 p-4 sm:p-6 pt-0">
-            <div className="flex gap-3">
-              <motion.button
-                type="button"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={onClose}
-                className="flex-1 py-2.5 bg-gray-800 hover:bg-gray-700 rounded-lg font-medium text-white transition-colors text-base"
-                disabled={loading}
-              >
-                Cancel
-              </motion.button>
-              <motion.button
-                type="button"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleSubmit}
-                disabled={loading}
-                className="flex-1 py-2.5 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 rounded-lg font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-base shadow-lg shadow-red-900/30"
-              >
-                {loading ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-                    Processing...
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center gap-1.5">
-                    <span>Pay Now</span>
-                    <span className="text-lg">🔥</span>
-                  </div>
-                )}
-              </motion.button>
-            </div>
+          {/* Actions */}
+          <div className="flex gap-3 pt-4 sticky bottom-0 bg-gradient-to-t from-black/95 to-transparent pb-2 pointer-events-none">
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={onClose}
+              className="flex-1 py-2.5 bg-gray-800 hover:bg-gray-700 rounded-lg font-medium text-white transition-colors text-base pointer-events-auto"
+              disabled={loading}
+            >
+              Cancel
+            </motion.button>
+            <motion.button
+              type="submit"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              disabled={loading}
+              className="flex-1 py-2.5 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 rounded-lg font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-base shadow-lg shadow-red-900/30 pointer-events-auto"
+            >
+              {loading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                  Processing...
+                </div>
+              ) : (
+                <div className="flex items-center justify-center gap-1.5">
+                  <span>Pay Now</span>
+                  <span className="text-lg">🔥</span>
+                </div>
+              )}
+            </motion.button>
           </div>
-        </div>
+        </form>
+        <style jsx>{`
+          .custom-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: #ef4444 rgba(0, 0, 0, 0.2);
+          }
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #ef4444, #7f1d1d);
+            border-radius: 8px;
+            border: 2px solid rgba(0, 0, 0, 0.2);
+            box-shadow: inset 0 0 2px rgba(255, 255, 255, 0.1);
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #dc2626, #991b1b);
+          }
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(127, 29, 29, 0.2);
+          }
+          .custom-scrollbar::-webkit-scrollbar-corner {
+            background: rgba(0, 0, 0, 0.3);
+          }
+        `}</style>
       </motion.div>
-
-      {/* Enhanced Custom Scrollbar Styling */}
-      <style jsx>{`
-        .custom-scrollbar {
-          scrollbar-width: thin;
-          scrollbar-color: #ef4444 rgba(0, 0, 0, 0.2);
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-          height: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: linear-gradient(to bottom, #ef4444, #7f1d1d);
-          border-radius: 8px;
-          border: 2px solid rgba(0, 0, 0, 0.2);
-          box-shadow: inset 0 0 2px rgba(255, 255, 255, 0.1);
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(to bottom, #dc2626, #991b1b);
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(0, 0, 0, 0.3);
-          border-radius: 8px;
-          border: 1px solid rgba(127, 29, 29, 0.2);
-        }
-        .custom-scrollbar::-webkit-scrollbar-corner {
-          background: rgba(0, 0, 0, 0.3);
-        }
-      `}</style>
     </motion.div>
   );
 };

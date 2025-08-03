@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { publicClient } from '../../services/api.js';
 import TicketForm from './ticketForm.jsx';
-import ENV from '../../config/env.js';
 import handlePayment from "../../utils/paymentHandler.js";
 
 const HorrorRaveYardPage = () => {
