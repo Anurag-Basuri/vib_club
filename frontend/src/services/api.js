@@ -1,12 +1,8 @@
 import axios from 'axios';
 import { getToken, removeToken } from '../utils/handleTokens.js';
-import ENV, { validateEnvironment } from '../config/env.js';
-
-// Validate environment configuration
-validateEnvironment();
 
 // Use centralized environment configuration
-const API_BASE_URL = ENV.BACKEND_URL;
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
 
 // Create an Axios instance with default settings
