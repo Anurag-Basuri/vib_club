@@ -1,4 +1,4 @@
-    import express from 'express';
+import express from 'express';
 import { initRateLimiter, rateLimiter } from './middlewares/rateLimit.middleware.js';
 import { applyCors } from './middlewares/cors.middleware.js';
 import { InitializeCloudinary } from './utils/cloudinary.js';
