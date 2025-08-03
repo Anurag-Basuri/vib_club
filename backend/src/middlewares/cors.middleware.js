@@ -2,7 +2,9 @@ import cors from 'cors';
 
 const allowedOrigins = [
 	process.env.FRONTEND_URL || 'http://localhost:5173',
-	// Add other allowed origins if needed
+	'http://localhost:5173',
+	'https://vibranta.in',
+	'http://185.199.52.113', // VPS IP
 ];
 
 export const corsOptions = {
