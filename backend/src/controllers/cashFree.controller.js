@@ -62,15 +62,14 @@ const createOrder = asyncHandler(async (req, res) => {
 
 		// Prepare Cashfree order payload
 		const orderPayload = {
-			orderId,
-			order_amount: amount,
+			order_id: orderId,
+			order_amount: 1,
 			order_currency: 'INR',
 			customer_details: {
-				customer_name: fullName,
 				customer_id: customerId,
+				customer_name: fullName,
 				customer_email: email,
 				customer_phone: phone,
-				customer_lpu_id: lpuId,
 			},
 			order_meta: {
 				return_url: `${process.env.CASHFREE_RETURN_URL}?order_id=${orderId}`,
