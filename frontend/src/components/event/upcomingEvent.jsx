@@ -5,21 +5,6 @@ import TicketForm from './ticketForm.jsx';
 import ENV from '../../config/env.js';
 import handlePayment from "../../utils/paymentHandler.js";
 
-const usePreventBodyScroll = (preventScroll) => {
-  useEffect(() => {
-    if (preventScroll) {
-      const originalStyle = window.getComputedStyle(document.body).overflow;
-      const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
-      document.body.style.overflow = 'hidden';
-      document.body.style.paddingRight = `${scrollBarWidth}px`;
-      return () => {
-        document.body.style.overflow = originalStyle;
-        document.body.style.paddingRight = '';
-      };
-    }
-  }, [preventScroll]);
-};
-
 const HorrorRaveYardPage = () => {
     const [spotsLeft, setSpotsLeft] = useState(0);
     const [totalSpots, setTotalSpots] = useState(0);
@@ -44,6 +29,22 @@ const HorrorRaveYardPage = () => {
         course: '',
         club: ''
     });
+
+    const usePreventBodyScroll = (preventScroll) => {
+        useEffect(() => {
+            if (preventScroll) {
+                const originalOverflow = document.body.style.overflow;
+                const originalPaddingRight = document.body.style.paddingRight;
+                const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+                document.body.style.overflow = 'hidden';
+                document.body.style.paddingRight = `${scrollBarWidth}px`;
+                return () => {
+                    document.body.style.overflow = originalOverflow;
+                    document.body.style.paddingRight = originalPaddingRight;
+                };
+            }
+        }, [preventScroll]);
+    };
 
     useEffect(() => {
         const fetchEventData = async () => {
@@ -805,7 +806,9 @@ const HorrorRaveYardPage = () => {
                             onClose={() => setShowPaymentForm(false)}
                             onSubmit={onPaymentSubmit}
                         />
-                        <div id="cashfree-dropin-container" style={{ width: '100%', minHeight: '500px' }}></div>
+                        {showPaymentForm && (
+                            <div id="cashfree-dropin-container" className="w-full min-h-[500px]"></div>
+                        )}
                     </>
                 )}
             </AnimatePresence>

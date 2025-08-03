@@ -70,12 +70,13 @@ const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }
 
 				{/* Scrollable Form Content */}
 				<div
-					className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar overscroll-contain"
-					style={{
-						scrollBehavior: 'smooth',
-						WebkitOverflowScrolling: 'touch',
-					}}
-				>
+                    className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar"
+                    style={{
+                        scrollBehavior: 'smooth',
+                        WebkitOverflowScrolling: 'touch',
+                        maxHeight: 'calc(90vh - 200px)', // Add fixed max-height
+                    }}
+                >
 					{error && (
 						<motion.div
 							initial={{ opacity: 0, y: -10 }}
@@ -304,13 +305,13 @@ const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }
 						</div>
 
 						{/* Actions */}
-						<div className="flex gap-3 pt-4 sticky bottom-0 bg-gradient-to-t from-black/95 to-transparent pb-2">
+						<div className="flex gap-3 pt-4 sticky bottom-0 bg-gradient-to-t from-black/95 to-transparent pb-2 pointer-events-none">
 							<motion.button
 								type="button"
 								whileHover={{ scale: 1.02 }}
 								whileTap={{ scale: 0.98 }}
 								onClick={onClose}
-								className="flex-1 py-2.5 bg-gray-800 hover:bg-gray-700 rounded-lg font-medium text-white transition-colors text-base"
+								className="flex-1 py-2.5 bg-gray-800 hover:bg-gray-700 rounded-lg font-medium text-white transition-colors text-base pointer-events-auto"
 								disabled={loading}
 							>
 								Cancel
@@ -321,7 +322,7 @@ const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }
 								whileTap={{ scale: 0.98 }}
 								onClick={handleSubmit}
 								disabled={loading}
-								className="flex-1 py-2.5 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 rounded-lg font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-base shadow-lg shadow-red-900/30"
+								className="flex-1 py-2.5 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 rounded-lg font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-base shadow-lg shadow-red-900/30 pointer-events-auto"
 							>
 								{loading ? (
 									<div className="flex items-center justify-center gap-2">
@@ -343,6 +344,7 @@ const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }
 				.custom-scrollbar {
 					scrollbar-width: thin;
 					scrollbar-color: #ef4444 rgba(0, 0, 0, 0.2);
+					max-height: 60vh; /* Add max height */
 				}
 				.custom-scrollbar::-webkit-scrollbar {
 					width: 8px;
