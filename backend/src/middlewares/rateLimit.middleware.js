@@ -1,17 +1,12 @@
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 
-let rateLimiter = null; // Will hold the initialized limiter
+let rateLimiter = null;
 
 export const initRateLimiter = async () => {
 	if (process.env.NODE_ENV === 'production') {
 		const { default: RedisStore } = await import('rate-limit-redis');
-		const { createClient } = await import('redis');
-
-		const redisClient = createClient({
-			url: process.env.REDIS_URL || 'redis://localhost:6379',
-		});
-
-		await redisClient.connect();
+		const Redis = (await import('ioredis')).default;
+		const redisClient = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 
 		rateLimiter = rateLimit({
 			windowMs: 15 * 60 * 1000, // 15 minutes
@@ -20,7 +15,7 @@ export const initRateLimiter = async () => {
 			legacyHeaders: false,
 			keyGenerator: ipKeyGenerator, // Use the helper for proper IP handling
 			store: new RedisStore({
-				client: redisClient,
+				sendCommand: (...args) => redisClient.call(...args),
 				prefix: 'rate-limit:',
 			}),
 		});
