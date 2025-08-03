@@ -23,7 +23,7 @@ async function createCashfreeOrder(orderDetails) {
 
 		return response.data;
 	} catch (err) {
-		throw new Error(err.response?.data?.message || 'Cashfree order creation failed');
+		throw new Error(err || 'Cashfree order creation failed');
 	}
 }
 

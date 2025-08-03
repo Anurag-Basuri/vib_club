@@ -15,8 +15,8 @@ export const handlePayment = async ({
 
 	try {
 		// Validate form data
-		const { name, email, phone, lpuId } = formData;
-		if (!name || !email || !phone || !lpuId) {
+		const { fullName, email, phone, lpuId } = formData;
+		if (!fullName || !email || !phone || !lpuId) {
 			setError('Please fill all required fields.');
 			setLoading(false);
 			return;

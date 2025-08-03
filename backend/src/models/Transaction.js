@@ -21,8 +21,10 @@ const transactionSchema = new mongoose.Schema(
 				trim: true,
 				unique: true,
 				validate: {
-					validator: validator.isEmail,
-					message: 'Invalid email format',
+					validator: function (v) {
+						return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v);
+					},
+					message: 'Email must be a valid email address',
 				},
 			},
 			phone: {
