@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { publicClient } from '../../services/api.js';
 import TicketForm from './ticketForm.jsx';
 import handlePayment from "../../utils/paymentHandler.js";
+import loogo1 from "../../assets/smp.png";
+import loogo2 from "../../assets/whiteHeaven.png";
 
 // Custom hook to prevent background scroll when modal is open
 const usePreventBodyScroll = (preventScroll) => {
