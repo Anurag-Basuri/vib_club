@@ -67,8 +67,8 @@ const Hero = () => {
 								VIBRANTA
 							</span>
 						</div>
-						<div className="mt-2 text-base md:text-lg font-light text-indigo-200 tracking-wide italic">
-							The Club of Visionaries
+						<div className="text-sm md:text-base font-light text-indigo-300 tracking-wide mt-1">
+							Empowering creators, dreamers, and doers to shape the future together.
 						</div>
 					</motion.div>
 
