@@ -186,117 +186,51 @@ const HorrorRaveYardPage = () => {
         </div>
     ), [bloodDrips]);
 
-    // Partners data
-    const partners = [
+    // Event highlights
+    const eventHighlights = [
         {
-            name: "Cabnest",
-            description: "Safe and affordable student rides",
-            icon: "🚕",
-            color: "from-blue-600 to-blue-800"
+            title: 'Headlining Performance by DJ Anshika',
+            description:
+                'Nationally renowned DJ bringing an exclusive high-energy haunted set. Remix segments: Bollywood x EOH Desi Bass, with dark glitchy FX. Interactive crowd drops, live horror-themed AV sync.',
+            icon: '🎧',
         },
         {
-            name: "White Heaven Entertainment",
-            description: "Bringing celestial experiences to the underground",
-            icon: "🌌",
-            color: "from-purple-600 to-purple-800"
+            title: 'Curated Freshers Experience',
+            description:
+                'First event to welcome the incoming batch — from the other side! Mixes horror, fun, and chaos for an unforgettable freshman night. Sets a ghostly tone for campus culture and Gen Z celebration.',
+            icon: '👻',
         },
         {
-            name: "Crypto Coven",
-            description: "Blockchain-powered horror experiences",
-            icon: "🔮",
-            color: "from-green-600 to-green-800"
-        }
+            title: 'Haunted Glow Setup',
+            description:
+                'Lasers, fog, UV-reactive horror decor, props, and more. Insta-worthy ghost installations, skull photo booths, and gaming. Tattoo mask transformation booths at entry.',
+            icon: '💀',
+        },
+        {
+            title: 'Limited Access Entry',
+            description:
+                'Entry via branded wristbands. VIP zones for contest winners, influencers, faculty guests. Exclusive access to haunted chill lounge and scream zone.',
+            icon: '🎟️',
+        },
+        {
+            title: 'Security & Emergency Preparedness',
+            description:
+                'K9 security with crowd flow control. Emergency medical setup & trained volunteers. Gender-sensitive, inclusive crowd care policy enforced at checkpoints.',
+            icon: '🚨',
+        },
+        {
+            title: 'Social Media Amplification',
+            description:
+                'Hashtag: #RaveYard2025 — Join the undead online! Horror filters, scream countdowns, ghost transformation content. Influencer strategy & branded social booth for sponsors.',
+            icon: '📱',
+        },
+        {
+            title: 'Refreshment Zone @ RaveYard',
+            description:
+                'Dedicated food & beverage stalls near venue entry/exit, stage sides & open pathways. Offerings: Chillers (Mojitos, mocktails, soda blends, Lemonade, Cold Coffee), Warmers (Coffee, Chai), Street bites (Mommies, rolls, nachos, popcorn, Samosa), Quick eats (Sandwiches, Maggi, fries), Sweet treats (Cupcakes, candy floss, brownies, Chocolate Dipped Waffles). Themed stall decor with eerie, post-apocalyptic aesthetics.',
+            icon: '🍔',
+        },
     ];
-
-    // Event features
-    const eventFeatures = [
-        {
-            title: "Raveyard Traitor Hunt: Among the Undead",
-            description: "Uncover the traitor hiding among the undead crowd. Solve cryptic clues to survive the night.",
-            icon: "🕵️‍♂️"
-        },
-        {
-            title: "Whispers from the Grave",
-            description: "Experience chilling audio narratives from beyond the grave in our immersive sound chambers.",
-            icon: "👻"
-        },
-        {
-            title: "The Forbidden Ritual Room",
-            description: "Participate in ancient rituals to summon spirits of the rave. Not for the faint of heart.",
-            icon: "🔮"
-        },
-        {
-            title: "GraveWalk - Fashion after the fall of civilization",
-            description: "Witness post-apocalyptic couture on our runway of ruins. Apocalyptic fashion meets underground rave.",
-            icon: "👗"
-        },
-        {
-            title: "Apocalypse Couture - Ramp Walk",
-            description: "Models showcase fashion designed for the end times. Survivor chic meets haute horror.",
-            icon: "💃"
-        },
-        {
-            title: "Experience the Madness Live with DJ Anshika",
-            description: "Nationally renowned DJ bringing an exclusive high-energy haunted set. Remix segments: Bollywood x EOH Desi Bass.",
-            icon: "🎧"
-        }
-    ];
-
-    // Rust pattern for background
-    const rustPattern = {
-        backgroundImage: `
-        radial-gradient(circle at 10% 20%, rgba(139, 69, 19, 0.1) 0%, transparent 20%),
-        radial-gradient(circle at 90% 80%, rgba(160, 82, 45, 0.15) 0%, transparent 20%),
-        radial-gradient(circle at 50% 50%, rgba(205, 133, 63, 0.2) 0%, transparent 40%)
-        `,
-        backgroundColor: '#1a0630',
-    };
-
-    // Glitchy text component
-    const GlitchText = ({ text, className }) => (
-        <motion.span 
-            className={`${className} relative inline-block`}
-            animate={{ 
-                textShadow: [
-                    '2px 0 0 rgba(255, 0, 0, 0.7), -2px 0 0 rgba(0, 0, 255, 0.7), 0 0 10px rgba(255, 0, 0, 0.5)',
-                    '0px 0 0 rgba(255, 0, 0, 0.7), 0px 0 0 rgba(0, 0, 255, 0.7), 0 0 0px rgba(255, 0, 0, 0.5)',
-                    '2px 0 0 rgba(255, 0, 0, 0.7), -2px 0 0 rgba(0, 0, 255, 0.7), 0 0 10px rgba(255, 0, 0, 0.5)',
-                    '-2px 0 0 rgba(255, 0, 0, 0.7), 2px 0 0 rgba(0, 0, 255, 0.7), 0 0 15px rgba(255, 0, 0, 0.5)'
-                ]
-            }}
-            transition={{
-                duration: 3,
-                repeat: Infinity,
-                repeatType: "reverse"
-            }}
-        >
-            {text}
-            <motion.span 
-                className="absolute top-0 left-0 w-full h-full overflow-hidden"
-                animate={{ 
-                    clipPath: [
-                        'inset(0 0 0 0)',
-                        'inset(20% 0 60% 0)',
-                        'inset(60% 0 20% 0)',
-                        'inset(0 0 0 0)',
-                    ]
-                }}
-                transition={{
-                    duration: 0.8,
-                    repeat: Infinity,
-                    repeatType: "reverse"
-                }}
-            >
-                <div 
-                    className="absolute top-0 left-0 w-full h-full"
-                    style={{
-                        background: 'linear-gradient(transparent, rgba(255, 0, 0, 0.2), transparent)',
-                        mixBlendMode: 'screen'
-                    }}
-                />
-            </motion.span>
-        </motion.span>
-    );
 
     // Open payment form
     const openPaymentForm = useCallback(() => {
@@ -320,6 +254,16 @@ const HorrorRaveYardPage = () => {
             }
         });
     }, [formData, eventData]);
+
+    // Rust pattern for background
+    const rustPattern = {
+        backgroundImage: `
+        radial-gradient(circle at 10% 20%, rgba(139, 69, 19, 0.1) 0%, transparent 20%),
+        radial-gradient(circle at 90% 80%, rgba(160, 82, 45, 0.15) 0%, transparent 20%),
+        radial-gradient(circle at 50% 50%, rgba(205, 133, 63, 0.2) 0%, transparent 40%)
+        `,
+        backgroundColor: '#1a0630',
+    };
 
     return (
         <div
@@ -354,261 +298,287 @@ const HorrorRaveYardPage = () => {
 
             {/* Hero Section */}
             <div 
-                className="min-h-screen w-full flex flex-col justify-center items-center p-4 overflow-hidden relative"
-                style={{
-                    background: `
-                        radial-gradient(circle at 30% 40%, #3d1f1a 0%, #2a0f06 40%, #1a0904 70%, #0a0015 100%),
-                        ${rustPattern.backgroundImage}
-                    `,
-                    backgroundColor: rustPattern.backgroundColor,
-                }}
+      className="min-h-screen w-full flex flex-col justify-center items-center p-4 overflow-hidden relative"
+      style={{
+        background: `
+          radial-gradient(circle at 30% 40%, #3d1f1a 0%, #2a0f06 40%, #1a0904 70%, #0a0015 100%),
+          ${rustPattern.backgroundImage}
+        `,
+        backgroundColor: rustPattern.backgroundColor,
+      }}
+    >
+      {/* Rust overlay */}
+      <div className="absolute inset-0 pointer-events-none" style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23a0522d' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
+        opacity: 0.7
+      }}></div>
+      
+      {/* Rusty metal border */}
+      <div className="absolute inset-2 border-4 pointer-events-none" style={{
+        borderImage: `linear-gradient(45deg, #8B4513, #5D2919, #3a180d) 1`,
+        borderStyle: 'solid',
+        boxShadow: 'inset 0 0 20px rgba(139, 69, 19, 0.8)',
+      }}></div>
+      
+      {/* Glitch effect container */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-0 w-full h-full" style={{
+          background: `linear-gradient(rgba(0,0,0,0.1) 50%, transparent 50%),
+                      linear-gradient(90deg, rgba(255,0,0,0.06), rgba(0,255,0,0.02), rgba(0,0,255,0.06))`,
+          backgroundSize: '100% 4px, 4px 100%',
+          opacity: 0.3,
+          animation: 'glitch 0.5s infinite'
+        }}></div>
+      </div>
+      
+      <div className="relative z-10 text-center max-w-6xl w-full px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1 }}
+        >
+          {/* Glitchy RAVEYARD text */}
+          <motion.div
+            className="relative mb-6"
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.8 }}
+          >
+            <motion.h1
+              className={`${isMobile ? 'text-6xl' : 'text-9xl'} font-black mb-0 relative tracking-tighter`}
+              style={{
+                fontFamily: "'Rajdhani', sans-serif",
+                textShadow: `
+                  3px 0 0 rgba(255, 0, 0, 0.7),
+                  -3px 0 0 rgba(0, 0, 255, 0.7),
+                  0 0 10px rgba(255, 0, 0, 0.5)
+                `,
+                color: '#ff3a3a'
+              }}
+              animate={{ 
+                textShadow: [
+                  '3px 0 0 rgba(255, 0, 0, 0.7), -3px 0 0 rgba(0, 0, 255, 0.7), 0 0 10px rgba(255, 0, 0, 0.5)',
+                  '0px 0 0 rgba(255, 0, 0, 0.7), 0px 0 0 rgba(0, 0, 255, 0.7), 0 0 0px rgba(255, 0, 0, 0.5)',
+                  '3px 0 0 rgba(255, 0, 0, 0.7), -3px 0 0 rgba(0, 0, 255, 0.7), 0 0 10px rgba(255, 0, 0, 0.5)',
+                  '-3px 0 0 rgba(255, 0, 0, 0.7), 3px 0 0 rgba(0, 0, 255, 0.7), 0 0 15px rgba(255, 0, 0, 0.5)'
+                ]
+              }}
+              transition={{
+                duration: 6,
+                repeat: Infinity,
+                repeatType: "reverse"
+              }}
             >
-                {/* Rust overlay */}
-                <div className="absolute inset-0 pointer-events-none" style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23a0522d' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
-                    opacity: 0.7
-                }} />
-                
-                {/* Rusty metal border */}
-                <div className="absolute inset-2 border-4 pointer-events-none" style={{
-                    borderImage: `linear-gradient(45deg, #8B4513, #5D2919, #3a180d) 1`,
-                    borderStyle: 'solid',
-                    boxShadow: 'inset 0 0 20px rgba(139, 69, 19, 0.8)',
-                }} />
-                
-                {/* Glitch effect container */}
-                <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    <div className="absolute top-0 left-0 w-full h-full" style={{
-                        background: `linear-gradient(rgba(0,0,0,0.1) 50%, transparent 50%),
-                                    linear-gradient(90deg, rgba(255,0,0,0.06), rgba(0,255,0,0.02), rgba(0,0,255,0.06))`,
-                        backgroundSize: '100% 4px, 4px 100%',
-                        opacity: 0.3,
-                        animation: 'glitch 0.5s infinite'
-                    }} />
-                </div>
-                
-                <div className="relative z-10 text-center max-w-6xl w-full px-4">
-                    <motion.div
-                        initial={{ opacity: 0, y: 50 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 1 }}
-                    >
-                        {/* Welcome text */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3, duration: 0.8 }}
-                            className="mb-6"
-                        >
-                            <h2 className="text-3xl md:text-5xl font-bold mb-4 text-red-300">
-                                <GlitchText text="ew fo College" className="text-4xl md:text-6xl" />
-                            </h2>
-                            <h1 className="text-5xl md:text-7xl font-bold text-red-500">
-                                <GlitchText text="Welcome to The Night of Chaos" className="text-5xl md:text-7xl" />
-                            </h1>
-                        </motion.div>
-                        
-                        {/* Glitchy RAVEYARD text */}
-                        <motion.div
-                            className="relative mb-6"
-                            initial={{ scale: 0.8 }}
-                            animate={{ scale: 1 }}
-                            transition={{ duration: 0.8 }}
-                        >
-                            <motion.h1
-                                className={`${isMobile ? 'text-6xl' : 'text-9xl'} font-black mb-0 relative tracking-tighter`}
-                                style={{
-                                    fontFamily: "'Rajdhani', sans-serif",
-                                    color: '#ff3a3a'
-                                }}
-                            >
-                                <GlitchText text="RAVEYARD" className={`${isMobile ? 'text-6xl' : 'text-9xl'} font-black`} />
-                            </motion.h1>
-                            
-                            <div className="absolute -bottom-3 left-0 right-0 h-2 bg-gradient-to-r from-red-800 via-red-600 to-red-800 rounded-full" />
-                        </motion.div>
-                        
-                        <motion.h2
-                            className={`${isMobile ? 'text-2xl' : 'text-4xl'} text-red-300 mb-8 font-bold relative pb-4`}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.5, duration: 1 }}
-                            style={{
-                                textShadow: '0 0 8px rgba(255, 50, 50, 0.7)'
-                            }}
-                        >
-                            <GlitchText text="Not your average EDM Night... It's curse of Beats" className="text-2xl md:text-4xl" />
-                            <div className="absolute bottom-0 left-0 right-0 flex justify-center">
-                                {[...Array(5)].map((_, i) => (
-                                    <motion.div
-                                        key={i}
-                                        className="w-1 h-6 mx-1 bg-gradient-to-b from-red-500 to-transparent"
-                                        animate={{
-                                            y: [0, 20, 40, 60],
-                                            opacity: [1, 1, 1, 0],
-                                        }}
-                                        transition={{
-                                            duration: 2,
-                                            repeat: Infinity,
-                                            delay: i * 0.3,
-                                        }}
-                                    />
-                                ))}
-                            </div>
-                        </motion.h2>
-                        
-                        <motion.div
-                            className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-4'} gap-6 mt-8 max-w-4xl mx-auto`}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 1, duration: 1 }}
-                        >
-                            {[
-                                { icon: '🎧', title: 'DJ Anshika' },
-                                { icon: '👻', title: 'GraveWalk - Fashion Show' },
-                                { icon: '🍔', title: 'Refreshment Zone' },
-                                { icon: '🎟️', title: 'VIP Wristbands' }
-                            ].map((item, index) => (
-                                <motion.div 
-                                    key={index}
-                                    className="flex flex-col items-center p-4 rounded-lg"
-                                    style={{
-                                        background: 'rgba(90, 35, 25, 0.4)',
-                                        border: '1px solid rgba(205, 133, 63, 0.3)',
-                                        boxShadow: '0 4px 10px rgba(0, 0, 0, 0.3)',
-                                    }}
-                                    whileHover={{ 
-                                        scale: 1.05,
-                                        backgroundColor: 'rgba(120, 50, 35, 0.6)',
-                                        boxShadow: '0 0 20px rgba(220, 38, 38, 0.6)'
-                                    }}
-                                >
-                                    <span className="text-5xl mb-2">{item.icon}</span>
-                                    <span className="text-lg font-bold text-red-300">{item.title}</span>
-                                </motion.div>
-                            ))}
-                        </motion.div>
-                        
-                        <motion.div
-                            className="mt-12"
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 1.2, duration: 0.8 }}
-                        >
-                            <motion.button
-                                whileHover={{
-                                    scale: 1.05,
-                                    boxShadow: '0 0 30px rgba(220, 38, 38, 0.8)',
-                                }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={openPaymentForm}
-                                className="px-10 py-6 relative rounded-xl font-bold text-xl shadow-lg overflow-hidden"
-                                style={{
-                                    background: `linear-gradient(145deg, #8B4513, #5D2919)`,
-                                    boxShadow: `0 4px 0 #3a180d, inset 0 2px 4px rgba(255, 100, 100, 0.4)`,
-                                    border: '1px solid #5D2919',
-                                    textShadow: '0 0 8px rgba(255, 50, 50, 0.7)'
-                                }}
-                            >
-                                <div className="relative z-10 flex items-center gap-3">
-                                    <span>ENTER THE CRYPT</span>
-                                    <span>💀</span>
-                                </div>
-                                <div className="absolute bottom-0 left-0 right-0 flex justify-center">
-                                    {[...Array(3)].map((_, i) => (
-                                        <motion.div
-                                            key={i}
-                                            className="w-1 h-6 mx-2 bg-gradient-to-b from-red-600 to-transparent"
-                                            animate={{
-                                                y: [0, 10, 20],
-                                                opacity: [1, 1, 0],
-                                            }}
-                                            transition={{
-                                                duration: 1.5,
-                                                repeat: Infinity,
-                                                delay: i * 0.5,
-                                            }}
-                                        />
-                                    ))}
-                                </div>
-                                
-                                {/* Rust texture on button */}
-                                <div className="absolute inset-0 opacity-20" style={{
-                                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-                                }} />
-                            </motion.button>
-                        </motion.div>
-                    </motion.div>
-                </div>
-                
+              RAVEYARD
+            </motion.h1>
+            
+            <div className="absolute -bottom-3 left-0 right-0 h-2 bg-gradient-to-r from-red-800 via-red-600 to-red-800 rounded-full"></div>
+            
+            {/* Glitch overlay effect */}
+            <motion.div 
+              className="absolute top-0 left-0 w-full h-full overflow-hidden"
+              animate={{ 
+                clipPath: [
+                  'inset(0 0 0 0)',
+                  'inset(20% 0 60% 0)',
+                  'inset(60% 0 20% 0)',
+                  'inset(0 0 0 0)',
+                ]
+              }}
+              transition={{
+                duration: 0.8,
+                repeat: Infinity,
+                repeatType: "reverse"
+              }}
+            >
+              <div 
+                className="absolute top-0 left-0 w-full h-full"
+                style={{
+                  background: 'linear-gradient(transparent, rgba(255, 0, 0, 0.2), transparent)',
+                  mixBlendMode: 'screen'
+                }}
+              ></div>
+            </motion.div>
+          </motion.div>
+          
+          <motion.h2
+            className={`${isMobile ? 'text-2xl' : 'text-4xl'} text-red-300 mb-8 font-bold relative pb-4`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 1 }}
+            style={{
+              textShadow: '0 0 8px rgba(255, 50, 50, 0.7)'
+            }}
+          >
+            Not your average EDM Night... It's curse of Beats
+            <div className="absolute bottom-0 left-0 right-0 flex justify-center">
+              {[...Array(5)].map((_, i) => (
                 <motion.div
-                    className="absolute bottom-8 flex flex-col items-center"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1.5 }}
-                >
-                    <span className="text-red-400 mb-3 text-sm font-medium tracking-widest">
-                        DESCEND INTO DARKNESS
-                    </span>
-                    <motion.div
-                        animate={{ y: [0, 10, 0] }}
-                        transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
-                        className="w-10 h-16 rounded-full border-2 border-red-900 flex justify-center p-2"
-                        style={{
-                            background: `linear-gradient(145deg, #2a0f06, #1a0904)`,
-                            boxShadow: 'inset 0 0 5px rgba(139, 0, 0, 0.5)',
-                        }}
-                    >
-                        <motion.div
-                            className="w-2 h-3 bg-gradient-to-b from-red-500 to-red-700 rounded-full"
-                            animate={{ y: [0, 12, 0] }}
-                            transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
-                        />
-                    </motion.div>
-                </motion.div>
+                  key={i}
+                  className="w-1 h-6 mx-1 bg-gradient-to-b from-red-500 to-transparent"
+                  animate={{
+                    y: [0, 20, 40, 60],
+                    opacity: [1, 1, 1, 0],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    delay: i * 0.3,
+                  }}
+                />
+              ))}
             </div>
-
-            {/* Partners Section */}
-            <section className="py-16 px-4 bg-gradient-to-b from-black via-red-900/5 to-black">
-                <div className="max-w-6xl mx-auto">
-                    <motion.div
-                        className="text-center mb-12"
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.8 }}
-                    >
-                        <h2 className="text-3xl md:text-4xl font-bold mb-4 text-red-500">
-                            <GlitchText text="OUR PARTNERS IN CHAOS" className="text-3xl md:text-4xl" />
-                        </h2>
-                        <p className="text-xl text-red-300 max-w-3xl mx-auto">
-                            Bringing you a night of unforgettable madness
-                        </p>
-                    </motion.div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {partners.map((partner, index) => (
-                            <motion.div
-                                key={index}
-                                className={`bg-gradient-to-br ${partner.color} backdrop-blur-sm border border-red-600/30 rounded-xl p-6 relative overflow-hidden`}
-                                initial={{ opacity: 0, y: 30 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: index * 0.2, duration: 0.8 }}
-                                whileHover={{ scale: 1.03 }}
-                            >
-                                <div className="text-5xl mb-4">{partner.icon}</div>
-                                <h3 className="text-2xl font-bold text-white mb-2">{partner.name}</h3>
-                                <p className="text-red-200">{partner.description}</p>
-                                
-                                <div className="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/30 flex items-center justify-center">
-                                    <span className="text-sm">⚡</span>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                </div>
-            </section>
+          </motion.h2>
+          
+          <motion.div
+            className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-4'} gap-6 mt-8 max-w-4xl mx-auto`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1, duration: 1 }}
+          >
+            {[
+              { icon: '🎧', title: 'DJ Anshika' },
+              { icon: '👻', title: 'GraveWalk - Fashion Show' },
+              { icon: '🍔', title: 'Refreshment Zone' },
+              { icon: '🎟️', title: 'VIP Wristbands' }
+            ].map((item, index) => (
+              <motion.div 
+                key={index}
+                className="flex flex-col items-center p-4 rounded-lg"
+                style={{
+                  background: 'rgba(90, 35, 25, 0.4)',
+                  border: '1px solid rgba(205, 133, 63, 0.3)',
+                  boxShadow: '0 4px 10px rgba(0, 0, 0, 0.3)',
+                }}
+                whileHover={{ 
+                  scale: 1.05,
+                  backgroundColor: 'rgba(120, 50, 35, 0.6)',
+                  boxShadow: '0 0 20px rgba(220, 38, 38, 0.6)'
+                }}
+              >
+                <span className="text-5xl mb-2">{item.icon}</span>
+                <span className="text-lg font-bold text-red-300">{item.title}</span>
+              </motion.div>
+            ))}
+          </motion.div>
+          
+          <motion.div
+            className="mt-12"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 1.2, duration: 0.8 }}
+          >
+            <motion.button
+              whileHover={{
+                scale: 1.05,
+                boxShadow: '0 0 30px rgba(220, 38, 38, 0.8)',
+              }}
+              whileTap={{ scale: 0.95 }}
+              onClick={openPaymentForm}
+              className="px-10 py-6 relative rounded-xl font-bold text-xl shadow-lg overflow-hidden"
+              style={{
+                background: `linear-gradient(145deg, #8B4513, #5D2919)`,
+                boxShadow: `0 4px 0 #3a180d, inset 0 2px 4px rgba(255, 100, 100, 0.4)`,
+                border: '1px solid #5D2919',
+                textShadow: '0 0 8px rgba(255, 50, 50, 0.7)'
+              }}
+            >
+              <div className="relative z-10 flex items-center gap-3">
+                <span>ENTER THE CRYPT</span>
+                <span>💀</span>
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 flex justify-center">
+                {[...Array(3)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className="w-1 h-6 mx-2 bg-gradient-to-b from-red-600 to-transparent"
+                    animate={{
+                      y: [0, 10, 20],
+                      opacity: [1, 1, 0],
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      delay: i * 0.5,
+                    }}
+                  />
+                ))}
+              </div>
+              
+              {/* Rust texture on button */}
+              <div className="absolute inset-0 opacity-20" style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+              }}></div>
+            </motion.button>
+          </motion.div>
+        </motion.div>
+      </div>
+      
+      <motion.div
+        className="absolute bottom-8 flex flex-col items-center"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.5 }}
+      >
+        <span className="text-red-400 mb-3 text-sm font-medium tracking-widest">
+          DESCEND INTO DARKNESS
+        </span>
+        <motion.div
+          animate={{ y: [0, 10, 0] }}
+          transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+          className="w-10 h-16 rounded-full border-2 border-red-900 flex justify-center p-2"
+          style={{
+            background: `linear-gradient(145deg, #2a0f06, #1a0904)`,
+            boxShadow: 'inset 0 0 5px rgba(139, 0, 0, 0.5)',
+          }}
+        >
+          <motion.div
+            className="w-2 h-3 bg-gradient-to-b from-red-500 to-red-700 rounded-full"
+            animate={{ y: [0, 12, 0] }}
+            transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+          />
+        </motion.div>
+      </motion.div>
+      
+      {/* Floating rust particles */}
+      {[...Array(15)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full"
+          style={{
+            width: Math.random() * 10 + 2,
+            height: Math.random() * 10 + 2,
+            backgroundColor: `#${Math.floor(Math.random()*16777215).toString(16)}`,
+            top: `${Math.random() * 100}%`,
+            left: `${Math.random() * 100}%`,
+            background: `radial-gradient(circle, #8B4513, #5D2919)`,
+            opacity: 0.7
+          }}
+          animate={{
+            y: [0, Math.random() * 50 - 25],
+            x: [0, Math.random() * 40 - 20],
+          }}
+          transition={{
+            duration: Math.random() * 5 + 5,
+            repeat: Infinity,
+            repeatType: "reverse"
+          }}
+        />
+      ))}
+      
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@700&display=swap');
+        
+        @keyframes glitch {
+          0% { transform: translate(0); }
+          20% { transform: translate(-2px, 2px); }
+          40% { transform: translate(-2px, -2px); }
+          60% { transform: translate(2px, 2px); }
+          80% { transform: translate(2px, -2px); }
+          100% { transform: translate(0); }
+        }
+      `}</style>
+    </div>
 
             {/* Countdown timer */}
             <section className="py-12 px-4 bg-black">
@@ -654,7 +624,7 @@ const HorrorRaveYardPage = () => {
                 </div>
             </section>
 
-            {/* Event Features */}
+            {/* Event Highlights */}
             <section className="py-24 px-4 bg-gradient-to-b from-black via-red-900/10 to-black">
                 <div className="max-w-6xl mx-auto">
                     <motion.div
@@ -665,15 +635,14 @@ const HorrorRaveYardPage = () => {
                         transition={{ duration: 1 }}
                     >
                         <h2 className="text-4xl md:text-5xl font-bold text-red-500 mb-6">
-                            <GlitchText text="EXPERIENCE THE MADNESS" className="text-4xl md:text-5xl" />
+                            EVENT HIGHLIGHTS
                         </h2>
                         <p className="text-xl text-red-300 max-w-3xl mx-auto">
-                            Dive into the underworld of chaos and beats
+                            Discover what makes RaveYard 2025 unforgettable
                         </p>
                     </motion.div>
-                    
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {eventFeatures.map((item, index) => (
+                        {eventHighlights.map((item, index) => (
                             <motion.div
                                 key={index}
                                 className="bg-gradient-to-br from-red-900 to-black backdrop-blur-sm border border-red-600/50 rounded-xl p-8 relative overflow-hidden"
@@ -686,16 +655,40 @@ const HorrorRaveYardPage = () => {
                                 <div className="text-5xl mb-4">{item.icon}</div>
                                 <h3 className="text-xl font-bold text-white mb-2">{item.title}</h3>
                                 <p className="text-red-200">{item.description}</p>
-                                
-                                {/* Glitch effect */}
-                                <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-                                    <div className="absolute top-0 left-0 w-full h-full" style={{
-                                        background: `linear-gradient(90deg, rgba(255,0,0,0.1), rgba(0,255,0,0.05), rgba(0,0,255,0.1))`,
-                                        backgroundSize: '4px 100%',
-                                        opacity: 0.3,
-                                        animation: 'glitch 0.5s infinite'
-                                    }}></div>
-                                </div>
+
+                                {/* Special effects for specific highlights */}
+                                {item.title === 'Security & Emergency Preparedness' && (
+                                    <motion.div
+                                        className="absolute bottom-4 right-4"
+                                        animate={{ x: [0, -10, 0], rotate: [0, 15, 0] }}
+                                        transition={{ repeat: Infinity, duration: 2 }}
+                                    >
+                                        <span className="text-3xl">🐕‍🦺</span>
+                                    </motion.div>
+                                )}
+
+                                {item.title === 'Social Media Amplification' && (
+                                    <div className="absolute top-4 left-4 bg-black/50 p-2 rounded-lg">
+                                        <span className="flex items-center">
+                                            <span className="mr-2">📸</span>
+                                            <span className="text-xs">#RaveYard2025</span>
+                                        </span>
+                                    </div>
+                                )}
+
+                                <motion.div
+                                    className="absolute top-4 right-4 w-6 h-6 bg-red-600 rounded-full"
+                                    animate={{
+                                        y: [0, 15, 0],
+                                        scale: [1, 1.2, 1],
+                                        opacity: [0.7, 1, 0.7],
+                                    }}
+                                    transition={{
+                                        duration: 2,
+                                        repeat: Infinity,
+                                        delay: index * 0.2,
+                                    }}
+                                />
                             </motion.div>
                         ))}
                     </div>
@@ -829,7 +822,7 @@ const HorrorRaveYardPage = () => {
                         transition={{ duration: 1 }}
                     >
                         <h2 className="text-4xl md:text-5xl font-bold text-red-500 mb-8">
-                            <GlitchText text="CLAIM YOUR SOUL PASS" className="text-4xl md:text-5xl" />
+                            CLAIM YOUR SOUL PASS
                         </h2>
                         <motion.button
                             whileHover={{
@@ -860,8 +853,8 @@ const HorrorRaveYardPage = () => {
             <footer className="py-16 px-4 bg-gradient-to-t from-red-900/20 to-black border-t border-red-800/30">
                 <div className="max-w-6xl mx-auto">
                     <div className="text-center space-y-6">
-                        <div className="text-3xl font-bold">
-                            <GlitchText text="RAVEYARD 2025" className="text-3xl" />
+                        <div className="text-3xl font-bold bg-gradient-to-r from-red-500 to-red-700 bg-clip-text text-transparent">
+                            RaveYard 2025
                         </div>
                         <div className="flex justify-center gap-8 text-red-300">
                             {[
@@ -989,31 +982,6 @@ const HorrorRaveYardPage = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
-            
-            <style jsx global>{`
-                @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@700&display=swap');
-                
-                @keyframes glitch {
-                    0% { transform: translate(0); }
-                    20% { transform: translate(-2px, 2px); }
-                    40% { transform: translate(-2px, -2px); }
-                    60% { transform: translate(2px, 2px); }
-                    80% { transform: translate(2px, -2px); }
-                    100% { transform: translate(0); }
-                }
-                
-                body {
-                    font-family: 'Rajdhani', sans-serif;
-                    background-color: #000;
-                    color: #fff;
-                    overflow-x: hidden;
-                }
-                
-                .glitch-text {
-                    position: relative;
-                    display: inline-block;
-                }
-            `}</style>
         </div>
     );
 };
