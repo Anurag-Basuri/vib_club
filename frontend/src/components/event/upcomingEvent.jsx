@@ -14,8 +14,10 @@ const usePreventBodyScroll = (preventScroll) => {
 			const originalOverflow = document.body.style.overflow;
 			const originalPaddingRight = document.body.style.paddingRight;
 			const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+
 			document.body.style.overflow = 'hidden';
 			document.body.style.paddingRight = `${scrollBarWidth}px`;
+
 			return () => {
 				document.body.style.overflow = originalOverflow;
 				document.body.style.paddingRight = originalPaddingRight;
@@ -23,6 +25,44 @@ const usePreventBodyScroll = (preventScroll) => {
 		}
 	}, [preventScroll]);
 };
+
+const BloodDrips = ({ bloodDrips, setBloodDrips }) => (
+	<div className="fixed inset-0 pointer-events-none z-0">
+		{bloodDrips.map((drip) => (
+			<motion.div
+				key={drip.id}
+				className="absolute top-0 w-2 h-8 bg-red-600 rounded-b-full"
+				style={{ left: `${drip.x}%` }}
+				initial={{ height: 0, opacity: 0 }}
+				animate={{
+					height: ['0px', '50px', '50px', '100px'],
+					opacity: [0, 1, 1, 0],
+					y: [0, '80vh'],
+				}}
+				transition={{
+					duration: drip.duration,
+					delay: drip.delay,
+					times: [0, 0.3, 0.7, 1],
+				}}
+				onAnimationComplete={() => {
+					setBloodDrips((prev) => prev.filter((d) => d.id !== drip.id));
+				}}
+			>
+				<motion.div
+					className="absolute bottom-0 w-4 h-4 bg-red-700 rounded-full"
+					animate={{
+						scale: [0, 1.5, 1],
+						y: [0, 10, 20],
+					}}
+					transition={{
+						duration: drip.duration * 0.3,
+						delay: drip.duration * 0.7,
+					}}
+				/>
+			</motion.div>
+		))}
+	</div>
+);
 
 const HorrorRaveYardPage = () => {
 	const [spotsLeft, setSpotsLeft] = useState(0);
@@ -36,6 +76,8 @@ const HorrorRaveYardPage = () => {
 	const [showStartingSoon, setShowStartingSoon] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState('');
+	const [isMobile, setIsMobile] = useState(false);
+
 	const [formData, setFormData] = useState({
 		fullName: '',
 		email: '',
@@ -48,13 +90,13 @@ const HorrorRaveYardPage = () => {
 		course: '',
 		club: '',
 	});
-	const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
 	// Responsive check
 	useEffect(() => {
-		const handleResize = () => setIsMobile(window.innerWidth < 768);
-		window.addEventListener('resize', handleResize);
-		return () => window.removeEventListener('resize', handleResize);
+		const checkMobile = () => setIsMobile(window.innerWidth < 768);
+		checkMobile();
+		window.addEventListener('resize', checkMobile);
+		return () => window.removeEventListener('resize', checkMobile);
 	}, []);
 
 	// Prevent scroll when modal is open
@@ -68,22 +110,28 @@ const HorrorRaveYardPage = () => {
 					'api/events/by-id/68859a199ec482166f0e8523'
 				);
 				const event = response.data?.data || response.data;
-				if (event && !event.tags) {
-					event.tags = [
-						'DJ Anshika',
-						'Freshers Exclusive',
-						'Horror Theme',
-						'VIP Access',
-						'Underground Experience',
-					];
-				}
-				setEventData(event);
+
 				if (event) {
+					// Add default tags if missing
+					if (!event.tags) {
+						event.tags = [
+							'DJ Anshika',
+							'Freshers Exclusive',
+							'Horror Theme',
+							'VIP Access',
+							'Underground Experience',
+						];
+					}
+
+					setEventData(event);
 					setTotalSpots(event.totalSpots || 0);
+
 					const registrations = Array.isArray(event.registrations)
 						? event.registrations.length
 						: 0;
+
 					setSpotsLeft((event.totalSpots || 0) - registrations);
+
 					setFormData((f) => ({
 						...f,
 						amount: event.ticketPrice ? String(event.ticketPrice) : '300',
@@ -94,26 +142,31 @@ const HorrorRaveYardPage = () => {
 				console.error('Error fetching event data:', error);
 			}
 		};
+
 		fetchEventData();
 	}, []);
 
 	// Countdown timer
 	useEffect(() => {
 		if (!eventData?.date) return;
+
 		const targetDate = new Date(eventData.date).getTime();
 		const updateCountdown = () => {
 			const now = new Date().getTime();
 			const distance = targetDate - now;
+
 			if (distance > 0) {
 				const days = Math.floor(distance / (1000 * 60 * 60 * 24));
 				const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 				const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
 				const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
 				setCountdown({ days, hours, minutes, seconds });
 			} else {
 				setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 			}
 		};
+
 		updateCountdown();
 		const interval = setInterval(updateCountdown, 1000);
 		return () => clearInterval(interval);
@@ -128,6 +181,7 @@ const HorrorRaveYardPage = () => {
 			},
 			1500 + Math.random() * 2000
 		);
+
 		return () => clearInterval(interval);
 	}, []);
 
@@ -140,6 +194,7 @@ const HorrorRaveYardPage = () => {
 			},
 			6000 + Math.random() * 8000
 		);
+
 		return () => clearInterval(interval);
 	}, []);
 
@@ -156,104 +211,48 @@ const HorrorRaveYardPage = () => {
 				setBloodDrips((prev) => [...prev, newDrip]);
 			}
 		}, 500);
+
 		return () => clearInterval(interval);
 	}, [bloodDrips]);
-
-	const BloodDrips = useCallback(
-		() => (
-			<div className="fixed inset-0 pointer-events-none z-0">
-				{bloodDrips.map((drip) => (
-					<motion.div
-						key={drip.id}
-						className="absolute top-0 w-2 h-8 bg-red-600 rounded-b-full"
-						style={{ left: `${drip.x}%` }}
-						initial={{ height: 0, opacity: 0 }}
-						animate={{
-							height: ['0px', '50px', '50px', '100px'],
-							opacity: [0, 1, 1, 0],
-							y: [0, window.innerHeight * 0.8],
-						}}
-						transition={{
-							duration: drip.duration,
-							delay: drip.delay,
-							times: [0, 0.3, 0.7, 1],
-						}}
-						onAnimationComplete={() => {
-							setBloodDrips((prev) => prev.filter((d) => d.id !== drip.id));
-						}}
-					>
-						<motion.div
-							className="absolute bottom-0 w-4 h-4 bg-red-700 rounded-full"
-							animate={{
-								scale: [0, 1.5, 1],
-								y: [0, 10, 20],
-							}}
-							transition={{
-								duration: drip.duration * 0.3,
-								delay: drip.duration * 0.7,
-							}}
-						/>
-					</motion.div>
-				))}
-			</div>
-		),
-		[bloodDrips]
-	);
 
 	// Event highlights
 	const eventHighlights = [
 		{
 			title: 'Headlining Performance by DJ Anshika',
-			description:
-				'Nationally renowned DJ bringing an exclusive high-energy haunted set. Remix segments: Bollywood x EOH Desi Bass, with dark glitchy FX. Interactive crowd drops, live horror-themed AV sync.',
+			description: 'Nationally renowned DJ bringing an exclusive high-energy haunted set.',
 			icon: '🎧',
 		},
 		{
 			title: 'Curated Freshers Experience',
-			description:
-				'First event to welcome the incoming batch — from the other side! Mixes horror, fun, and chaos for an unforgettable freshman night. Sets a ghostly tone for campus culture and Gen Z celebration.',
+			description: 'First event to welcome the incoming batch — from the other side!',
 			icon: '👻',
 		},
 		{
 			title: 'Haunted Glow Setup',
-			description:
-				'Lasers, fog, UV-reactive horror decor, props, and more. Insta-worthy ghost installations, skull photo booths, and gaming. Tattoo mask transformation booths at entry.',
+			description: 'Lasers, fog, UV-reactive horror decor, props, and more.',
 			icon: '💀',
 		},
 		{
 			title: 'Limited Access Entry',
-			description:
-				'Entry via branded wristbands. VIP zones for contest winners, influencers, faculty guests. Exclusive access to haunted chill lounge and scream zone.',
+			description: 'Entry via branded wristbands. VIP zones for contest winners.',
 			icon: '🎟️',
 		},
 		{
 			title: 'Security & Emergency Preparedness',
-			description:
-				'K9 security with crowd flow control. Emergency medical setup & trained volunteers. Gender-sensitive, inclusive crowd care policy enforced at checkpoints.',
+			description: 'K9 security with crowd flow control. Emergency medical setup.',
 			icon: '🚨',
 		},
 		{
 			title: 'Refreshment Zone @ RaveYard',
-			description:
-				'Dedicated food & beverage stalls near venue entry/exit, stage sides & open pathways. Offerings: Chillers (Mojitos, mocktails, soda blends, Lemonade, Cold Coffee), Warmers (Coffee, Chai), Street bites (Mommies, rolls, nachos, popcorn, Samosa), Quick eats (Sandwiches, Maggi, fries), Sweet treats (Cupcakes, candy floss, brownies, Chocolate Dipped Waffles). Themed stall decor with eerie, post-apocalyptic aesthetics.',
+			description: 'Dedicated food & beverage stalls near venue entry/exit.',
 			icon: '🍔',
 		},
 	];
 
 	const partners = [
-		{
-			title: 'SMP',
-			logo: logo1,
-		},
-		{
-			title: 'White Heaven',
-			logo: logo2,
-		},
-		{
-			title: 'cabNest',
-			logo: 'logo3',
-			desc: 'Safe and affordable student rides',
-		},
+		{ title: 'SMP', logo: logo1 },
+		{ title: 'White Heaven', logo: logo2 },
+		{ title: 'cabNest', logo: logo3, desc: 'Safe and affordable student rides' },
 	];
 
 	// Open payment form
@@ -279,18 +278,8 @@ const HorrorRaveYardPage = () => {
 		});
 	}, [formData, eventData]);
 
-	// Rust pattern for background
-	const rustPattern = {
-		backgroundImage: `
-        radial-gradient(circle at 10% 20%, rgba(139, 69, 19, 0.1) 0%, transparent 20%),
-        radial-gradient(circle at 90% 80%, rgba(160, 82, 45, 0.15) 0%, transparent 20%),
-        radial-gradient(circle at 50% 50%, rgba(205, 133, 63, 0.2) 0%, transparent 40%)
-        `,
-		backgroundColor: '#1a0630',
-	};
-
 	// Rust particles and flakes state
-	const [rustParticles, setRustParticles] = useState(
+	const [rustParticles] = useState(
 		[...Array(15)].map((_, i) => ({
 			left: Math.random() * 100,
 			top: Math.random() * 100,
@@ -300,7 +289,7 @@ const HorrorRaveYardPage = () => {
 		}))
 	);
 
-	const [rustFlakes, setRustFlakes] = useState(
+	const [rustFlakes] = useState(
 		[...Array(30)].map(() => ({
 			width: Math.random() * 6 + 1,
 			height: Math.random() * 6 + 1,
@@ -309,7 +298,7 @@ const HorrorRaveYardPage = () => {
 		}))
 	);
 
-	const [floatingRustFlakes, setFloatingRustFlakes] = useState(
+	const [floatingRustFlakes] = useState(
 		[...Array(15)].map(() => ({
 			width: Math.random() * 10 + 2,
 			height: Math.random() * 10 + 2,
@@ -319,11 +308,8 @@ const HorrorRaveYardPage = () => {
 	);
 
 	return (
-		<div
-			className="min-h-screen bg-black text-white font-sans relative"
-			style={{ overflow: 'hidden' }}
-		>
-			<BloodDrips />
+		<div className="min-h-screen bg-black text-white font-sans relative overflow-hidden">
+			<BloodDrips bloodDrips={bloodDrips} setBloodDrips={setBloodDrips} />
 
 			{/* Rust particles floating */}
 			{rustParticles.map((p, i) => (
@@ -355,8 +341,8 @@ const HorrorRaveYardPage = () => {
 					key={i}
 					className="absolute rounded-full"
 					style={{
-						width: f.width,
-						height: f.height,
+						width: `${f.width}px`,
+						height: `${f.height}px`,
 						background: `radial-gradient(circle, #8B4513, #5D2919)`,
 						opacity: 0.7,
 						top: `${f.top}%`,
@@ -380,8 +366,8 @@ const HorrorRaveYardPage = () => {
 					key={i}
 					className="absolute rounded-full"
 					style={{
-						width: f.width,
-						height: f.height,
+						width: `${f.width}px`,
+						height: `${f.height}px`,
 						background: `radial-gradient(circle, #8B4513, #5D2919)`,
 						opacity: 0.7,
 						top: `${f.top}%`,
@@ -440,9 +426,9 @@ const HorrorRaveYardPage = () => {
 								className={`glitch ${isMobile ? 'text-6xl' : 'text-8xl'} font-black mb-0 relative tracking-tighter`}
 								data-text="RAVEYARD"
 								style={{
-									fontFamily: "'Share Tech Mono', 'Bebas Neue', monospace, sans-serif",
+									fontFamily:
+										"'Share Tech Mono', 'Bebas Neue', monospace, sans-serif",
 									letterSpacing: '0.05em',
-									color: '#e25822',
 									background: 'linear-gradient(45deg, #e25822, #a04000, #e25822)',
 									WebkitBackgroundClip: 'text',
 									backgroundClip: 'text',
@@ -528,7 +514,7 @@ const HorrorRaveYardPage = () => {
 									}}
 									whileHover={{
 										scale: 1.05,
-										backgroundColor: 'rgba(120, 50, 35, 0.6)',
+										background: 'rgba(120, 50, 35, 0.6)',
 										boxShadow: '0 0 15px rgba(220, 38, 38, 0.6)',
 									}}
 									transition={{
@@ -627,13 +613,12 @@ const HorrorRaveYardPage = () => {
 						key={i}
 						className="absolute rounded-full"
 						style={{
-							width: Math.random() * 10 + 2,
-							height: Math.random() * 10 + 2,
-							backgroundColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
-							top: `${Math.random() * 100}%`,
-							left: `${Math.random() * 100}%`,
+							width: `${Math.random() * 10 + 2}px`,
+							height: `${Math.random() * 10 + 2}px`,
 							background: `radial-gradient(circle, #8B4513, #5D2919)`,
 							opacity: 0.7,
+							top: `${Math.random() * 100}%`,
+							left: `${Math.random() * 100}%`,
 						}}
 						animate={{
 							y: [0, Math.random() * 50 - 25],
@@ -652,13 +637,14 @@ const HorrorRaveYardPage = () => {
 					@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
 					.glitch {
-						font-family: 'Share Tech Mono', 'Bebas Neue', monospace, sans-serif !important;
+						font-family:
+							'Share Tech Mono', 'Bebas Neue', monospace, sans-serif !important;
 						position: relative;
 						color: #e25822;
 						letter-spacing: 0.05em;
 						text-shadow:
-							2px 2px 0 #8B4513,
-							4px 4px 0 #5D2919,
+							2px 2px 0 #8b4513,
+							4px 4px 0 #5d2919,
 							0 0 10px rgba(255, 0, 0, 0.3),
 							2px 0 #00fff9,
 							-2px 0 #ff00c8;
@@ -668,37 +654,64 @@ const HorrorRaveYardPage = () => {
 					.glitch::after {
 						content: attr(data-text);
 						position: absolute;
-						left: 0; top: 0;
-						width: 100%; overflow: hidden;
+						left: 0;
+						top: 0;
+						width: 100%;
+						overflow: hidden;
 						color: #fff;
 						opacity: 0.7;
 						pointer-events: none;
 					}
 					.glitch::before {
-						left: 2px; text-shadow: -2px 0 #00fff9;
+						left: 2px;
+						text-shadow: -2px 0 #00fff9;
 						animation: glitchTop 2s infinite linear alternate-reverse;
 					}
 					.glitch::after {
-						left: -2px; text-shadow: -2px 0 #ff00c8;
+						left: -2px;
+						text-shadow: -2px 0 #ff00c8;
 						animation: glitchBot 1.5s infinite linear alternate-reverse;
 					}
 					@keyframes glitchTop {
-						0% { clip-path: inset(0 0 80% 0); }
-						20% { clip-path: inset(0 0 60% 0); }
-						40% { clip-path: inset(0 0 40% 0); }
-						60% { clip-path: inset(0 0 20% 0); }
-						80% { clip-path: inset(0 0 60% 0); }
-						100% { clip-path: inset(0 0 80% 0); }
+						0% {
+							clip-path: inset(0 0 80% 0);
+						}
+						20% {
+							clip-path: inset(0 0 60% 0);
+						}
+						40% {
+							clip-path: inset(0 0 40% 0);
+						}
+						60% {
+							clip-path: inset(0 0 20% 0);
+						}
+						80% {
+							clip-path: inset(0 0 60% 0);
+						}
+						100% {
+							clip-path: inset(0 0 80% 0);
+						}
 					}
 					@keyframes glitchBot {
-						0% { clip-path: inset(80% 0 0 0); }
-						20% { clip-path: inset(60% 0 0 0); }
-						40% { clip-path: inset(40% 0 0 0); }
-						60% { clip-path: inset(20% 0 0 0); }
-						80% { clip-path: inset(60% 0 0 0); }
-						100% { clip-path: inset(80% 0 0 0); }
+						0% {
+							clip-path: inset(80% 0 0 0);
+						}
+						20% {
+							clip-path: inset(60% 0 0 0);
+						}
+						40% {
+							clip-path: inset(40% 0 0 0);
+						}
+						60% {
+							clip-path: inset(20% 0 0 0);
+						}
+						80% {
+							clip-path: inset(60% 0 0 0);
+						}
+						100% {
+							clip-path: inset(80% 0 0 0);
+						}
 					}
-
 					@keyframes glitch {
 						0% {
 							transform: translate(0);
@@ -807,15 +820,6 @@ const HorrorRaveYardPage = () => {
 									>
 										<span className="text-3xl">🐕‍🦺</span>
 									</motion.div>
-								)}
-
-								{item.title === 'Social Media Amplification' && (
-									<div className="absolute top-4 left-4 bg-black/50 p-2 rounded-lg">
-										<span className="flex items-center">
-											<span className="mr-2">📸</span>
-											<span className="text-xs">#RaveYard2025</span>
-										</span>
-									</div>
 								)}
 
 								<motion.div
@@ -1074,7 +1078,7 @@ const HorrorRaveYardPage = () => {
 							>
 								<div className="mb-3">
 									<img
-										src={partner.logo === 'logo3' ? logo3 : partner.logo}
+										src={partner.logo}
 										alt={partner.title}
 										className="h-14 w-14 object-contain rounded-full bg-black/30 border border-red-900/30 shadow"
 									/>
