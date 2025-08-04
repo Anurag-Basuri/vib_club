@@ -15,18 +15,46 @@ export const handlePayment = async ({
 
 	try {
 		// Validate form data
-		const { fullName, email, phone, lpuId } = formData;
-		if (!fullName || !email || !phone || !lpuId) {
+		const { fullName, email, phone, lpuId, gender, hosteler, hostel, course, club, amount } = formData;
+		if (!fullName || !email || !phone || !lpuId || !gender || hosteler === undefined || !course) {
 			setError('Please fill all required fields.');
 			setLoading(false);
 			return;
 		}
+		if (!/^\d{8}$/.test(lpuId)) {
+			setError('LPU ID must be exactly 8 digits.');
+			setLoading(false);
+			return;
+		}
+		if (!['Male', 'Female'].includes(gender)) {
+			setError('Gender must be Male or Female.');
+			setLoading(false);
+			return;
+		}
+		const hostelerBool = hosteler === true || hosteler === 'true';
+		if (hostelerBool && !hostel) {
+			setError('Hostel name is required for hosteler.');
+			setLoading(false);
+			return;
+		}
+
+		// Prepare payload for backend
+		const payload = {
+			fullName,
+			email,
+			phone,
+			lpuId: lpuId.trim(),
+			gender,
+			hosteler: hostelerBool,
+			hostel: hostelerBool ? hostel : undefined,
+			course,
+			club: club || '',
+			amount: Number(amount),
+			eventId: eventData?._id,
+		};
 
 		// Create payment order
-		const response = await publicClient.post('api/cashfree/create-order', {
-			...formData,
-			eventId: eventData?._id,
-		});
+		const response = await publicClient.post('api/cashfree/create-order', payload);
 
 		const orderData = response.data?.data;
 		if (!orderData?.payment_session_id) {
