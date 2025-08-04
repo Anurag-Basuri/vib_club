@@ -34,7 +34,7 @@ export const initRateLimiter = async () => {
 export { rateLimiter };
 
 // Optional placeholder for cache middleware
-export const cacheMiddleware = duration => {
+export const cacheMiddleware = (duration) => {
 	return async (req, res, next) => {
 		next();
 	};
