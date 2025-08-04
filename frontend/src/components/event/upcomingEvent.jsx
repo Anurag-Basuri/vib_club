@@ -289,6 +289,35 @@ const HorrorRaveYardPage = () => {
 		backgroundColor: '#1a0630',
 	};
 
+	// Rust particles and flakes state
+	const [rustParticles, setRustParticles] = useState(
+		[...Array(15)].map((_, i) => ({
+			left: Math.random() * 100,
+			top: Math.random() * 100,
+			direction: Math.random() > 0.5 ? 1 : -1,
+			rotate: Math.random() * 360,
+			delay: i * 0.5,
+		}))
+	);
+
+	const [rustFlakes, setRustFlakes] = useState(
+		[...Array(30)].map(() => ({
+			width: Math.random() * 6 + 1,
+			height: Math.random() * 6 + 1,
+			top: Math.random() * 100,
+			left: Math.random() * 100,
+		}))
+	);
+
+	const [floatingRustFlakes, setFloatingRustFlakes] = useState(
+		[...Array(15)].map(() => ({
+			width: Math.random() * 10 + 2,
+			height: Math.random() * 10 + 2,
+			top: Math.random() * 100,
+			left: Math.random() * 100,
+		}))
+	);
+
 	return (
 		<div
 			className="min-h-screen bg-black text-white font-sans relative"
@@ -297,46 +326,88 @@ const HorrorRaveYardPage = () => {
 			<BloodDrips />
 
 			{/* Rust particles floating */}
-			{[...Array(15)].map((_, i) => (
+			{rustParticles.map((p, i) => (
 				<motion.div
 					key={i}
 					className="absolute text-xl text-red-800 opacity-50"
 					style={{
-						left: `${Math.random() * 100}%`,
-						top: `${Math.random() * 100}%`,
+						left: `${p.left}%`,
+						top: `${p.top}%`,
 					}}
 					animate={{
 						y: [0, -10, 0],
-						x: [0, (Math.random() > 0.5 ? 1 : -1) * 5, 0],
-						rotate: [0, Math.random() * 360],
+						x: [0, p.direction * 5, 0],
+						rotate: [0, p.rotate],
 					}}
 					transition={{
 						duration: 8 + Math.random() * 10,
 						repeat: Infinity,
-						delay: i * 0.5,
+						delay: p.delay,
 					}}
 				>
 					•
 				</motion.div>
 			))}
 
-			{/* Hero Section */}
-			<div
-				className="min-h-screen w-full flex flex-col justify-center items-center p-4 overflow-hidden relative"
-				style={{
-					background: `
-          radial-gradient(circle at 30% 40%, #3d1f1a 0%, #2a0f06 40%, #1a0904 70%, #0a0015 100%),
-          ${rustPattern.backgroundImage}
-        `,
-					backgroundColor: rustPattern.backgroundColor,
-				}}
-			>
-				{/* Rust overlay */}
-				<div
-					className="absolute inset-0 pointer-events-none"
+			{/* Rust flakes */}
+			{rustFlakes.map((f, i) => (
+				<motion.div
+					key={i}
+					className="absolute rounded-full"
 					style={{
-						backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23a0522d' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
+						width: f.width,
+						height: f.height,
+						background: `radial-gradient(circle, #8B4513, #5D2919)`,
 						opacity: 0.7,
+						top: `${f.top}%`,
+						left: `${f.left}%`,
+					}}
+					animate={{
+						y: [0, Math.random() * 20 - 10],
+						x: [0, Math.random() * 20 - 10],
+					}}
+					transition={{
+						duration: Math.random() * 5 + 5,
+						repeat: Infinity,
+						repeatType: 'reverse',
+					}}
+				/>
+			))}
+
+			{/* Floating rust particles */}
+			{floatingRustFlakes.map((f, i) => (
+				<motion.div
+					key={i}
+					className="absolute rounded-full"
+					style={{
+						width: f.width,
+						height: f.height,
+						background: `radial-gradient(circle, #8B4513, #5D2919)`,
+						opacity: 0.7,
+						top: `${f.top}%`,
+						left: `${f.left}%`,
+					}}
+					animate={{
+						y: [0, Math.random() * 50 - 25],
+						x: [0, Math.random() * 40 - 20],
+					}}
+					transition={{
+						duration: Math.random() * 5 + 5,
+						repeat: Infinity,
+						repeatType: 'reverse',
+					}}
+				/>
+			))}
+
+			{/* Hero Section */}
+			<div className="min-h-screen w-full flex flex-col justify-center items-center p-4 overflow-hidden relative">
+				{/* Rust texture background */}
+				<div
+					className="absolute inset-0"
+					style={{
+						backgroundImage: `url("https://www.transparenttextures.com/patterns/rust.png"), radial-gradient(circle at 30% 40%, #3d1f1a 0%, #2a0f06 40%, #1a0904 70%, #0a0015 100%)`,
+						backgroundBlendMode: 'overlay',
+						opacity: 0.8,
 					}}
 				></div>
 
@@ -347,53 +418,42 @@ const HorrorRaveYardPage = () => {
 						borderImage: `linear-gradient(45deg, #8B4513, #5D2919, #3a180d) 1`,
 						borderStyle: 'solid',
 						boxShadow: 'inset 0 0 20px rgba(139, 69, 19, 0.8)',
+						backgroundImage: `url("https://www.transparenttextures.com/patterns/rust.png")`,
+						backgroundBlendMode: 'overlay',
 					}}
 				></div>
-
-				{/* Glitch effect container */}
-				<div className="absolute inset-0 overflow-hidden pointer-events-none">
-					<div
-						className="absolute top-0 left-0 w-full h-full"
-						style={{
-							background: `linear-gradient(rgba(0,0,0,0.1) 50%, transparent 50%),
-                      linear-gradient(90deg, rgba(255,0,0,0.06), rgba(0,255,0,0.02), rgba(0,0,255,0.06))`,
-							backgroundSize: '100% 4px, 4px 100%',
-							opacity: 0.3,
-							animation: 'glitch 0.5s infinite',
-						}}
-					></div>
-				</div>
 
 				<div className="relative z-10 text-center max-w-6xl w-full px-4">
 					<motion.div
 						initial={{ opacity: 0, y: 50 }}
 						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 1 }}
+						transition={{ duration: 1, ease: 'easeOut' }}
 					>
-						{/* Glitchy RAVEYARD text */}
+						{/* Rusty Metal Text Effect */}
 						<motion.div
 							className="relative mb-6"
 							initial={{ scale: 0.8 }}
 							animate={{ scale: 1 }}
-							transition={{ duration: 0.8 }}
+							transition={{ duration: 0.8, ease: 'backOut' }}
 						>
 							<motion.h1
-								className={`${isMobile ? 'text-6xl' : 'text-9xl'} font-black mb-0 relative tracking-tighter`}
+								className={`glitch ${isMobile ? 'text-6xl' : 'text-8xl'} font-black mb-0 relative tracking-tighter`}
+								data-text="RAVEYARD"
 								style={{
-									fontFamily: "'Rajdhani', sans-serif",
-									textShadow: `
-                  3px 0 0 rgba(255, 0, 0, 0.7),
-                  -3px 0 0 rgba(0, 0, 255, 0.7),
-                  0 0 10px rgba(255, 0, 0, 0.5)
-                `,
-									color: '#ff3a3a',
+									fontFamily: "'Share Tech Mono', 'Bebas Neue', monospace, sans-serif",
+									letterSpacing: '0.05em',
+									color: '#e25822',
+									background: 'linear-gradient(45deg, #e25822, #a04000, #e25822)',
+									WebkitBackgroundClip: 'text',
+									backgroundClip: 'text',
+									WebkitTextFillColor: 'transparent',
 								}}
 								animate={{
 									textShadow: [
-										'3px 0 0 rgba(255, 0, 0, 0.7), -3px 0 0 rgba(0, 0, 255, 0.7), 0 0 10px rgba(255, 0, 0, 0.5)',
-										'0px 0 0 rgba(255, 0, 0, 0.7), 0px 0 0 rgba(0, 0, 255, 0.7), 0 0 0px rgba(255, 0, 0, 0.5)',
-										'3px 0 0 rgba(255, 0, 0, 0.7), -3px 0 0 rgba(0, 0, 255, 0.7), 0 0 10px rgba(255, 0, 0, 0.5)',
-										'-3px 0 0 rgba(255, 0, 0, 0.7), 3px 0 0 rgba(0, 0, 255, 0.7), 0 0 15px rgba(255, 0, 0, 0.5)',
+										'2px 2px 0 #8B4513, 4px 4px 0 #5D2919, 0 0 10px rgba(255, 0, 0, 0.3), 2px 0 #00fff9, -2px 0 #ff00c8',
+										'1px 1px 0 #8B4513, 2px 2px 0 #5D2919, 0 0 5px rgba(255, 0, 0, 0.3), 1px 0 #00fff9, -1px 0 #ff00c8',
+										'2px 2px 0 #8B4513, 4px 4px 0 #5D2919, 0 0 10px rgba(255, 0, 0, 0.3), 2px 0 #00fff9, -2px 0 #ff00c8',
+										'3px 3px 0 #8B4513, 6px 6px 0 #5D2919, 0 0 15px rgba(255, 0, 0, 0.3), 3px 0 #00fff9, -3px 0 #ff00c8',
 									],
 								}}
 								transition={{
@@ -405,43 +465,21 @@ const HorrorRaveYardPage = () => {
 								RAVEYARD
 							</motion.h1>
 
-							<div className="absolute -bottom-3 left-0 right-0 h-2 bg-gradient-to-r from-red-800 via-red-600 to-red-800 rounded-full"></div>
+							<div className="absolute -bottom-3 left-0 right-0 h-1.5 bg-gradient-to-r from-red-800 via-red-600 to-red-800 rounded-full"></div>
 
-							{/* Glitch overlay effect */}
-							<motion.div
-								className="absolute top-0 left-0 w-full h-full overflow-hidden"
-								animate={{
-									clipPath: [
-										'inset(0 0 0 0)',
-										'inset(20% 0 60% 0)',
-										'inset(60% 0 20% 0)',
-										'inset(0 0 0 0)',
-									],
-								}}
-								transition={{
-									duration: 0.8,
-									repeat: Infinity,
-									repeatType: 'reverse',
-								}}
-							>
-								<div
-									className="absolute top-0 left-0 w-full h-full"
-									style={{
-										background:
-											'linear-gradient(transparent, rgba(255, 0, 0, 0.2), transparent)',
-										mixBlendMode: 'screen',
-									}}
-								></div>
-							</motion.div>
+							{/* Rust corrosion effect under text */}
+							<div className="absolute -bottom-6 left-1/4 w-1/2 h-2 bg-gradient-to-r from-transparent via-red-900 to-transparent"></div>
 						</motion.div>
 
 						<motion.h2
-							className={`${isMobile ? 'text-2xl' : 'text-4xl'} text-red-300 mb-8 font-bold relative pb-4`}
+							className={`${isMobile ? 'text-xl' : 'text-3xl'} text-red-300 mb-8 font-medium relative pb-4 tracking-wide`}
 							initial={{ opacity: 0 }}
 							animate={{ opacity: 1 }}
-							transition={{ delay: 0.5, duration: 1 }}
+							transition={{ delay: 0.5, duration: 1, ease: 'easeOut' }}
 							style={{
 								textShadow: '0 0 8px rgba(255, 50, 50, 0.7)',
+								fontFamily: "'Rajdhani', sans-serif",
+								fontWeight: 500,
 							}}
 						>
 							Not your average EDM Night... It's curse of Beats
@@ -458,17 +496,19 @@ const HorrorRaveYardPage = () => {
 											duration: 2,
 											repeat: Infinity,
 											delay: i * 0.3,
+											ease: 'easeInOut',
 										}}
 									/>
 								))}
 							</div>
 						</motion.h2>
 
+						{/* Feature Highlights */}
 						<motion.div
-							className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-4'} gap-6 mt-8 max-w-4xl mx-auto`}
+							className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-4'} gap-4 mt-8 max-w-4xl mx-auto`}
 							initial={{ opacity: 0 }}
 							animate={{ opacity: 1 }}
-							transition={{ delay: 1, duration: 1 }}
+							transition={{ delay: 1, duration: 1, ease: 'easeOut' }}
 						>
 							{[
 								{ icon: '🎧', title: 'DJ Anshika' },
@@ -478,31 +518,38 @@ const HorrorRaveYardPage = () => {
 							].map((item, index) => (
 								<motion.div
 									key={index}
-									className="flex flex-col items-center p-4 rounded-lg"
+									className="flex flex-col items-center p-3 rounded-lg"
 									style={{
 										background: 'rgba(90, 35, 25, 0.4)',
 										border: '1px solid rgba(205, 133, 63, 0.3)',
 										boxShadow: '0 4px 10px rgba(0, 0, 0, 0.3)',
+										backgroundImage: `url("https://www.transparenttextures.com/patterns/rust.png")`,
+										backgroundBlendMode: 'overlay',
 									}}
 									whileHover={{
 										scale: 1.05,
 										backgroundColor: 'rgba(120, 50, 35, 0.6)',
-										boxShadow: '0 0 20px rgba(220, 38, 38, 0.6)',
+										boxShadow: '0 0 15px rgba(220, 38, 38, 0.6)',
+									}}
+									transition={{
+										duration: 0.3,
+										ease: 'easeInOut',
 									}}
 								>
-									<span className="text-5xl mb-2">{item.icon}</span>
-									<span className="text-lg font-bold text-red-300">
+									<span className="text-4xl mb-2">{item.icon}</span>
+									<span className="text-base font-medium text-red-300">
 										{item.title}
 									</span>
 								</motion.div>
 							))}
 						</motion.div>
 
+						{/* Rusty Metal Button */}
 						<motion.div
-							className="mt-12"
+							className="mt-10"
 							initial={{ opacity: 0, scale: 0.8 }}
 							animate={{ opacity: 1, scale: 1 }}
-							transition={{ delay: 1.2, duration: 0.8 }}
+							transition={{ delay: 1.2, duration: 0.8, ease: 'backOut' }}
 						>
 							<motion.button
 								whileHover={{
@@ -511,43 +558,38 @@ const HorrorRaveYardPage = () => {
 								}}
 								whileTap={{ scale: 0.95 }}
 								onClick={openPaymentForm}
-								className="px-10 py-6 relative rounded-xl font-bold text-xl shadow-lg overflow-hidden"
+								className="px-10 py-5 relative rounded-xl font-bold text-xl shadow-lg overflow-hidden"
 								style={{
-									background: `linear-gradient(145deg, #8B4513, #5D2919)`,
+									background: `linear-gradient(145deg, #8B4513, #5D2919), url("https://www.transparenttextures.com/patterns/rust.png")`,
+									backgroundBlendMode: 'overlay',
 									boxShadow: `0 4px 0 #3a180d, inset 0 2px 4px rgba(255, 100, 100, 0.4)`,
 									border: '1px solid #5D2919',
 									textShadow: '0 0 8px rgba(255, 50, 50, 0.7)',
+									fontFamily: "'Rajdhani', sans-serif",
+								}}
+								transition={{
+									duration: 0.3,
+									ease: 'easeInOut',
 								}}
 							>
 								<div className="relative z-10 flex items-center gap-3">
 									<span>ENTER THE CRYPT</span>
 									<span>💀</span>
 								</div>
-								<div className="absolute bottom-0 left-0 right-0 flex justify-center">
-									{[...Array(3)].map((_, i) => (
-										<motion.div
+
+								{/* Rust corrosion spots on button */}
+								<div className="absolute inset-0 flex justify-around items-start pointer-events-none">
+									{[...Array(5)].map((_, i) => (
+										<div
 											key={i}
-											className="w-1 h-6 mx-2 bg-gradient-to-b from-red-600 to-transparent"
-											animate={{
-												y: [0, 10, 20],
-												opacity: [1, 1, 0],
+											className="w-3 h-3 rounded-full bg-red-900 opacity-70"
+											style={{
+												top: `${10 + i * 15}%`,
+												left: `${10 + i * 20}%`,
 											}}
-											transition={{
-												duration: 1.5,
-												repeat: Infinity,
-												delay: i * 0.5,
-											}}
-										/>
+										></div>
 									))}
 								</div>
-
-								{/* Rust texture on button */}
-								<div
-									className="absolute inset-0 opacity-20"
-									style={{
-										backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-									}}
-								></div>
 							</motion.button>
 						</motion.div>
 					</motion.div>
@@ -607,6 +649,55 @@ const HorrorRaveYardPage = () => {
 
 				<style jsx global>{`
 					@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@700&display=swap');
+					@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+					.glitch {
+						font-family: 'Share Tech Mono', 'Bebas Neue', monospace, sans-serif !important;
+						position: relative;
+						color: #e25822;
+						letter-spacing: 0.05em;
+						text-shadow:
+							2px 2px 0 #8B4513,
+							4px 4px 0 #5D2919,
+							0 0 10px rgba(255, 0, 0, 0.3),
+							2px 0 #00fff9,
+							-2px 0 #ff00c8;
+						animation: glitch 2s infinite linear alternate-reverse;
+					}
+					.glitch::before,
+					.glitch::after {
+						content: attr(data-text);
+						position: absolute;
+						left: 0; top: 0;
+						width: 100%; overflow: hidden;
+						color: #fff;
+						opacity: 0.7;
+						pointer-events: none;
+					}
+					.glitch::before {
+						left: 2px; text-shadow: -2px 0 #00fff9;
+						animation: glitchTop 2s infinite linear alternate-reverse;
+					}
+					.glitch::after {
+						left: -2px; text-shadow: -2px 0 #ff00c8;
+						animation: glitchBot 1.5s infinite linear alternate-reverse;
+					}
+					@keyframes glitchTop {
+						0% { clip-path: inset(0 0 80% 0); }
+						20% { clip-path: inset(0 0 60% 0); }
+						40% { clip-path: inset(0 0 40% 0); }
+						60% { clip-path: inset(0 0 20% 0); }
+						80% { clip-path: inset(0 0 60% 0); }
+						100% { clip-path: inset(0 0 80% 0); }
+					}
+					@keyframes glitchBot {
+						0% { clip-path: inset(80% 0 0 0); }
+						20% { clip-path: inset(60% 0 0 0); }
+						40% { clip-path: inset(40% 0 0 0); }
+						60% { clip-path: inset(20% 0 0 0); }
+						80% { clip-path: inset(60% 0 0 0); }
+						100% { clip-path: inset(80% 0 0 0); }
+					}
 
 					@keyframes glitch {
 						0% {
@@ -746,7 +837,7 @@ const HorrorRaveYardPage = () => {
 				</div>
 			</section>
 
-			{/* Event Details */}
+			{/* Event Details Section */}
 			<section className="py-24 px-4">
 				<div className="max-w-6xl mx-auto">
 					<div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -852,7 +943,7 @@ const HorrorRaveYardPage = () => {
 									<h3 className="text-lg font-semibold text-red-300 mb-3">
 										Event Posters
 									</h3>
-									<div className="flex flex-wrap gap-4 justify-center">
+									<div className="flex flex-wrap gap-6 justify-center">
 										{eventData.posters.map((poster) => (
 											<a
 												key={poster.public_id || poster.url}
@@ -860,11 +951,18 @@ const HorrorRaveYardPage = () => {
 												target="_blank"
 												rel="noopener noreferrer"
 												className="block"
+												style={{ maxWidth: 320 }}
 											>
 												<img
 													src={poster.url}
 													alt="Event Poster"
-													className="w-32 h-44 object-cover rounded-lg border border-red-700 shadow-lg hover:scale-105 transition-transform"
+													className="w-64 h-96 object-cover rounded-xl border-2 border-red-700 shadow-2xl hover:scale-105 transition-transform duration-200 bg-black"
+													style={{
+														maxWidth: '100%',
+														maxHeight: '28rem',
+														minWidth: '180px',
+														minHeight: '260px',
+													}}
 												/>
 											</a>
 										))}
