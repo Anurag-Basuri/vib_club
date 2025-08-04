@@ -184,6 +184,7 @@ const TeamPreview = () => {
               }}
               whileTap={{ scale: 0.95 }}
               className="group relative px-8 py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-cyan-600 rounded-full font-semibold text-white text-lg shadow-2xl overflow-hidden"
+              disabled="true"
             >
               <span className="relative z-10 flex items-center gap-3">
                 Explore Full Team

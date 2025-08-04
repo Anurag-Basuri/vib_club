@@ -746,155 +746,159 @@ const HorrorRaveYardPage = () => {
 				</div>
 			</section>
 
-           {/* Event Details */}
-                        <section className="py-24 px-4">
-                            <div className="max-w-6xl mx-auto">
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-                                    <motion.div
-                                        initial={{ opacity: 0, x: -50 }}
-                                        whileInView={{ opacity: 1, x: 0 }}
-                                        viewport={{ once: true }}
-                                        transition={{ duration: 1 }}
-                                    >
-                                        <h2 className="text-3xl md:text-4xl font-bold text-red-400 mb-8">
-                                            EVENT DETAILS
-                                        </h2>
-                                        <div className="space-y-6 mb-10">
-                                            <div className="flex items-center gap-4 p-4 bg-black/30 rounded-xl border border-red-600/30">
-                                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center">
-                                                    <span>📅</span>
-                                                </div>
-                                                <div>
-                                                    <div className="text-sm text-red-300 font-medium">
-                                                        DATE & TIME
-                                                    </div>
-                                                    <div className="text-white text-xl font-medium">
-                                                        {eventData?.date
-                                                            ? new Date(eventData.date).toLocaleDateString()
-                                                            : '--'}{' '}
-                                                        • {eventData?.time || '--'}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-4 p-4 bg-black/30 rounded-xl border border-red-600/30">
-                                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center">
-                                                    <span>📍</span>
-                                                </div>
-                                                <div>
-                                                    <div className="text-sm text-red-300 font-medium">
-                                                        LOCATION
-                                                    </div>
-                                                    <div className="text-white text-xl font-medium">
-                                                        {eventData?.venue || '--'}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-4 p-4 bg-black/30 rounded-xl border border-red-600/30">
-                                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center">
-                                                    <span>🎟️</span>
-                                                </div>
-                                                <div>
-                                                    <div className="text-sm text-red-300 font-medium">
-                                                        TICKET PRICE
-                                                    </div>
-                                                    <div className="text-white text-xl font-medium">
-                                                        {eventData?.ticketPrice
-                                                            ? `₹${eventData.ticketPrice}`
-                                                            : '₹1'}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="mb-6">
-                                            <div className="flex justify-between mb-2">
-                                                <span className="text-red-400 font-bold">
-                                                    {spotsLeft} SOULS LEFT
-                                                </span>
-                                                <span className="text-red-400 font-bold">
-                                                    {totalSpots} TOTAL
-                                                </span>
-                                            </div>
-                                            <div className="w-full bg-gray-900/50 h-3 rounded-full overflow-hidden">
-                                                <div
-                                                    className="h-full bg-gradient-to-r from-red-600 to-red-800"
-                                                    style={{
-                                                        width:
-                                                            totalSpots > 0
-                                                                ? `${(spotsLeft / totalSpots) * 100}%`
-                                                                : '0%',
-                                                    }}
-                                                ></div>
-                                            </div>
-                                        </div>
-                                        {eventData?.tags && eventData.tags.length > 0 && (
-                                            <div className="flex flex-wrap gap-3 mb-8">
-                                                {eventData.tags.map((tag, index) => (
-                                                    <span
-                                                        key={index}
-                                                        className="px-3 py-1.5 rounded-full text-sm bg-red-900/50 text-red-300"
-                                                    >
-                                                        {tag}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </motion.div>
-                                    <motion.div
-                                        initial={{ opacity: 0, x: 50 }}
-                                        whileInView={{ opacity: 1, x: 0 }}
-                                        viewport={{ once: true }}
-                                        transition={{ duration: 1 }}
-                                        className="relative flex flex-col items-center"
-                                    >
-                                        {/* Posters */}
-                                        {eventData?.posters && eventData.posters.length > 0 ? (
-                                            <div className="mb-8 w-full flex flex-col items-center">
-                                                <h3 className="text-lg font-semibold text-red-300 mb-3">
-                                                    Event Posters
-                                                </h3>
-                                                <div className="flex flex-wrap gap-4 justify-center">
-                                                    {eventData.posters.map((poster) => (
-                                                        <a
-                                                            key={poster.public_id || poster.url}
-                                                            href={poster.url}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="block"
-                                                        >
-                                                            <img
-                                                                src={poster.url}
-                                                                alt="Event Poster"
-                                                                className="w-32 h-44 object-cover rounded-lg border border-red-700 shadow-lg hover:scale-105 transition-transform"
-                                                            />
-                                                        </a>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            // Fallback animation if no posters
-                                            <div className="flex flex-col items-center justify-center h-full w-full">
-                                                <motion.div
-                                                    className="text-8xl mb-6"
-                                                    animate={{ rotate: [0, 360] }}
-                                                    transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                                                >
-                                                    🌀
-                                                </motion.div>
-                                                <h3 className="text-2xl font-bold text-white mb-4">
-                                                    Portal Opening Experience
-                                                </h3>
-                                                <p className="text-red-200 text-center">
-                                                    Experience the dimensional rift between worlds with
-                                                    immersive ghost installations and scream zones
-                                                </p>
-                                            </div>
-                                        )}
-                                    </motion.div>
-                                </div>
-                            </div>
-                        </section>
+			{/* Event Details */}
+			<section className="py-24 px-4">
+				<div className="max-w-6xl mx-auto">
+					<div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+						<motion.div
+							initial={{ opacity: 0, x: -50 }}
+							whileInView={{ opacity: 1, x: 0 }}
+							viewport={{ once: true }}
+							transition={{ duration: 1 }}
+						>
+							<h2 className="text-3xl md:text-4xl font-bold text-red-400 mb-8">
+								EVENT DETAILS
+							</h2>
+							<div className="space-y-6 mb-10">
+								<div className="flex items-center gap-4 p-4 bg-black/30 rounded-xl border border-red-600/30">
+									<div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center">
+										<span>📅</span>
+									</div>
+									<div>
+										<div className="text-sm text-red-300 font-medium">
+											DATE & TIME
+										</div>
+										<div className="text-white text-xl font-medium">
+											{eventData?.date
+												? new Date(eventData.date).toLocaleDateString()
+												: '--'}{' '}
+											• {eventData?.time || '--'}
+										</div>
+									</div>
+								</div>
+								<div className="flex items-center gap-4 p-4 bg-black/30 rounded-xl border border-red-600/30">
+									<div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center">
+										<span>📍</span>
+									</div>
+									<div>
+										<div className="text-sm text-red-300 font-medium">
+											LOCATION
+										</div>
+										<div className="text-white text-xl font-medium">
+											{eventData?.venue || '--'}
+										</div>
+									</div>
+								</div>
+								<div className="flex items-center gap-4 p-4 bg-black/30 rounded-xl border border-red-600/30">
+									<div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center">
+										<span>🎟️</span>
+									</div>
+									<div>
+										<div className="text-sm text-red-300 font-medium">
+											TICKET PRICE
+										</div>
+										<div className="text-white text-xl font-medium">
+											{eventData?.ticketPrice
+												? `₹${eventData.ticketPrice}`
+												: '₹1'}
+										</div>
+									</div>
+								</div>
+							</div>
+							<div className="mb-6">
+								<div className="flex justify-between mb-2">
+									<span className="text-red-400 font-bold">
+										{spotsLeft} SOULS LEFT
+									</span>
+									<span className="text-red-400 font-bold">
+										{totalSpots} TOTAL
+									</span>
+								</div>
+								<div className="w-full bg-gray-900/50 h-3 rounded-full overflow-hidden">
+									<div
+										className="h-full bg-gradient-to-r from-red-600 to-red-800"
+										style={{
+											width:
+												totalSpots > 0
+													? `${(spotsLeft / totalSpots) * 100}%`
+													: '0%',
+										}}
+									></div>
+								</div>
+							</div>
+							{eventData?.tags && eventData.tags.length > 0 && (
+								<div className="flex flex-wrap gap-3 mb-8">
+									{eventData.tags.map((tag, index) => (
+										<span
+											key={index}
+											className="px-3 py-1.5 rounded-full text-sm bg-red-900/50 text-red-300"
+										>
+											{tag}
+										</span>
+									))}
+								</div>
+							)}
+						</motion.div>
+						<motion.div
+							initial={{ opacity: 0, x: 50 }}
+							whileInView={{ opacity: 1, x: 0 }}
+							viewport={{ once: true }}
+							transition={{ duration: 1 }}
+							className="relative flex flex-col items-center"
+						>
+							{/* Posters */}
+							{eventData?.posters && eventData.posters.length > 0 ? (
+								<div className="mb-8 w-full flex flex-col items-center">
+									<h3 className="text-lg font-semibold text-red-300 mb-3">
+										Event Posters
+									</h3>
+									<div className="flex flex-wrap gap-4 justify-center">
+										{eventData.posters.map((poster) => (
+											<a
+												key={poster.public_id || poster.url}
+												href={poster.url}
+												target="_blank"
+												rel="noopener noreferrer"
+												className="block"
+											>
+												<img
+													src={poster.url}
+													alt="Event Poster"
+													className="w-32 h-44 object-cover rounded-lg border border-red-700 shadow-lg hover:scale-105 transition-transform"
+												/>
+											</a>
+										))}
+									</div>
+								</div>
+							) : (
+								// Fallback animation if no posters
+								<div className="flex flex-col items-center justify-center h-full w-full">
+									<motion.div
+										className="text-8xl mb-6"
+										animate={{ rotate: [0, 360] }}
+										transition={{
+											duration: 8,
+											repeat: Infinity,
+											ease: 'linear',
+										}}
+									>
+										🌀
+									</motion.div>
+									<h3 className="text-2xl font-bold text-white mb-4">
+										Portal Opening Experience
+									</h3>
+									<p className="text-red-200 text-center">
+										Experience the dimensional rift between worlds with
+										immersive ghost installations and scream zones
+									</p>
+								</div>
+							)}
+						</motion.div>
+					</div>
+				</div>
+			</section>
 
-                        {/* Ticket CTA */}
+			{/* Ticket CTA */}
 			<section className="py-32 px-4 relative">
 				<div className="max-w-4xl mx-auto text-center">
 					<motion.div
