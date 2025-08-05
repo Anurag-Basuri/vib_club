@@ -137,17 +137,33 @@ const UpcomingEventShowcase = () => {
     );
   }
 
-  // Format date and time
-  const eventDate = new Date(event.date);
-  const dateStr = eventDate.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
-  const timeStr = event.time || eventDate.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  // Format date and time (robust)
+  let dateStr = '--';
+  let timeStr = '--';
+  if (event?.date) {
+    const eventDate = new Date(event.date);
+    if (!isNaN(eventDate)) {
+      dateStr = eventDate.toLocaleDateString(undefined, {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+      timeStr = event.time
+        ? event.time
+        : eventDate.toLocaleTimeString(undefined, {
+            hour: '2-digit',
+            minute: '2-digit',
+          });
+    }
+  }
 
   // Poster (first image)
   const poster = event.posters && event.posters.length > 0 ? event.posters[0] : null;
 
-  // Slots available
+  // Slots available (never negative)
   const slots = typeof event.totalSpots === 'number'
-    ? (event.totalSpots - (event.registrations ? event.registrations.length : 0))
+    ? Math.max(0, event.totalSpots - (event.registrations ? event.registrations.length : 0))
     : null;
 
   // ExpandableText component for mobile description
