@@ -283,16 +283,61 @@ const Navbar = () => {
                             className="flex items-center gap-3 sm:gap-4 flex-shrink-0 relative select-none"
                         >
                             <div
-                                className="logo-container w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shadow-lg border border-blue-900/40 bg-[#0a1120]/90"
+                                className="logo-container w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shadow-lg border border-blue-900/40 bg-[#0a1120]/90 relative overflow-hidden"
+                                style={{
+                                    boxShadow: '0 4px 24px 0 #0ea5e9cc, 0 1.5px 8px 0 #1e293b',
+                                }}
                             >
+                                {/* Animated smoky background */}
+                                <div className="absolute inset-0 pointer-events-none z-0">
+                                    <div
+                                        style={{
+                                            position: 'absolute',
+                                            inset: 0,
+                                            background:
+                                                'radial-gradient(circle at 60% 40%, #38bdf8 12%, transparent 70%), radial-gradient(circle at 30% 70%, #6366f1 12%, transparent 70%)',
+                                            opacity: 0.38,
+                                            filter: 'blur(10px)',
+                                            animation: 'smokeMove 7s linear infinite alternate',
+                                            zIndex: 1,
+                                        }}
+                                    />
+                                    <div
+                                        style={{
+                                            position: 'absolute',
+                                            inset: 0,
+                                            background:
+                                                'radial-gradient(circle at 70% 60%, #0ea5e9 10%, transparent 70%), radial-gradient(circle at 40% 80%, #818cf8 10%, transparent 70%)',
+                                            opacity: 0.22,
+                                            filter: 'blur(16px)',
+                                            animation: 'smokeMove2 9s linear infinite alternate-reverse',
+                                            zIndex: 2,
+                                        }}
+                                    />
+                                    <style>{`
+                                        @keyframes smokeMove {
+                                            0% { background-position: 0% 0%, 100% 100%; }
+                                            100% { background-position: 100% 100%, 0% 0%; }
+                                        }
+                                        @keyframes smokeMove2 {
+                                            0% { background-position: 100% 0%, 0% 100%; }
+                                            100% { background-position: 0% 100%, 100% 0%; }
+                                        }
+                                    `}</style>
+                                </div>
                                 <img
                                     src={logo}
                                     alt="Vibranta Logo"
-                                    className="w-9 h-9 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-blue-400 shadow-md"
                                     loading="lazy"
                                     decoding="async"
+                                    className="relative z-10"
                                     style={{
                                         background: '#0a0e17',
+                                        borderRadius: '0.75rem',
+                                        width: '80%',
+                                        height: '80%',
+                                        objectFit: 'contain',
+                                        boxShadow: '0 2px 12px #0ea5e944',
                                     }}
                                 />
                             </div>
