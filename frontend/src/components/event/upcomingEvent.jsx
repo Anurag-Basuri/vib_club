@@ -89,6 +89,7 @@ const HorrorRaveYardPage = () => {
 		hostel: '',
 		course: '',
 		club: '',
+		eventId: '68859a199ec482166f0e8523',
 	});
 
 	// Responsive check
