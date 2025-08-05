@@ -163,7 +163,7 @@ const UpcomingEventShowcase = () => {
 
   // Slots available (never negative)
   const slots = typeof event.totalSpots === 'number'
-    ? Math.max(0, event.totalSpots - (event.registrations ? event.registrations.length : 0))
+    ? Math.max(0, event.totalSpots - 152 - (event.registrations ? event.registrations.length : 0))
     : null;
 
   // ExpandableText component for mobile description

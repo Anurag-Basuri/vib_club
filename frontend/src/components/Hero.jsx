@@ -128,7 +128,7 @@ const Hero = () => {
 						Join Our Community
 					</motion.button>
 
-					<motion.button
+					{/* <motion.button
 						whileHover={{
 							scale: 1.05,
 							backgroundColor: 'rgba(255, 255, 255, 0.08)',
@@ -151,7 +151,7 @@ const Hero = () => {
 							/>
 						</svg>
 						Explore Events
-					</motion.button>
+					</motion.button> */}
 				</motion.div>
 			</div>
 

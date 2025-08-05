@@ -131,7 +131,7 @@ const HorrorRaveYardPage = () => {
 						? event.registrations.length
 						: 0;
 
-					setSpotsLeft((event.totalSpots || 0) - registrations);
+					setSpotsLeft((event.totalSpots || 0) - 152 - registrations);
 
 					setFormData((f) => ({
 						...f,
