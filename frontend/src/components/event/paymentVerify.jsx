@@ -3,8 +3,8 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { publicClient } from '../../services/api.js';
 
-const CONTACT_EMAIL = 'vibranta.studorg@gmail.com';
-const CONTACT_PHONE = '+91-9140253374';
+const CONTACT_EMAIL = 'vibranta.helpdesk@gmail.com';
+const CONTACT_PHONE = '+91-9771072294';
 
 const PaymentSuccess = () => {
 	const [searchParams] = useSearchParams();
