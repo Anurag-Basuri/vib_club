@@ -104,9 +104,14 @@ const ContactPage = () => {
 								Have questions? Reach out to our team for assistance.
 							</p>
 							<div className="space-y-4 w-full">
-								<div className="flex items-center gap-3">
+								{/* Support Phone */}
+								<a
+									href="tel:+919771072294"
+									className="flex items-center gap-3 group hover:bg-[#1e2a5a]/30 rounded-lg px-2 py-1 transition"
+									title="Call Support"
+								>
 									<svg
-										className="h-5 w-5 text-[#5d7df5]"
+										className="h-5 w-5 text-[#5d7df5] group-hover:text-blue-400 transition"
 										fill="none"
 										viewBox="0 0 24 24"
 										stroke="currentColor"
@@ -120,12 +125,19 @@ const ContactPage = () => {
 									</svg>
 									<div>
 										<h3 className="font-medium">Support</h3>
-										<p className="text-sm opacity-80">+91 987 654 3210</p>
+										<p className="text-sm opacity-80 underline group-hover:text-blue-300 transition">
+											+91 9771072294
+										</p>
 									</div>
-								</div>
-								<div className="flex items-center gap-3">
+								</a>
+								{/* Support Email */}
+								<a
+									href="mailto:vibranta.helpdesk@gmail.com"
+									className="flex items-center gap-3 group hover:bg-[#1e2a5a]/30 rounded-lg px-2 py-1 transition"
+									title="Send Email"
+								>
 									<svg
-										className="h-5 w-5 text-[#5d7df5]"
+										className="h-5 w-5 text-[#5d7df5] group-hover:text-blue-400 transition"
 										fill="none"
 										viewBox="0 0 24 24"
 										stroke="currentColor"
@@ -139,9 +151,11 @@ const ContactPage = () => {
 									</svg>
 									<div>
 										<h3 className="font-medium">Email</h3>
-										<p className="text-sm opacity-80">support@vibranta.com</p>
+										<p className="text-sm opacity-80 underline group-hover:text-blue-300 transition">
+											vibranta.helpdesk@gmail.com
+										</p>
 									</div>
-								</div>
+								</a>
 							</div>
 						</div>
 						<div className="md:w-2/3 p-8">
