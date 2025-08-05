@@ -312,7 +312,7 @@ const HorrorRaveYardPage = () => {
 		<div className="min-h-screen bg-black text-white font-sans relative overflow-hidden">
 			<BloodDrips bloodDrips={bloodDrips} setBloodDrips={setBloodDrips} />
 
-			{/* Rust particles floating */}
+			{/* Rust particles and flakes */}
 			{rustParticles.map((p, i) => (
 				<motion.div
 					key={i}
@@ -335,8 +335,6 @@ const HorrorRaveYardPage = () => {
 					•
 				</motion.div>
 			))}
-
-			{/* Rust flakes */}
 			{rustFlakes.map((f, i) => (
 				<motion.div
 					key={i}
@@ -360,8 +358,6 @@ const HorrorRaveYardPage = () => {
 					}}
 				/>
 			))}
-
-			{/* Floating rust particles */}
 			{floatingRustFlakes.map((f, i) => (
 				<motion.div
 					key={i}
@@ -386,8 +382,8 @@ const HorrorRaveYardPage = () => {
 				/>
 			))}
 
-			{/* Hero Section */}
-			<div className="min-h-screen w-full flex flex-col justify-center items-center p-4 overflow-hidden relative">
+			{/* Hero Section - Improved padding */}
+			<div className="min-h-screen w-full flex flex-col justify-center items-center p-4 md:p-8 overflow-hidden relative">
 				{/* Rust texture background */}
 				<div
 					className="absolute inset-0"
@@ -748,7 +744,7 @@ const HorrorRaveYardPage = () => {
 			</div>
 
 			{/* Countdown timer */}
-			<section className="py-12 px-4 bg-black">
+			<section className="py-12 px-4 md:px-8 bg-black">
 				<div className="max-w-2xl mx-auto text-center">
 					<motion.div
 						initial={{ opacity: 0, y: 30 }}
@@ -792,22 +788,16 @@ const HorrorRaveYardPage = () => {
 			</section>
 
 			{/* Event Highlights */}
-			<section className="py-24 px-4 bg-gradient-to-b from-black via-red-900/10 to-black">
+			<section className="py-24 px-4 md:px-8 bg-gradient-to-b from-black via-red-900/10 to-black">
 				<div className="max-w-6xl mx-auto">
-					<motion.div
-						className="text-center mb-16"
-						initial={{ opacity: 0, y: 50 }}
-						whileInView={{ opacity: 1, y: 0 }}
-						viewport={{ once: true }}
-						transition={{ duration: 1 }}
-					>
+					<div className="text-center mb-16">
 						<h2 className="text-4xl md:text-5xl font-bold text-red-500 mb-6">
 							EVENT HIGHLIGHTS
 						</h2>
 						<p className="text-xl text-red-300 max-w-3xl mx-auto">
 							Discover what makes RaveYard 2025 unforgettable
 						</p>
-					</motion.div>
+					</div>
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 						{eventHighlights.map((item, index) => (
 							<motion.div
@@ -822,8 +812,6 @@ const HorrorRaveYardPage = () => {
 								<div className="text-5xl mb-4">{item.icon}</div>
 								<h3 className="text-xl font-bold text-white mb-2">{item.title}</h3>
 								<p className="text-red-200">{item.description}</p>
-
-								{/* Special effects for specific highlights */}
 								{item.title === 'Security & Emergency Preparedness' && (
 									<motion.div
 										className="absolute bottom-4 right-4"
@@ -833,7 +821,6 @@ const HorrorRaveYardPage = () => {
 										<span className="text-3xl">🐕‍🦺</span>
 									</motion.div>
 								)}
-
 								<motion.div
 									className="absolute top-4 right-4 w-6 h-6 bg-red-600 rounded-full"
 									animate={{
@@ -853,16 +840,12 @@ const HorrorRaveYardPage = () => {
 				</div>
 			</section>
 
-			{/* Event Details Section */}
-			<section className="py-24 px-4">
+			{/* Event Details Section - Improved poster presentation */}
+			<section className="py-24 px-4 md:px-8">
 				<div className="max-w-6xl mx-auto">
-					<div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-						<motion.div
-							initial={{ opacity: 0, x: -50 }}
-							whileInView={{ opacity: 1, x: 0 }}
-							viewport={{ once: true }}
-							transition={{ duration: 1 }}
-						>
+					<div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+						{/* Left column - Event details */}
+						<div>
 							<h2 className="text-3xl md:text-4xl font-bold text-red-400 mb-8">
 								EVENT DETAILS
 							</h2>
@@ -962,48 +945,53 @@ const HorrorRaveYardPage = () => {
 									))}
 								</div>
 							)}
-						</motion.div>
-						<motion.div
-							initial={{ opacity: 0, x: 50 }}
-							whileInView={{ opacity: 1, x: 0 }}
-							viewport={{ once: true }}
-							transition={{ duration: 1 }}
-							className="relative flex flex-col items-center"
-						>
-							{/* Posters */}
+						</div>
+						{/* Right column - Posters */}
+						<div className="w-full">
 							{eventData?.posters && eventData.posters.length > 0 ? (
-								<div className="mb-8 w-full flex flex-col items-center">
-									<h3 className="text-lg font-semibold text-red-300 mb-3">
-										Event Posters
-									</h3>
-									<div className="flex flex-wrap gap-6 justify-center">
-										{eventData.posters.map((poster) => (
+								<div className="flex flex-wrap gap-8 justify-center">
+									{eventData.posters.map((poster, idx) => (
+										<motion.div
+											key={poster.public_id || poster.url || idx}
+											className="group relative rounded-2xl overflow-hidden shadow-2xl border-2 border-red-800 bg-black/60 hover:scale-[1.03] transition-transform duration-200"
+											style={{ maxWidth: 320, minWidth: 180 }}
+											whileHover={{ scale: 1.04, boxShadow: '0 0 32px 8px #a04000bb' }}
+											transition={{ duration: 0.25 }}
+										>
 											<a
-												key={poster.public_id || poster.url}
 												href={poster.url}
 												target="_blank"
 												rel="noopener noreferrer"
 												className="block"
-												style={{ maxWidth: 320 }}
 											>
-												<img
-													src={poster.url}
-													alt="Event Poster"
-													className="w-64 h-96 object-cover rounded-xl border-2 border-red-700 shadow-2xl hover:scale-105 transition-transform duration-200 bg-black"
-													style={{
-														maxWidth: '100%',
-														maxHeight: '28rem',
-														minWidth: '180px',
-														minHeight: '260px',
-													}}
-												/>
+												<div className="aspect-[2/3] overflow-hidden">
+													<img
+														src={poster.url}
+														alt={poster.alt || `Event Poster ${idx + 1}`}
+														className="w-full h-full object-cover rounded-2xl group-hover:brightness-105 group-hover:contrast-110 transition-all duration-300"
+														style={{
+															boxShadow: '0 8px 32px 0 #a0400033',
+															border: '1.5px solid #a04000',
+														}}
+													/>
+												</div>
+												{/* Overlay for hover */}
+												<div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+													<span className="text-red-100 font-bold text-lg bg-black/70 px-4 py-2 rounded-lg shadow-lg border border-red-700/40">
+														View Full Poster
+													</span>
+												</div>
 											</a>
-										))}
-									</div>
+											{/* Poster index badge */}
+											<div className="absolute top-2 left-2 bg-red-700/80 text-xs text-white px-2 py-1 rounded-full shadow">
+												#{idx + 1}
+											</div>
+										</motion.div>
+									))}
 								</div>
 							) : (
-								// Fallback animation if no posters
-								<div className="flex flex-col items-center justify-center h-full w-full">
+								// Fallback if no posters
+								<div className="flex flex-col items-center justify-center h-full w-full py-16 border-2 border-dashed border-red-700/30 rounded-xl bg-black/40">
 									<motion.div
 										className="text-8xl mb-6"
 										animate={{ rotate: [0, 360] }}
@@ -1015,16 +1003,16 @@ const HorrorRaveYardPage = () => {
 									>
 										🌀
 									</motion.div>
-									<h3 className="text-2xl font-bold text-white mb-4">
-										Portal Opening Experience
+									<h3 className="text-2xl font-bold text-white mb-4 tracking-wide">
+										Posters Coming Soon
 									</h3>
-									<p className="text-red-200 text-center">
-										Experience the dimensional rift between worlds with
-										immersive ghost installations and scream zones
+									<p className="text-red-200 text-center max-w-md">
+										Creepy visuals are being conjured in the underworld.<br />
+										Stay tuned for the reveal!
 									</p>
 								</div>
 							)}
-						</motion.div>
+						</div>
 					</div>
 				</div>
 			</section>
@@ -1127,7 +1115,7 @@ const HorrorRaveYardPage = () => {
 			</section>
 
 			{/* Footer */}
-			<footer className="py-16 px-4 bg-gradient-to-t from-red-900/20 to-black border-t border-red-800/30">
+			<footer className="py-16 px-4 md:px-8 bg-gradient-to-t from-red-900/20 to-black border-t border-red-800/30">
 				<div className="max-w-6xl mx-auto">
 					<div className="text-center space-y-6">
 						<div className="text-3xl font-bold bg-gradient-to-r from-red-500 to-red-700 bg-clip-text text-transparent">
