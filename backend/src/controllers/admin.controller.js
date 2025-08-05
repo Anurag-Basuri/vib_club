@@ -5,14 +5,10 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 
 // Create Admin
 const createAdmin = asyncHandler(async (req, res) => {
-    const { fullname, password, secret } = req.body;
+    const { fullname, password } = req.body;
 
-    if (!fullname || !password || !secret) {
-        throw new ApiError(400, "Fullname, password, and secret are required");
-    }
-
-    if (secret !== process.env.ADMIN_SECRET) {
-        throw new ApiError(401, "Unauthorized: Invalid admin secret");
+    if (!fullname || !password) {
+        throw new ApiError(400, "Fullname and password are required");
     }
 
     const existing = await Admin.findOne({ fullname });
@@ -41,10 +37,14 @@ const createAdmin = asyncHandler(async (req, res) => {
 
 // Login Admin
 const loginAdmin = asyncHandler(async (req, res) => {
-    const { fullname, password } = req.body;
+    const { fullname, password, secret } = req.body;
 
-    if (!fullname || !password) {
-        throw new ApiError(400, "Fullname and password are required");
+    if (!fullname || !password || !secret) {
+        throw new ApiError(400, "Fullname, password, and secret are required");
+    }
+
+    if (secret !== process.env.ADMIN_SECRET) {
+        throw new ApiError(403, "Invalid admin secret");
     }
 
     const admin = await Admin.findOne({ fullname });
