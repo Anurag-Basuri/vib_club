@@ -240,7 +240,7 @@ const HorrorRaveYardPage = () => {
 		},
 		{
 			title: 'Security & Emergency Preparedness',
-			description: 'K9 security with crowd flow control. Emergency medical setup.',
+			description: 'Security with crowd flow control. Emergency medical setup.',
 			icon: '🚨',
 		},
 		{
@@ -251,9 +251,9 @@ const HorrorRaveYardPage = () => {
 	];
 
 	const partners = [
-		{ title: 'SMP', logo: logo1 },
-		{ title: 'White Heaven', logo: logo2 },
-		{ title: 'cabNest', logo: logo3, desc: 'Safe and affordable student rides' },
+		{ title: 'SML', logo: logo1, desc: 'In collaboration with SML' },
+		{ title: 'White Heaven', logo: logo2, desc: 'Entertainment Partner' },
+		{ title: 'cabNest', logo: logo3, desc: 'Travel Partner' },
 	];
 
 	// Open payment form

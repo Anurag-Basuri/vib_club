@@ -208,26 +208,6 @@ const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }
 						</div>
 						<div>
 							<label
-								htmlFor="club"
-								className="block text-xs font-semibold mb-1 text-red-200 tracking-wide"
-							>
-								Club
-							</label>
-							<select
-								id="club"
-								name="club"
-								value={formData.club || ''}
-								onChange={handleInputChange}
-								className="w-full border border-red-700 bg-black/60 text-red-100 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 transition"
-								required
-							>
-								<option value="">Select your club</option>
-								<option value="SML">SML</option>
-								<option value="Vibranta">Vibranta</option>
-							</select>
-						</div>
-						<div>
-							<label
 								htmlFor="hosteler"
 								className="block text-xs font-semibold mb-1 text-red-200 tracking-wide"
 							>
@@ -283,6 +263,26 @@ const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }
 								placeholder="Enter your course name"
 								required
 							/>
+						</div>
+						<div>
+							<label
+								htmlFor="club"
+								className="block text-xs font-semibold mb-1 text-red-200 tracking-wide"
+							>
+								Referred by (optional)
+							</label>
+							<select
+								id="club"
+								name="club"
+								value={formData.club || ''}
+								onChange={handleInputChange}
+								className="w-full border border-red-700 bg-black/60 text-red-100 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 transition"
+								required
+							>
+								<option value="">Select your club</option>
+								<option value="SML">SML</option>
+								<option value="Vibranta">Vibranta</option>
+							</select>
 						</div>
 					</div>
 					<div>
