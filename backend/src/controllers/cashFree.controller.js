@@ -20,10 +20,19 @@ const createOrder = asyncHandler(async (req, res) => {
 			req.body;
 
 		// Validate required fields
-		if (!fullName || !email || !phone || !amount || !lpuId || !gender || !hosteler || !course) {
+		const missingFields = [];
+		if (!fullName) missingFields.push('fullName');
+		if (!email) missingFields.push('email');
+		if (!phone) missingFields.push('phone');
+		if (!amount) missingFields.push('amount');
+		if (!lpuId) missingFields.push('lpuId');
+		if (!gender) missingFields.push('gender');
+		if (typeof hosteler !== 'boolean') missingFields.push('hosteler');
+		if (!course) missingFields.push('course');
+		if (missingFields.length > 0) {
 			throw new ApiError(
 				400,
-				'Missing required fields: fullName, email, phone, amount, lpuId, gender, hosteler, course'
+				`Missing required fields: ${missingFields.join(', ')}`
 			);
 		}
 		if (isNaN(amount) || amount <= 0) {
