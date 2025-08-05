@@ -253,7 +253,7 @@ const HorrorRaveYardPage = () => {
 	const partners = [
 		{ title: 'SML', logo: logo1, desc: 'In collaboration with SML' },
 		{ title: 'White Heaven', logo: logo2, desc: 'Entertainment Partner' },
-		{ title: 'cabNest', logo: logo3, desc: 'Travel Partner' },
+		{ title: 'CABNEST', logo: logo3, desc: 'Travel Partner' },
 	];
 
 	// Open payment form
@@ -492,7 +492,7 @@ const HorrorRaveYardPage = () => {
 
 						{/* Feature Highlights */}
 						<motion.div
-							className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-4'} gap-4 mt-8 max-w-4xl mx-auto`}
+							className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-4'} gap-6 mt-10 max-w-4xl mx-auto`}
 							initial={{ opacity: 0 }}
 							animate={{ opacity: 1 }}
 							transition={{ delay: 1, duration: 1, ease: 'easeOut' }}
@@ -501,30 +501,68 @@ const HorrorRaveYardPage = () => {
 								{ icon: '🎧', title: 'DJ Anshika' },
 								{ icon: '👻', title: 'GraveWalk - Fashion Show' },
 								{ icon: '🍔', title: 'Refreshment Zone' },
-								{ icon: '🎟️', title: 'VIP Wristbands' },
+								{ icon: '🎟️', title: 'Raveyard Traitor Hunt' },
 							].map((item, index) => (
 								<motion.div
 									key={index}
-									className="flex flex-col items-center p-3 rounded-lg"
+									className="relative flex flex-col items-center p-5 rounded-2xl group transition-all duration-300"
 									style={{
-										background: 'rgba(90, 35, 25, 0.4)',
-										border: '1px solid rgba(205, 133, 63, 0.3)',
-										boxShadow: '0 4px 10px rgba(0, 0, 0, 0.3)',
+										background: 'rgba(90, 35, 25, 0.55)',
+										border: '1.5px solid rgba(205, 133, 63, 0.4)',
+										boxShadow: '0 6px 24px 0 rgba(220,38,38,0.12), 0 1.5px 0 #a04000',
 										backgroundImage: `url("https://www.transparenttextures.com/patterns/rust.png")`,
 										backgroundBlendMode: 'overlay',
+										overflow: 'hidden',
 									}}
 									whileHover={{
-										scale: 1.05,
-										background: 'rgba(120, 50, 35, 0.6)',
-										boxShadow: '0 0 15px rgba(220, 38, 38, 0.6)',
+										scale: 1.08,
+										boxShadow: '0 0 32px 8px rgba(220,38,38,0.25), 0 2px 0 #a04000',
+										borderColor: '#e25822',
 									}}
 									transition={{
-										duration: 0.3,
+										duration: 0.35,
 										ease: 'easeInOut',
 									}}
 								>
-									<span className="text-4xl mb-2">{item.icon}</span>
-									<span className="text-base font-medium text-red-300">
+									{/* Animated border glow */}
+									<motion.div
+										className="absolute inset-0 rounded-2xl pointer-events-none"
+										style={{
+											border: '2px solid transparent',
+											boxShadow: '0 0 0 0 rgba(255, 80, 80, 0.0)',
+										}}
+										animate={{
+											boxShadow: [
+												'0 0 0 0 rgba(255, 80, 80, 0.0)',
+												'0 0 16px 4px rgba(255, 80, 80, 0.15)',
+												'0 0 0 0 rgba(255, 80, 80, 0.0)',
+											],
+										}}
+										transition={{
+											duration: 2.5,
+											repeat: Infinity,
+											repeatType: 'loop',
+											ease: 'easeInOut',
+										}}
+									/>
+									{/* Icon with metallic shine */}
+									<span className="text-5xl mb-3 relative z-10 group-hover:animate-pulse"
+										style={{
+											filter: 'drop-shadow(0 2px 8px #a04000)',
+											transition: 'filter 0.3s',
+										}}
+									>
+										{item.icon}
+										{/* Shine effect */}
+										<span className="absolute left-1/2 top-1/2 w-10 h-10 rounded-full pointer-events-none"
+											style={{
+												background: 'radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%)',
+												transform: 'translate(-50%, -60%)',
+												zIndex: 1,
+											}}
+										/>
+									</span>
+									<span className="text-lg font-bold text-red-200 tracking-wide drop-shadow-sm text-center z-10">
 										{item.title}
 									</span>
 								</motion.div>
@@ -560,8 +598,7 @@ const HorrorRaveYardPage = () => {
 								}}
 							>
 								<div className="relative z-10 flex items-center gap-3">
-									<span>ENTER THE CRYPT</span>
-									<span>💀</span>
+									<span>Register Here</span>
 								</div>
 
 								{/* Rust corrosion spots on button */}
@@ -581,32 +618,6 @@ const HorrorRaveYardPage = () => {
 						</motion.div>
 					</motion.div>
 				</div>
-
-				<motion.div
-					className="absolute bottom-8 flex flex-col items-center"
-					initial={{ opacity: 0 }}
-					animate={{ opacity: 1 }}
-					transition={{ delay: 1.5 }}
-				>
-					<span className="text-red-400 mb-3 text-sm font-medium tracking-widest">
-						DESCEND INTO DARKNESS
-					</span>
-					<motion.div
-						animate={{ y: [0, 10, 0] }}
-						transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
-						className="w-10 h-16 rounded-full border-2 border-red-900 flex justify-center p-2"
-						style={{
-							background: `linear-gradient(145deg, #2a0f06, #1a0904)`,
-							boxShadow: 'inset 0 0 5px rgba(139, 0, 0, 0.5)',
-						}}
-					>
-						<motion.div
-							className="w-2 h-3 bg-gradient-to-b from-red-500 to-red-700 rounded-full"
-							animate={{ y: [0, 12, 0] }}
-							transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
-						/>
-					</motion.div>
-				</motion.div>
 
 				{/* Floating rust particles */}
 				{[...Array(15)].map((_, i) => (
@@ -866,9 +877,26 @@ const HorrorRaveYardPage = () => {
 										</div>
 										<div className="text-white text-xl font-medium">
 											{eventData?.date
-												? new Date(eventData.date).toLocaleDateString()
-												: '--'}{' '}
-											• {eventData?.time || '--'}
+												? (() => {
+														const eventDate = new Date(eventData.date);
+														const dateStr = eventDate.toLocaleDateString(
+															undefined,
+															{
+																weekday: 'long',
+																year: 'numeric',
+																month: 'short',
+																day: 'numeric',
+															}
+														);
+														const timeStr =
+															eventData.time ||
+															eventDate.toLocaleTimeString(undefined, {
+																hour: '2-digit',
+																minute: '2-digit',
+															});
+														return `${dateStr} • ${timeStr}`;
+												  })()
+												: '-- • --'}
 										</div>
 									</div>
 								</div>
