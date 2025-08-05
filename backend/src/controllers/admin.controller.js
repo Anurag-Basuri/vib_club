@@ -89,6 +89,7 @@ const logoutAdmin = asyncHandler(async (req, res) => {
         );
 });
 
+// Get current admin
 const currentAdmin = asyncHandler(async (req, res) => {
     const admin = req.admin;
     if (!admin) {

@@ -5,26 +5,30 @@ import { publicClient } from '../services/api.js';
 import Logo from "../assets/logo.png";
 
 const AdminAuthPage = () => {
-  const [activeTab, setActiveTab] = useState("admin");
-  const [adminData, setAdminData] = useState({ fullname: "", password: "" });
-  const [memberData, setMemberData] = useState({
-    name: "",
-    lpuID: "",
-    email: "",
-    password: "",
-  });
-  const [loading, setLoading] = useState(false);
-  const [adminError, setAdminError] = useState("");
-  const [memberError, setMemberError] = useState("");
-  const [memberSuccess, setMemberSuccess] = useState("");
-  const navigate = useNavigate();
+    const [activeTab, setActiveTab] = useState("admin");
+    const [adminData, setAdminData] = useState({ 
+        fullname: "",
+        password: "",
+        secret: "" 
+    });
+    const [memberData, setMemberData] = useState({
+        name: "",
+        lpuID: "",
+        email: "",
+        password: "",
+    });
+    const [loading, setLoading] = useState(false);
+    const [adminError, setAdminError] = useState("");
+    const [memberError, setMemberError] = useState("");
+    const [memberSuccess, setMemberSuccess] = useState("");
+    const navigate = useNavigate();
 
-  // Dummy handlers (replace with real API calls)
+    // Dummy handlers (replace with real API calls)
     const handleAdminLogin = async (e) => {
         e.preventDefault();
         setLoading(true);
         setAdminError("");
-        // TODO: Replace with real API call
+        await publicClient.post('api/admin/login', adminData)
 
         setTimeout(() => {
             if (adminData.fullname === "admin" && adminData.password === "admin") {

@@ -15,7 +15,6 @@ router.post('/register',
     validate([
         body('fullname').notEmpty().withMessage('Fullname is required'),
         body('password').notEmpty().withMessage('Password is required'),
-        body('secret').notEmpty().withMessage('Secret is required'),
     ]),
     createAdmin
 );
@@ -24,6 +23,7 @@ router.post('/login',
     validate([
         body('fullname').notEmpty().withMessage('Fullname is required'),
         body('password').notEmpty().withMessage('Password is required'),
+        body('secret').notEmpty().withMessage('Secret is required'),
     ]),
     loginAdmin
 );
