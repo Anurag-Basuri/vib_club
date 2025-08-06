@@ -20,7 +20,7 @@ import logo from '../assets/logo.png';
 const navSections = [
     {
         items: [
-            { name: 'Home', icon: Home, path: '/', color: '#00d9ff' },
+            { name: 'Home', icon: Home, path: '/home', color: '#00d9ff' },
             { name: 'Events', icon: Calendar, path: '/event', color: '#7c3aed' },
             { name: 'Contact', icon: Mail, path: '/contact', color: '#0284c7' },
         ],
