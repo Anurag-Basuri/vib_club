@@ -72,7 +72,7 @@ const createOrder = asyncHandler(async (req, res) => {
 		// Prepare Cashfree order payload
 		const orderPayload = {
 			order_id: orderId,
-			order_amount: 1,
+			order_amount: 300,
 			order_currency: 'INR',
 			customer_details: {
 				customer_id: customerId,
