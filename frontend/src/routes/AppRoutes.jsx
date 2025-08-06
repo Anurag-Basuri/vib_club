@@ -12,11 +12,13 @@ import PaymentVerify from '../components/event/paymentVerify.jsx';
 import Terms from '../pages/terms.jsx';
 import Refund from '../pages/refund.jsx';
 import CookiePolicy from '../pages/cookie.jsx';
+import AdminAuth from '../pages/adminAuth.jsx';
 
 const AppRoutes = () => {
     return (
         <Routes>
             <Route path="/auth/*" element={<Auth />} />
+            <Route path="/admin/auth/*" element={<AdminAuth />} />
 
             <Route path="/" element={<Home />} />
             <Route path="/payment/verify" element={<PaymentVerify />} />
