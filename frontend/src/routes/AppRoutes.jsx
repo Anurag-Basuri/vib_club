@@ -30,6 +30,7 @@ const AppRoutes = () => {
             <Route path="/policy/cookie" element={<CookiePolicy />} />
 
             {/* <Route path="/member" element={<MemberProfile />} /> */}
+            
         </Routes>
     )
 }
