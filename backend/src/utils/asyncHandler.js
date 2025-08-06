@@ -8,10 +8,11 @@ const asyncHandler = fn => {
         // Handle both async functions and synchronous errors
         Promise.resolve(fn(req, res, next))
             .catch(error => {
-                // Preserve existing HTTP status or default to 500
-                if (!error.statusCode) {
-                    error.statusCode = 500;
-                }
+                // Ensure error has a statusCode and message
+                if (!error.statusCode) error.statusCode = 500;
+                if (!error.message) error.message = 'Internal Server Error';
+                // Optionally log the error for debugging
+                console.error('Async error:', error);
                 next(error);
             });
     };

@@ -271,18 +271,14 @@ const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }
 							>
 								Referred by (optional)
 							</label>
-							<select
+							<input
 								id="club"
 								name="club"
 								value={formData.club || ''}
 								onChange={handleInputChange}
 								className="w-full border border-red-700 bg-black/60 text-red-100 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 transition"
-								required
-							>
-								<option value="">Select your club</option>
-								<option value="SML">SML</option>
-								<option value="Vibranta">Vibranta</option>
-							</select>
+								placeholder="Club name if referred"
+							/>
 						</div>
 					</div>
 					<div>

@@ -73,7 +73,6 @@ const ticketSchema = new mongoose.Schema({
     },
     club: {
         type:String,
-        enum: ['SML', 'Vibranta']
     },
 
     eventId: {
