@@ -1,5 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
-import protectedRoutes from './protectedRoutes.jsx';
+import ProtectedRoutes from './protectedRoutes.jsx';
 import Home from '../pages/home.jsx';
 import Event from '../pages/event.jsx';
 import Team from '../pages/team.jsx';
@@ -7,12 +7,13 @@ import Social from '../pages/socials.jsx';
 import Contact from '../pages/contact.jsx';
 import MemberProfile from '../pages/member.jsx';
 import Auth from '../pages/auth.jsx';
+import AdminAuth from '../pages/adminAuth.jsx';
+import AdminDash from '../pages/adminDash.jsx';
 import Current from '../components/event/upcomingEvent.jsx';
 import PaymentVerify from '../components/event/paymentVerify.jsx';
 import Terms from '../pages/terms.jsx';
 import Refund from '../pages/refund.jsx';
 import CookiePolicy from '../pages/cookie.jsx';
-import AdminAuth from '../pages/adminAuth.jsx';
 
 const AppRoutes = () => {
     return (
@@ -31,8 +32,11 @@ const AppRoutes = () => {
             <Route path="/policy/refund-policy" element={<Refund />} />
             <Route path="/policy/cookie" element={<CookiePolicy />} />
 
-            {/* <Route path="/member" element={<MemberProfile />} /> */}
-            
+            {/* Protected routes */}
+            <Route element={<ProtectedRoutes />}>
+                <Route path="/member/dashboard" element={<MemberProfile />} />
+                <Route path="/admin/dashboard" element={<AdminDash />} />
+            </Route>
         </Routes>
     )
 }
