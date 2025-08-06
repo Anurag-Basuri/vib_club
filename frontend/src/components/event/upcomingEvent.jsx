@@ -949,14 +949,12 @@ const HorrorRaveYardPage = () => {
 						{/* Right column - Posters */}
 						<div className="w-full">
 							{eventData?.posters && eventData.posters.length > 0 ? (
-								<div className="flex flex-wrap gap-8 justify-center">
+								<div className="flex gap-8 overflow-x-auto pb-8 hide-scrollbar">
 									{eventData.posters.map((poster, idx) => (
-										<motion.div
+										<div
 											key={poster.public_id || poster.url || idx}
-											className="group relative rounded-2xl overflow-hidden shadow-2xl border-2 border-red-800 bg-black/60 hover:scale-[1.03] transition-transform duration-200"
-											style={{ maxWidth: 320, minWidth: 180 }}
-											whileHover={{ scale: 1.04, boxShadow: '0 0 32px 8px #a04000bb' }}
-											transition={{ duration: 0.25 }}
+											className="relative flex-shrink-0 rounded-2xl border border-red-800 bg-black/70"
+											style={{ width: 320, minWidth: 220, maxWidth: 420 }}
 										>
 											<a
 												href={poster.url}
@@ -964,54 +962,44 @@ const HorrorRaveYardPage = () => {
 												rel="noopener noreferrer"
 												className="block"
 											>
-												<div className="aspect-[2/3] overflow-hidden">
+												<div className="aspect-[2/3] overflow-hidden flex items-center justify-center bg-black rounded-2xl">
 													<img
 														src={poster.url}
 														alt={poster.alt || `Event Poster ${idx + 1}`}
-														className="w-full h-full object-cover rounded-2xl group-hover:brightness-105 group-hover:contrast-110 transition-all duration-300"
+														className="w-full h-full object-contain rounded-2xl"
 														style={{
-															boxShadow: '0 8px 32px 0 #a0400033',
-															border: '1.5px solid #a04000',
+															background: '#181818',
+															borderRadius: 'inherit',
 														}}
 													/>
 												</div>
-												{/* Overlay for hover */}
-												<div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-													<span className="text-red-100 font-bold text-lg bg-black/70 px-4 py-2 rounded-lg shadow-lg border border-red-700/40">
-														View Full Poster
-													</span>
-												</div>
 											</a>
 											{/* Poster index badge */}
-											<div className="absolute top-2 left-2 bg-red-700/80 text-xs text-white px-2 py-1 rounded-full shadow">
+											<div className="absolute top-2 left-2 bg-red-700/90 text-xs text-white px-3 py-1 rounded-full shadow">
 												#{idx + 1}
 											</div>
-										</motion.div>
+										</div>
 									))}
 								</div>
 							) : (
-								// Fallback if no posters
 								<div className="flex flex-col items-center justify-center h-full w-full py-16 border-2 border-dashed border-red-700/30 rounded-xl bg-black/40">
-									<motion.div
-										className="text-8xl mb-6"
-										animate={{ rotate: [0, 360] }}
-										transition={{
-											duration: 8,
-											repeat: Infinity,
-											ease: 'linear',
-										}}
-									>
-										🌀
-									</motion.div>
-									<h3 className="text-2xl font-bold text-white mb-4 tracking-wide">
-										Posters Coming Soon
-									</h3>
+									<div className="text-6xl mb-4">🖼️</div>
+									<h3 className="text-xl font-bold text-white mb-2">Posters Coming Soon</h3>
 									<p className="text-red-200 text-center max-w-md">
 										Creepy visuals are being conjured in the underworld.<br />
 										Stay tuned for the reveal!
 									</p>
 								</div>
 							)}
+							<style>{`
+								.hide-scrollbar::-webkit-scrollbar {
+									display: none;
+								}
+								.hide-scrollbar {
+									-ms-overflow-style: none;
+									scrollbar-width: none;
+								}
+							`}</style>
 						</div>
 					</div>
 				</div>
