@@ -75,4 +75,4 @@ const AdminDash = () => {
   );
 };
 
-export
+export default AdminDash;
