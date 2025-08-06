@@ -21,9 +21,10 @@ const AppRoutes = () => {
             <Route path="/auth/*" element={<Auth />} />
             <Route path="/admin/auth/*" element={<AdminAuth />} />
 
-            <Route path="/" element={<Home />} />
+            <Route path="/home" element={<Home />} />
             <Route path="/payment/verify" element={<PaymentVerify />} />
             <Route path="/event" element={<Current />} />
+            <Route path="/" element={<Current />} />
             <Route path="/team" element={<Team />} />
             <Route path='/social-page' element={<Social />} />
             <Route path="/contact" element={<Contact />} />
