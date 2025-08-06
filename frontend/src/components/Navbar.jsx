@@ -28,7 +28,7 @@ const navSections = [
 ];
 
 const pathToNavName = (pathname) => {
-    if (pathname === '/home') return 'Home';
+    if (pathname === '/') return 'Home';
     if (pathname.startsWith('/event')) return 'Events';
     if (pathname.startsWith('/contact')) return 'Contact';
     return 'Home';
