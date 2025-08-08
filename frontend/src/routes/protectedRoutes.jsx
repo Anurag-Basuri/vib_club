@@ -9,11 +9,17 @@ const LoadingSpinner = () => (
   </div>
 );
 
-const ProtectedRoutes = () => {
+const ProtectedRoutes = ({ allowedRoles }) => {
   const { user, loading } = useAuth();
 
   if (loading) return <LoadingSpinner />;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/auth" replace />;
+
+  // If allowedRoles is provided, check user.role
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    // Redirect to home or show unauthorized
+    return <Navigate to="/" replace />;
+  }
 
   return <Outlet />;
 };
