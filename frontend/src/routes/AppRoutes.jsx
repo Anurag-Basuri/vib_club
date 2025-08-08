@@ -34,9 +34,9 @@ const AppRoutes = () => {
             <Route path="/policy/cookie" element={<CookiePolicy />} />
 
             {/* Protected routes */}
-            <Route element={<ProtectedRoutes allowedRoles={['member']} />}>
+            {/* <Route element={<ProtectedRoutes allowedRoles={['member']} />}> */}
                 <Route path="/member/dashboard" element={<MemberProfile />} />
-            </Route>
+            {/* </Route> */}
             <Route element={<ProtectedRoutes allowedRoles={['admin']} />}>
                 <Route path="/admin/dashboard" element={<AdminDash />} />
             </Route>
