@@ -116,7 +116,7 @@ export const resetPassword = async (data) => {
 
 export const forgotPassword = async (data) => {
   try {
-    const response = await publicApiClient.post('/api/members/send-reset-email', data);
+    const response = await publicClient.post('/api/members/send-reset-email', data);
     return response.data;
   } catch (error) {
     handleAuthError(error);

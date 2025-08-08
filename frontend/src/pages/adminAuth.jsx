@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { publicClient } from '../services/api.js';
+import { useAuth } from "../hooks/useAuth.js";
 
 const AdminAuthPage = () => {
     const [activeTab, setActiveTab] = useState("admin");
@@ -17,6 +18,7 @@ const AdminAuthPage = () => {
     const [success, setSuccess] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [showSecret, setShowSecret] = useState(false);
+    const { loginAdmin, registerMember } = useAuth();
     const navigate = useNavigate();
 
     // Common handler for both admin login and member register
@@ -27,36 +29,24 @@ const AdminAuthPage = () => {
         setSuccess("");
         try {
             if (activeTab === "admin") {
-                const response = await publicClient.post('/api/admin/login', {
+                const response = loginAdmin({
                     fullname: formData.fullName,
                     password: formData.password,
                     secret: formData.secret,
                 });
-                if (response.status === 200) {
-                    navigate("/admin/dashboard");
-                } else {
-                    setError(response.data?.message || "Invalid admin credentials");
+
+                if (response) {
+                    setSuccess("Login successful! Redirecting...");
                 }
+                console.log("Admin login response:", response);
             } else {
-                const response = await publicClient.post('/api/member/register', {
+                const response = await registerMember({
                     fullName: formData.fullName,
                     LpuId: formData.LpuId,
                     email: formData.email,
                     password: formData.password,
                     secret: formData.secret,
                 });
-                if (response.status === 201 || response.status === 200) {
-                    setSuccess("Registration successful! You can now login.");
-                    setFormData({
-                        fullName: "",
-                        LpuId: "",
-                        email: "",
-                        password: "",
-                        secret: "",
-                    });
-                } else {
-                    setError(response.data?.message || "Registration failed.");
-                }
             }
         } catch (err) {
             setError(err?.response?.data?.message || (activeTab === "admin" ? "Invalid admin credentials" : "Registration failed."));
