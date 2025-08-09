@@ -123,10 +123,10 @@ export const adminRegister = async (data) => {
   try {
     const response = await apiClient.post('/api/admin/register', data);
 
-    const { accessToken, refreshToken } = response.data;
+    const { accessToken, refreshToken } = response.data.data;
     setToken({ accessToken, refreshToken });
 
-    return response.data;
+    return response.data.data;
   } catch (error) {
     handleAuthError(error);
     throw error;
@@ -137,10 +137,10 @@ export const adminLogin = async (data) => {
   try {
     const response = await apiClient.post('/api/admin/login', data);
 
-    const { accessToken, refreshToken } = response.data;
+    const { accessToken, refreshToken } = response.data.data;
     setToken({ accessToken, refreshToken });
 
-    return response.data;
+    return response.data.data;
   } catch (error) {
     handleAuthError(error);
     throw error;
