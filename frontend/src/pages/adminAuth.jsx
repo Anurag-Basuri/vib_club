@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { publicClient } from '../services/api.js';
 import { useAuth } from "../hooks/useAuth.js";
 
 const AdminAuthPage = () => {
@@ -29,27 +28,37 @@ const AdminAuthPage = () => {
         setSuccess("");
         try {
             if (activeTab === "admin") {
-                const response = loginAdmin({
+                // Await loginAdmin and handle navigation after success
+                await loginAdmin({
                     fullname: formData.fullName,
                     password: formData.password,
                     secret: formData.secret,
                 });
-
-                if (response) {
-                    setSuccess("Login successful! Redirecting...");
-                }
-                console.log("Admin login response:", response);
+                setSuccess("Login successful! Redirecting...");
+                setTimeout(() => navigate("/admin/dashboard"), 1200);
             } else {
-                const response = await registerMember({
+                await registerMember({
                     fullName: formData.fullName,
                     LpuId: formData.LpuId,
                     email: formData.email,
                     password: formData.password,
                     secret: formData.secret,
                 });
+                setSuccess("Registration successful! You can now login.");
+                setFormData({
+                    fullName: "",
+                    LpuId: "",
+                    email: "",
+                    password: "",
+                    secret: "",
+                });
             }
         } catch (err) {
-            setError(err?.response?.data?.message || (activeTab === "admin" ? "Invalid admin credentials" : "Registration failed."));
+            setError(
+                err?.response?.data?.message ||
+                err?.message ||
+                (activeTab === "admin" ? "Invalid admin credentials" : "Registration failed.")
+            );
         }
         setLoading(false);
     };
