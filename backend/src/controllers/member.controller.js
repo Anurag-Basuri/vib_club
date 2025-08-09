@@ -1,6 +1,5 @@
 import Member from '../models/member.model.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
-import { ApiError } from '../utils/ApiError.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { uploadFile, deleteFile } from '../utils/cloudinary.js';
 import { sendPasswordResetEmail } from '../services/email.service.js';
@@ -51,6 +50,18 @@ const loginMember = asyncHandler(async (req, res) => {
         return res.status(404).json(ApiResponse.notFound('Member not found'));
     }
 
+    // Block login if banned or removed
+    if (member.status === 'banned') {
+        return res.status(403).json(ApiResponse.forbidden(
+            `Your account is banned. Reason: ${member.restriction?.reason || 'No reason provided'}. Review at: ${member.restriction?.time ? new Date(member.restriction.time).toLocaleString() : 'N/A'}`
+        ));
+    }
+    if (member.status === 'removed') {
+        return res.status(403).json(ApiResponse.forbidden(
+            `Your account has been removed. Reason: ${member.restriction?.reason || 'No reason provided'}.`
+        ));
+    }
+
     if (!await member.comparePassword(password)) {
         return res.status(401).json(ApiResponse.unauthorized('Incorrect Password'));
     }
@@ -70,6 +81,53 @@ const loginMember = asyncHandler(async (req, res) => {
               refreshToken
             },
             'Login successful',
+        )
+    );
+});
+
+// Ban member (admin only)
+const banMember = asyncHandler(async (req, res) => {
+    const { reason, reviewTime } = req.body;
+    const member = await Member.findById(req.params.id);
+    if (!member) {
+        return res.status(404).json(ApiResponse.notFound('Member not found'));
+    }
+    await member.ban(reason, reviewTime);
+    return res.status(200).json(
+        ApiResponse.success(
+            { member: member.toJSON() },
+            'Member banned successfully'
+        )
+    );
+});
+
+// Remove member (admin only)
+const removeMember = asyncHandler(async (req, res) => {
+    const { reason, reviewTime } = req.body;
+    const member = await Member.findById(req.params.id);
+    if (!member) {
+        return res.status(404).json(ApiResponse.notFound('Member not found'));
+    }
+    await member.removeMember(reason, reviewTime);
+    return res.status(200).json(
+        ApiResponse.success(
+            { member: member.toJSON() },
+            'Member removed successfully'
+        )
+    );
+});
+
+// Unban member (admin only)
+const unbanMember = asyncHandler(async (req, res) => {
+    const member = await Member.findById(req.params.id);
+    if (!member) {
+        return res.status(404).json(ApiResponse.notFound('Member not found'));
+    }
+    await member.unban();
+    return res.status(200).json(
+        ApiResponse.success(
+            { member: member.toJSON() },
+            'Member unbanned successfully'
         )
     );
 });
@@ -272,16 +330,16 @@ const getAllMembers = asyncHandler(async (req, res) => {
     const currentUser = req.user;
 
     // If not admin or member, restrict sensitive fields
-    // if (!currentUser.admin && !currentUser.member) {
-    //     const members = await Member.find().select('-LpuId -year -email -password -refreshToken');
-    //     const totalMembers = await Member.countDocuments();
-    //     return res.status(200).json(
-    //         ApiResponse.success(
-    //             { members, totalMembers },
-    //             'Members retrieved successfully'
-    //         )
-    //     );
-    // }
+    if (!currentUser.admin && !currentUser.member) {
+        const members = await Member.find().select('-LpuId -year -email -password -refreshToken');
+        const totalMembers = await Member.countDocuments();
+        return res.status(200).json(
+            ApiResponse.success(
+                { members, totalMembers },
+                'Members retrieved successfully'
+            )
+        );
+    }
 
     const members = await Member.find().select('-password -refreshToken');
     const totalMembers = await Member.countDocuments();
@@ -305,5 +363,8 @@ export {
     getCurrentMember,
     getLeaders,
     sendResetPasswordEmail,
-    getAllMembers
+    getAllMembers,
+    banMember,
+    removeMember,
+    unbanMember
 };
