@@ -10,7 +10,10 @@ import {
     getCurrentMember,
     getLeaders,
     sendResetPasswordEmail,
-    getAllMembers
+    getAllMembers,
+    banMember,
+    removeMember,
+    unbanMember
 } from '../controllers/member.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { validate } from '../middlewares/validator.middleware.js';
@@ -19,7 +22,7 @@ import { body, param } from 'express-validator';
 
 const router = Router();
 
-// get all members
+// Get all members
 router.get(
     '/getall',
     getAllMembers
@@ -131,6 +134,43 @@ router.post(
         body('email').notEmpty().withMessage('Email is required')
     ]),
     sendResetPasswordEmail
+);
+
+// Ban Member (admin only)
+router.put(
+    '/:id/ban',
+    authMiddleware.verifyToken,
+    authMiddleware.isAdmin,
+    validate([
+        param('id').isMongoId().withMessage('Invalid member ID'),
+        body('reason').notEmpty().withMessage('Ban reason is required'),
+        body('reviewTime').optional().isISO8601().withMessage('Review time must be a valid date')
+    ]),
+    banMember
+);
+
+// Remove Member (admin only)
+router.put(
+    '/:id/remove',
+    authMiddleware.verifyToken,
+    authMiddleware.isAdmin,
+    validate([
+        param('id').isMongoId().withMessage('Invalid member ID'),
+        body('reason').notEmpty().withMessage('Remove reason is required'),
+        body('reviewTime').optional().isISO8601().withMessage('Review time must be a valid date')
+    ]),
+    removeMember
+);
+
+// Unban Member (admin only)
+router.put(
+    '/:id/unban',
+    authMiddleware.verifyToken,
+    authMiddleware.isAdmin,
+    validate([
+        param('id').isMongoId().withMessage('Invalid member ID')
+    ]),
+    unbanMember
 );
 
 export default router;
