@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
-import { getToken, decodeToken } from '../utils/handleTokens.js';
 import logo from '../assets/logo.png';
 
 const navSections = [
@@ -414,7 +413,7 @@ const Navbar = () => {
                                             </div>
                                             <div className="py-2">
                                                 <button
-                                                    onClick={() => handleLinkClick('Dashboard')}
+                                                    onClick={() => navigate('/admin/dashboard')}
                                                     className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-all duration-300 text-white group"
                                                 >
                                                     <LayoutDashboard className="h-5 w-5 text-cyan-400 group-hover:scale-110 transition-transform" />
