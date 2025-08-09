@@ -1,51 +1,138 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { apiClient } from '../services/api';
 
-// Hook to toggle ticket status
-export const useToggleTicketStatus = () => {
+// Utility for consistent error parsing
+const parseError = (err) => {
+    if (err?.response?.data?.message) return err.response.data.message;
+    if (err?.response?.data?.error) return err.response.data.error;
+    if (err?.message) return err.message;
+    return "Unknown error occurred";
+};
+
+// Get ticket by ID
+export const useGetTicketById = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [ticket, setTicket] = useState(null);
 
-    const toggleStatus = useCallback(async (ticketId) => {
+    const getTicketById = useCallback(async (ticketId, token) => {
         setLoading(true);
         setError(null);
         try {
-            const { data } = await apiClient.get(`/api/tickets/${ticketId}`);
-            const newStatus = data.isUsed === true ? false : true;
-            await apiClient.put(`/api/tickets/${ticketId}/status`, { isUsed: newStatus });
+            const res = await apiClient.get(`/ticket/${ticketId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setTicket(res.data.data);
+            return res.data.data;
         } catch (err) {
-            setError(err?.message || err);
+            setError(parseError(err));
+            throw err;
         } finally {
             setLoading(false);
         }
     }, []);
 
-    return { toggleStatus, loading, error };
+    const reset = () => {
+        setTicket(null);
+        setError(null);
+    };
+
+    return { getTicketById, ticket, loading, error, reset };
 };
 
-// Hook to get ticket by id
-export const useTicketById = (ticketId) => {
-    const [ticket, setTicket] = useState(null);
+// Update ticket status
+export const useUpdateTicketStatus = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [ticket, setTicket] = useState(null);
 
-    const fetchTicket = useCallback(async () => {
-        if (!ticketId) return;
+    const updateTicketStatus = useCallback(async (ticketId, statusData, token) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await apiClient.get(`/api/tickets/${ticketId}`);
-            setTicket(response.data);
+            const res = await apiClient.put(
+                `/ticket/${ticketId}/status`,
+                statusData,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            setTicket(res.data.data);
+            return res.data.data;
         } catch (err) {
-            setError(err?.message || err);
+            setError(parseError(err));
+            throw err;
         } finally {
             setLoading(false);
         }
-    }, [ticketId]);
+    }, []);
 
-    useEffect(() => {
-        fetchTicket();
-    }, [fetchTicket]);
+    const reset = () => {
+        setTicket(null);
+        setError(null);
+    };
 
-    return { ticket, loading, error, fetchTicket };
+    return { updateTicketStatus, ticket, loading, error, reset };
+};
+
+// Get all tickets for an event
+export const useGetTicketsByEvent = () => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [tickets, setTickets] = useState([]);
+
+    const getTicketsByEvent = useCallback(async (eventId, token) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const res = await apiClient.get(`/ticket/event/${eventId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setTickets(res.data.data);
+            return res.data.data;
+        } catch (err) {
+            setError(parseError(err));
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const reset = () => {
+        setTickets([]);
+        setError(null);
+    };
+
+    return { getTicketsByEvent, tickets, loading, error, reset };
+};
+
+// Delete a ticket
+export const useDeleteTicket = () => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [success, setSuccess] = useState(false);
+
+    const deleteTicket = useCallback(async (ticketId, token) => {
+        setLoading(true);
+        setError(null);
+        setSuccess(false);
+        try {
+            await apiClient.delete(`/ticket/${ticketId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setSuccess(true);
+            return true;
+        } catch (err) {
+            setError(parseError(err));
+            setSuccess(false);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const reset = () => {
+        setSuccess(false);
+        setError(null);
+    };
+
+    return { deleteTicket, success, loading, error, reset };
 };

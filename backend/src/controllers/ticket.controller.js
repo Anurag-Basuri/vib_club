@@ -143,6 +143,7 @@ const getTicketsByEvent = asyncHandler(async (req, res) => {
 	return res.status(200).json(new ApiResponse(200, tickets, 'Tickets retrieved successfully'));
 });
 
+// Delete a ticket
 const deleteTicket = asyncHandler(async (req, res) => {
 	const { ticketId } = req.params;
 
