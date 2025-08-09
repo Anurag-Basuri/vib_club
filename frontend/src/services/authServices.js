@@ -27,9 +27,6 @@ export const memberRegister = async (data) => {
   try {
     const response = await publicClient.post('/api/members/register', data);
 
-    const { accessToken, refreshToken } = response.data;
-    setToken({ accessToken, refreshToken });
-
     return response.data;
   } catch (error) {
     handleAuthError(error);

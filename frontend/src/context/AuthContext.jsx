@@ -47,14 +47,6 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(true);
     }, []);
 
-    // Member Register
-    const registerMember = useCallback(async (details) => {
-        const data = await memberRegister(details);
-        const decoded = decodeToken(data.accessToken);
-        setUser(decoded);
-        setIsAuthenticated(true);
-    }, []);
-
     // Member Logout
     const logoutMember = useCallback(async () => {
         await memberLogout();
