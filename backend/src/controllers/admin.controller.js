@@ -29,8 +29,8 @@ const createAdmin = asyncHandler(async (req, res) => {
         .json(
             new ApiResponse(
                 201,
-                "Admin created successfully",
-                { admin, accessToken, refreshToken }
+                { admin, accessToken, refreshToken },
+                "Admin created successfully"
             )
         );
 });
@@ -62,11 +62,11 @@ const loginAdmin = asyncHandler(async (req, res) => {
     return res
         .status(200)
         .json(
-            new ApiResponse(200, "Login successful", {
+            new ApiResponse(200, {
                 admin,
                 accessToken,
                 refreshToken,
-            })
+            }, "Login successful")
         );
 });
 
@@ -98,7 +98,11 @@ const currentAdmin = asyncHandler(async (req, res) => {
     return res
         .status(200)
         .json(
-            new ApiResponse(200, "Current admin retrieved successfully", { admin })
+            new ApiResponse(
+                200,
+                { admin },
+                "Current admin retrieved successfully"
+            )
         );
 });
 
