@@ -23,11 +23,6 @@ apiClient.interceptors.response.use(
   },
 );
 
-export const isAuthenticated = () => {
-  const { accessToken } = getToken();
-  return !!accessToken;
-}
-
 export const memberRegister = async (data) => {
   try {
     const response = await publicClient.post('/api/members/register', data);
