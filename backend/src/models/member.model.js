@@ -19,12 +19,12 @@ const memberSchema = new mongoose.Schema({
                 validator: function(v) {
                     return /^https?:\/\/.*\.(png|jpg|jpeg)$/.test(v);
                 },
-                message: 'QR Code must be a valid image URL'
-            },
-            publicId: {
-                type: String,
-                unique: true
+                message: 'Profile picture must be a valid image URL'
             }
+        },
+        publicId: {
+            type: String,
+            unique: true
         }
     },
     fullname: {
@@ -112,6 +112,27 @@ const memberSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+    status: {
+        type: String,
+        enum: ['active', 'banned', 'removed'],
+        default: 'active',
+    },
+    restriction: {
+        time: {
+            type: Date,
+            default: null,
+        },
+        reason: {
+            type: String,
+            trim: true,
+            maxlength: [200, 'Restriction reason cannot exceed 200 characters'],
+            default: null,
+        },
+        isRestricted: {
+            type: Boolean,
+            default: false,
+        }
+    },
 
     refreshToken: {
         type: String,
@@ -121,6 +142,7 @@ const memberSchema = new mongoose.Schema({
     resetPasswordToken: {
         type: String,
         select: false
+
     },
     resetPasswordExpires: {
         type: Date,
@@ -191,6 +213,31 @@ memberSchema.methods.generateRefreshToken = function() {
         process.env.REFRESH_TOKEN_SECRET,
         process.env.REFRESH_TOKEN_EXPIRY ? { expiresIn: process.env.REFRESH_TOKEN_EXPIRY } : {}
     );
+};
+
+// Helper methods
+memberSchema.methods.ban = function(reason, reviewTime) {
+    this.status = 'banned';
+    this.restriction.isRestricted = true;
+    this.restriction.reason = reason;
+    this.restriction.time = reviewTime || Date.now();
+    return this.save();
+};
+
+memberSchema.methods.removeMember = function(reason, reviewTime) {
+    this.status = 'removed';
+    this.restriction.isRestricted = true;
+    this.restriction.reason = reason;
+    this.restriction.time = reviewTime || Date.now();
+    return this.save();
+};
+
+memberSchema.methods.unban = function() {
+    this.status = 'active';
+    this.restriction.isRestricted = false;
+    this.restriction.reason = null;
+    this.restriction.time = null;
+    return this.save();
 };
 
 const Member = mongoose.model('Member', memberSchema);
