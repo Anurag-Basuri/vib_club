@@ -142,13 +142,12 @@ const Navbar = () => {
     };
 
     const handleLogout = () => {
-        const { accessToken } = getToken();
-        if (accessToken) {
+        if (user) {
             try {
-                const tokenData = decodeToken(accessToken);
-                if (tokenData.memberId) {
+                const member = user.memberID? true : false;
+                if(member) {
                     logoutMember();
-                } else if (tokenData.adminId) {
+                } else {
                     logoutAdmin();
                 }
             } catch {
