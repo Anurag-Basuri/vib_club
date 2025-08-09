@@ -8,7 +8,7 @@ const handleAuthError = error => {
 
     if (status === 401) {
       removeToken();
-      window.location.href = '/login'; // Or use router redirect
+      window.location.href = '/auth'; // Or use router redirect
     }
   }
   return Promise.reject(error);

@@ -27,7 +27,7 @@ const memberSchema = new mongoose.Schema({
             }
         }
     },
-    fullName: {
+    fullname: {
         type: String,
         required: [true, 'Full name is required'],
         trim: true,

@@ -35,8 +35,9 @@ router.get(
 router.post(
     '/register',
     validate([
-        body('fullName').notEmpty().withMessage('Full name is required'),
+        body('fullname').notEmpty().withMessage('Full name is required'),
         body('LpuId').notEmpty().withMessage('LPU ID is required'),
+        body('department').notEmpty().withMessage('Department is required'),
         body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
     ]),
     registerMember
