@@ -1,6 +1,13 @@
 import { useState, useCallback } from 'react';
 import { publicClient, privateClient } from '../services/api';
 
+// Utility for consistent error parsing
+const parseError = (err) => {
+    if (err?.response?.data?.message) return err.response.data.message;
+    if (err?.message) return err.message;
+    return "Unknown error occurred";
+};
+
 // Create Event (admin only)
 export const useCreateEvent = () => {
     const [loading, setLoading] = useState(false);
@@ -17,14 +24,19 @@ export const useCreateEvent = () => {
             setEvent(res.data.data);
             return res.data.data;
         } catch (err) {
-            setError(err?.response?.data?.message || err.message);
+            setError(parseError(err));
             throw err;
         } finally {
             setLoading(false);
         }
     }, []);
 
-    return { createEvent, event, loading, error };
+    const reset = () => {
+        setEvent(null);
+        setError(null);
+    };
+
+    return { createEvent, event, loading, error, reset };
 };
 
 // Update Event (admin only)
@@ -43,14 +55,19 @@ export const useUpdateEvent = () => {
             setEvent(res.data.data);
             return res.data.data;
         } catch (err) {
-            setError(err?.response?.data?.message || err.message);
+            setError(parseError(err));
             throw err;
         } finally {
             setLoading(false);
         }
     }, []);
 
-    return { updateEvent, event, loading, error };
+    const reset = () => {
+        setEvent(null);
+        setError(null);
+    };
+
+    return { updateEvent, event, loading, error, reset };
 };
 
 // Delete Event (admin only)
@@ -69,14 +86,20 @@ export const useDeleteEvent = () => {
             });
             setSuccess(true);
         } catch (err) {
-            setError(err?.response?.data?.message || err.message);
+            setError(parseError(err));
+            setSuccess(false);
             throw err;
         } finally {
             setLoading(false);
         }
     }, []);
 
-    return { deleteEvent, success, loading, error };
+    const reset = () => {
+        setSuccess(false);
+        setError(null);
+    };
+
+    return { deleteEvent, success, loading, error, reset };
 };
 
 // Get All Events (public)
@@ -95,13 +118,18 @@ export const useGetAllEvents = () => {
             setEvents(res.data.data);
             return res.data.data;
         } catch (err) {
-            setError(err?.response?.data?.message || err.message);
+            setError(parseError(err));
             throw err;
         } finally {
             setLoading(false);
         }
     }, []);
 
-    return { getAllEvents, events, loading, error };
+    const reset = () => {
+        setEvents([]);
+        setError(null);
+    };
+
+    return { getAllEvents, events, loading, error, reset };
 };
 
