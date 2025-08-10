@@ -9,6 +9,37 @@ const parseError = (err) => {
     return "Unknown error occurred";
 };
 
+// Create a new ticket
+export const useCreateTicket = () => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [ticket, setTicket] = useState(null);
+
+    const createTicket = useCallback(async (ticketData, token) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const res = await apiClient.post('api/tickets/create', ticketData, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setTicket(res.data.data);
+            return res.data.data;
+        } catch (err) {
+            setError(parseError(err));
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const reset = () => {
+        setTicket(null);
+        setError(null);
+    };
+
+    return { createTicket, ticket, loading, error, reset };
+};
+
 // Get ticket by ID
 export const useGetTicketById = () => {
     const [loading, setLoading] = useState(false);
