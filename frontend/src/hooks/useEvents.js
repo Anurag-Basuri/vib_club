@@ -1,9 +1,10 @@
 import { useState, useCallback } from 'react';
-import { publicClient, privateClient } from '../services/api';
+import { apiClient, publicClient } from '../services/api';
 
 // Utility for consistent error parsing
 const parseError = (err) => {
     if (err?.response?.data?.message) return err.response.data.message;
+    if (err?.response?.data?.error) return err.response.data.error;
     if (err?.message) return err.message;
     return "Unknown error occurred";
 };
@@ -14,13 +15,11 @@ export const useCreateEvent = () => {
     const [error, setError] = useState(null);
     const [event, setEvent] = useState(null);
 
-    const createEvent = useCallback(async (eventData, token) => {
+    const createEvent = useCallback(async (eventData) => {
         setLoading(true);
         setError(null);
         try {
-            const res = await privateClient.post('/event/create', eventData, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await apiClient.post('api/event/create', eventData);
             setEvent(res.data.data);
             return res.data.data;
         } catch (err) {
@@ -45,13 +44,11 @@ export const useUpdateEvent = () => {
     const [error, setError] = useState(null);
     const [event, setEvent] = useState(null);
 
-    const updateEvent = useCallback(async (id, eventData, token) => {
+    const updateEvent = useCallback(async (id, eventData) => {
         setLoading(true);
         setError(null);
         try {
-            const res = await privateClient.put(`/event/${id}/update`, eventData, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await apiClient.put(`api/event/${id}/update`, eventData);
             setEvent(res.data.data);
             return res.data.data;
         } catch (err) {
@@ -76,14 +73,12 @@ export const useDeleteEvent = () => {
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
 
-    const deleteEvent = useCallback(async (id, token) => {
+    const deleteEvent = useCallback(async (id) => {
         setLoading(true);
         setError(null);
         setSuccess(false);
         try {
-            await privateClient.delete(`/event/${id}/delete`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await apiClient.delete(`api/event/${id}/delete`);
             setSuccess(true);
         } catch (err) {
             setError(parseError(err));
@@ -112,7 +107,7 @@ export const useGetAllEvents = () => {
         setLoading(true);
         setError(null);
         try {
-            const res = await publicClient.get('/event/getall', {
+            const res = await publicClient.get('api/event/getall', {
                 params: status ? { status } : {}
             });
             setEvents(res.data.data);

@@ -11,10 +11,19 @@ const LoadingSpinner = () => (
 
 const ProtectedRoutes = ({ allowedRoles }) => {
   const { user, loading } = useAuth();
-  const role = user.memberID? 'member' : 'admin';
 
   if (loading) return <LoadingSpinner />;
   if (!user) return <Navigate to="/auth" replace />;
+
+  // Safely check user.memberID
+  let role = 'guest';
+  if (user && typeof user === 'object') {
+    if ('memberID' in user && user.memberID) {
+      role = 'member';
+    } else {
+      role = 'admin';
+    }
+  }
 
   // If allowedRoles is provided, check user.role
   if (allowedRoles && !allowedRoles.includes(role)) {
