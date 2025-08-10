@@ -329,18 +329,27 @@ const AdminAuthPage = () => {
 														}
 														className="w-full pl-10 pr-4 py-3 rounded-lg border border-white/10 bg-white/5 text-white text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#5d7df5]/50 focus:border-transparent"
 													>
-														<option value="">Select your department</option>
+														<option value="">
+															Select your department
+														</option>
 														<option value="HR">HR</option>
 														<option value="Technical">Technical</option>
 														<option value="Marketing">Marketing</option>
-														<option value="Management">Management</option>
-														<option value="Social Media">Social Media</option>
-														<option value="Content Writing">Content Writing</option>
-														<option value="Event Management">Event Management</option>
+														<option value="Management">
+															Management
+														</option>
+														<option value="Social Media">
+															Social Media
+														</option>
+														<option value="Content Writing">
+															Content Writing
+														</option>
+														<option value="Event Management">
+															Event Management
+														</option>
 														<option value="Media">Media</option>
 														<option value="Design">Design</option>
 													</select>
-														
 												</div>
 											</div>
 										</>
