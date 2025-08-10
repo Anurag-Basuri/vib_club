@@ -54,6 +54,9 @@ import LeadersSection from '../components/LeadersSection.js';
 import DashboardStatsCards from '../components/DashboardStatsCards.js';
 import UpcomingEventsSection from '../components/UpcomingEventsSection.js';
 import RecentActivitySection from '../components/RecentActivitySection.js';
+import EventCardList from '../components/EventCardList';
+import TicketTable from '../components/TicketTable';
+import TicketStatusDistribution from '../components/TicketStatusDistribution';
 
 // Main Admin Dashboard Component
 const AdminDash = () => {
@@ -492,52 +495,12 @@ const AdminDash = () => {
 									</p>
 								</div>
 							) : (
-								<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-									{events.map((event) => (
-										<div
-											key={event._id}
-											className="bg-gray-700/50 rounded-xl p-5 border border-gray-600 hover:border-blue-500/50 transition"
-										>
-											<div className="flex justify-between items-start mb-3">
-												<h3 className="font-bold text-white text-lg">
-													{event.title}
-												</h3>
-												<StatusBadge status={event.status} />
-											</div>
-
-											<div className="text-gray-400 text-sm mb-4">
-												{event.date
-													? new Date(event.date).toLocaleString()
-													: ''}
-											</div>
-
-											<p className="text-gray-400 text-sm mb-4 line-clamp-2">
-												{event.description || 'No description'}
-											</p>
-
-											<div className="flex justify-between items-center">
-												<span className="text-gray-500 text-sm">
-													{event.location || 'No location'}
-												</span>
-
-												<div className="flex gap-2">
-													<button
-														className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600"
-														onClick={() => openEditEventModal(event)}
-													>
-														<Edit className="h-4 w-4" />
-													</button>
-													<button
-														className="p-2 rounded-lg bg-gray-700 hover:bg-red-600"
-														onClick={() => handleDeleteEvent(event._id)}
-													>
-														<Trash2 className="h-4 w-4" />
-													</button>
-												</div>
-											</div>
-										</div>
-									))}
-								</div>
+								<EventCardList
+									events={events}
+									eventsLoading={eventsLoading}
+									handleDeleteEvent={handleDeleteEvent}
+									openEditEventModal={openEditEventModal}
+								/>
 							)}
 						</div>
 					)}
@@ -616,42 +579,10 @@ const AdminDash = () => {
 							</div>
 
 							{selectedEventId && (
-								<div className="bg-gray-700/30 rounded-xl p-5 border border-gray-600">
-									<div className="flex justify-between items-center mb-4">
-										<h3 className="text-lg font-bold text-white">
-											Ticket Status Distribution
-										</h3>
-										<div className="text-cyan-400">
-											{tickets.length} tickets
-										</div>
-									</div>
-
-									<div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-										{Object.entries(ticketStatusCount).map(
-											([status, count]) => (
-												<div
-													key={status}
-													className="bg-gray-800/50 rounded-lg p-4"
-												>
-													<div className="text-white font-medium capitalize">
-														{status}
-													</div>
-													<div className="text-2xl font-bold mt-1 text-cyan-400">
-														{count}
-													</div>
-													<div className="mt-2 w-full bg-gray-700 rounded-full h-2">
-														<div
-															className="h-2 rounded-full bg-cyan-500"
-															style={{
-																width: `${(count / tickets.length) * 100}%`,
-															}}
-														></div>
-													</div>
-												</div>
-											)
-										)}
-									</div>
-								</div>
+								<TicketStatusDistribution
+									ticketStatusCount={ticketStatusCount}
+									tickets={tickets}
+								/>
 							)}
 
 							<ErrorMessage error={ticketsError} />
@@ -670,102 +601,13 @@ const AdminDash = () => {
 										</p>
 									</div>
 								) : (
-									<div className="overflow-x-auto rounded-xl border border-gray-700">
-										<table className="min-w-full">
-											<thead className="bg-gray-700/80">
-												<tr>
-													<th className="px-4 py-3 text-left text-gray-300 font-medium">
-														Ticket ID
-													</th>
-													<th className="px-4 py-3 text-left text-gray-300 font-medium">
-														Member
-													</th>
-													<th className="px-4 py-3 text-left text-gray-300 font-medium">
-														Status
-													</th>
-													<th className="px-4 py-3 text-left text-gray-300 font-medium">
-														Created
-													</th>
-													<th className="px-4 py-3 text-left text-gray-300 font-medium">
-														Actions
-													</th>
-												</tr>
-											</thead>
-											<tbody className="divide-y divide-gray-700">
-												{filteredTickets.map((ticket) => (
-													<tr
-														key={ticket._id}
-														className="hover:bg-gray-800/50 transition"
-													>
-														<td className="px-4 py-3 text-gray-300 font-mono text-sm">
-															{ticket._id.slice(-8)}
-														</td>
-														<td className="px-4 py-3">
-															<div className="font-medium text-white">
-																{ticket.member?.fullname || 'N/A'}
-															</div>
-															<div className="text-gray-400 text-sm">
-																{ticket.member?.email || 'N/A'}
-															</div>
-														</td>
-														<td className="px-4 py-3">
-															<StatusBadge status={ticket.status} />
-														</td>
-														<td className="px-4 py-3 text-gray-400 text-sm">
-															{ticket.createdAt
-																? new Date(
-																		ticket.createdAt
-																	).toLocaleDateString()
-																: ''}
-														</td>
-														<td className="px-4 py-3">
-															<div className="flex gap-2">
-																{ticket.status !== 'approved' && (
-																	<button
-																		className="p-2 rounded-lg bg-green-600/50 hover:bg-green-600"
-																		onClick={() =>
-																			handleUpdateTicketStatus(
-																				ticket._id,
-																				'approved'
-																			)
-																		}
-																		title="Approve"
-																	>
-																		<BadgeCheck className="h-4 w-4" />
-																	</button>
-																)}
-																{ticket.status !== 'rejected' && (
-																	<button
-																		className="p-2 rounded-lg bg-red-600/50 hover:bg-red-600"
-																		onClick={() =>
-																			handleUpdateTicketStatus(
-																				ticket._id,
-																				'rejected'
-																			)
-																		}
-																		title="Reject"
-																	>
-																		<Ban className="h-4 w-4" />
-																	</button>
-																)}
-																<button
-																	className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600"
-																	onClick={() =>
-																		handleDeleteTicket(
-																			ticket._id
-																		)
-																	}
-																	title="Delete"
-																>
-																	<Trash2 className="h-4 w-4" />
-																</button>
-															</div>
-														</td>
-													</tr>
-												))}
-											</tbody>
-										</table>
-									</div>
+									<TicketTable
+										filteredTickets={filteredTickets}
+										ticketsLoading={ticketsLoading}
+										selectedEventId={selectedEventId}
+										handleUpdateTicketStatus={handleUpdateTicketStatus}
+										handleDeleteTicket={handleDeleteTicket}
+									/>
 								)
 							) : (
 								<div className="text-center py-12 bg-gray-700/30 rounded-xl border border-gray-600">
