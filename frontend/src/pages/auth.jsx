@@ -500,7 +500,7 @@ const RegisterForm = ({
       </div>
     </div>
 
-    <GradientButton isLoading={registerLoading}>
+    <GradientButton isLoading={registerLoading} type='submit'>
       {registerLoading ? 'Registering...' : 'Register Now'}
     </GradientButton>
   </motion.form>

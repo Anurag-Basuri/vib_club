@@ -40,7 +40,7 @@ export const memberLogin = async (data) => {
 
     const { accessToken, refreshToken } = response.data.data;
     setToken({ accessToken, refreshToken });
-    return response.data;
+    return response.data.data;
   } catch (error) {
     handleAuthError(error);
     throw error;
