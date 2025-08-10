@@ -19,7 +19,7 @@ export const useGetTicketById = () => {
         setLoading(true);
         setError(null);
         try {
-            const res = await apiClient.get(`api/ticket/${ticketId}`, {
+            const res = await apiClient.get(`api/tickets/${ticketId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setTicket(res.data.data);
@@ -51,7 +51,7 @@ export const useUpdateTicketStatus = () => {
         setError(null);
         try {
             const res = await apiClient.put(
-                `api/ticket/${ticketId}/status`,
+                `api/tickets/${ticketId}/status`,
                 statusData,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -83,7 +83,7 @@ export const useGetTicketsByEvent = () => {
         setLoading(true);
         setError(null);
         try {
-            const res = await apiClient.get(`api/ticket/event/${eventId}`, {
+            const res = await apiClient.get(`api/tickets/event/${eventId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setTickets(res.data.data);
@@ -115,7 +115,7 @@ export const useDeleteTicket = () => {
         setError(null);
         setSuccess(false);
         try {
-            await apiClient.delete(`api/ticket/${ticketId}`, {
+            await apiClient.delete(`api/tickets/${ticketId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setSuccess(true);

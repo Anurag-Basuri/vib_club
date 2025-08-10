@@ -1,8 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { User, Users, Mail, LogOut, ShieldCheck, Ticket, CalendarDays, Info, Star } from "lucide-react";
+import { User, Users, Mail, LogOut, ShieldCheck, Ticket, CalendarDays, Info, Star, Ban, Undo2, Trash2, Edit } from "lucide-react";
 import { useAuth } from "../hooks/useAuth.js";
-import { useGetAllMembers, useGetLeaders } from "../hooks/useMembers.js";
+import {
+    useGetAllMembers,
+    useGetLeaders,
+    useBanMember,
+    useRemoveMember,
+    useUnbanMember,
+    useUpdateMemberByAdmin
+} from "../hooks/useMembers.js";
 import { useGetAllEvents } from "../hooks/useEvents.js";
 import { useGetTicketsByEvent } from "../hooks/useTickets.js";
 
@@ -10,15 +17,37 @@ const AdminDash = () => {
     const { user, loading: authLoading, logoutAdmin, token } = useAuth();
 
     // Members
-    const { getAllMembers, members, total, loading: membersLoading, error: membersError } = useGetAllMembers();
+    const { getAllMembers, members, total, loading: membersLoading, error: membersError, reset: resetMembers } = useGetAllMembers();
+
     // Leaders
-    const { getLeaders, leaders, loading: leadersLoading, error: leadersError } = useGetLeaders();
+    const { getLeaders, leaders, loading: leadersLoading, error: leadersError, reset: resetLeaders } = useGetLeaders();
+
+    // Ban member
+    const { banMember, loading: banLoading, error: banError, reset: resetBan } = useBanMember();
+
+    // Unban member
+    const { unbanMember, loading: unbanLoading, error: unbanError, reset: resetUnban } = useUnbanMember();
+
+    // Remove member
+    const { removeMember, loading: removeLoading, error: removeError, reset: resetRemove } = useRemoveMember();
+
+    // Update member by admin
+    const { updateMemberByAdmin, loading: updateLoading, error: updateError, reset: resetUpdate } = useUpdateMemberByAdmin();
+
     // Events
-    const { getAllEvents, events, loading: eventsLoading, error: eventsError } = useGetAllEvents();
+    const { getAllEvents, events, loading: eventsLoading, error: eventsError, reset: resetEvents } = useGetAllEvents();
+
     // Tickets (for selected event)
-    const { getTicketsByEvent, tickets, loading: ticketsLoading, error: ticketsError } = useGetTicketsByEvent();
+    const { getTicketsByEvent, tickets, loading: ticketsLoading, error: ticketsError, reset: resetTickets } = useGetTicketsByEvent();
 
     const [selectedEventId, setSelectedEventId] = useState(null);
+    const [actionMemberId, setActionMemberId] = useState(null);
+    const [banReason, setBanReason] = useState("");
+    const [banReviewTime, setBanReviewTime] = useState("");
+    const [removeReason, setRemoveReason] = useState("");
+    const [removeReviewTime, setRemoveReviewTime] = useState("");
+    const [editMember, setEditMember] = useState(null);
+    const [editFields, setEditFields] = useState({ department: "", designation: "", LpuId: "" });
 
     useEffect(() => {
         getAllMembers();
@@ -41,13 +70,45 @@ const AdminDash = () => {
         }
     };
 
-    // Helper: Get member by ID
-    const getMemberById = (id) => members.find(m => m._id === id);
+    // Ban member handler
+    const handleBanMember = async (id) => {
+        if (!banReason) return;
+        await banMember(id, banReason, banReviewTime, token);
+        setBanReason("");
+        setBanReviewTime("");
+        setActionMemberId(null);
+        getAllMembers();
+    };
+
+    // Unban member handler
+    const handleUnbanMember = async (id) => {
+        await unbanMember(id, token);
+        setActionMemberId(null);
+        getAllMembers();
+    };
+
+    // Remove member handler
+    const handleRemoveMember = async (id) => {
+        if (!removeReason) return;
+        await removeMember(id, removeReason, removeReviewTime, token);
+        setRemoveReason("");
+        setRemoveReviewTime("");
+        setActionMemberId(null);
+        getAllMembers();
+    };
+
+    // Edit member handler
+    const handleEditMember = async (id) => {
+        await updateMemberByAdmin(id, editFields, token);
+        setEditMember(null);
+        setEditFields({ department: "", designation: "", LpuId: "" });
+        getAllMembers();
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-[#0f172a] to-[#1e293b] flex flex-col items-center py-8 px-4 sm:px-6">
             <motion.div
-                className="w-full max-w-6xl bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden relative"
+                className="w-full max-w-7xl bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden relative"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
@@ -117,7 +178,7 @@ const AdminDash = () => {
                         </div>
                     </motion.div>
                 </div>
-                {/* Members List */}
+                {/* Members List with Actions */}
                 <div className="p-6">
                     <h2 className="text-lg font-bold text-white mb-4">All Members</h2>
                     {membersLoading ? (
@@ -136,6 +197,7 @@ const AdminDash = () => {
                                         <th className="px-4 py-2 text-left text-white">Designation</th>
                                         <th className="px-4 py-2 text-left text-white">Status</th>
                                         <th className="px-4 py-2 text-left text-white">Joined</th>
+                                        <th className="px-4 py-2 text-left text-white">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -148,6 +210,42 @@ const AdminDash = () => {
                                             <td className="px-4 py-2 text-gray-200">{member.designation}</td>
                                             <td className="px-4 py-2 text-gray-200">{member.status}</td>
                                             <td className="px-4 py-2 text-gray-200">{member.joinedAt ? new Date(member.joinedAt).toLocaleDateString() : ""}</td>
+                                            <td className="px-4 py-2 flex gap-2">
+                                                {member.status === "active" && (
+                                                    <>
+                                                        <button
+                                                            className="px-2 py-1 bg-yellow-700 text-white rounded flex items-center gap-1"
+                                                            onClick={() => setActionMemberId(member._id)}
+                                                            title="Ban"
+                                                        >
+                                                            <Ban className="h-4 w-4" />
+                                                        </button>
+                                                        <button
+                                                            className="px-2 py-1 bg-red-700 text-white rounded flex items-center gap-1"
+                                                            onClick={() => setActionMemberId(member._id + "-remove")}
+                                                            title="Remove"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </button>
+                                                        <button
+                                                            className="px-2 py-1 bg-blue-700 text-white rounded flex items-center gap-1"
+                                                            onClick={() => { setEditMember(member._id); setEditFields({ department: member.department, designation: member.designation, LpuId: member.LpuId }); }}
+                                                            title="Edit"
+                                                        >
+                                                            <Edit className="h-4 w-4" />
+                                                        </button>
+                                                    </>
+                                                )}
+                                                {member.status === "banned" && (
+                                                    <button
+                                                        className="px-2 py-1 bg-green-700 text-white rounded flex items-center gap-1"
+                                                        onClick={() => handleUnbanMember(member._id)}
+                                                        title="Unban"
+                                                    >
+                                                        <Undo2 className="h-4 w-4" />
+                                                    </button>
+                                                )}
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -155,6 +253,127 @@ const AdminDash = () => {
                             {members.length === 0 && (
                                 <div className="text-gray-400 mt-4">No members found.</div>
                             )}
+                        </div>
+                    )}
+                    {/* Ban Modal */}
+                    {actionMemberId && !actionMemberId.includes("-remove") && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                                <h3 className="text-lg font-bold mb-2">Ban Member</h3>
+                                <input
+                                    type="text"
+                                    className="w-full mb-2 p-2 border rounded"
+                                    placeholder="Reason"
+                                    value={banReason}
+                                    onChange={e => setBanReason(e.target.value)}
+                                />
+                                <input
+                                    type="datetime-local"
+                                    className="w-full mb-2 p-2 border rounded"
+                                    placeholder="Review Time"
+                                    value={banReviewTime}
+                                    onChange={e => setBanReviewTime(e.target.value)}
+                                />
+                                <div className="flex gap-2 mt-2">
+                                    <button
+                                        className="px-4 py-2 bg-yellow-700 text-white rounded"
+                                        onClick={() => handleBanMember(actionMemberId)}
+                                        disabled={banLoading}
+                                    >
+                                        {banLoading ? "Banning..." : "Ban"}
+                                    </button>
+                                    <button
+                                        className="px-4 py-2 bg-gray-300 text-black rounded"
+                                        onClick={() => { setActionMemberId(null); setBanReason(""); setBanReviewTime(""); resetBan(); }}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                                {banError && <div className="text-red-500 mt-2">{banError}</div>}
+                            </div>
+                        </div>
+                    )}
+                    {/* Remove Modal */}
+                    {actionMemberId && actionMemberId.includes("-remove") && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                                <h3 className="text-lg font-bold mb-2">Remove Member</h3>
+                                <input
+                                    type="text"
+                                    className="w-full mb-2 p-2 border rounded"
+                                    placeholder="Reason"
+                                    value={removeReason}
+                                    onChange={e => setRemoveReason(e.target.value)}
+                                />
+                                <input
+                                    type="datetime-local"
+                                    className="w-full mb-2 p-2 border rounded"
+                                    placeholder="Review Time"
+                                    value={removeReviewTime}
+                                    onChange={e => setRemoveReviewTime(e.target.value)}
+                                />
+                                <div className="flex gap-2 mt-2">
+                                    <button
+                                        className="px-4 py-2 bg-red-700 text-white rounded"
+                                        onClick={() => handleRemoveMember(actionMemberId.replace("-remove", ""))}
+                                        disabled={removeLoading}
+                                    >
+                                        {removeLoading ? "Removing..." : "Remove"}
+                                    </button>
+                                    <button
+                                        className="px-4 py-2 bg-gray-300 text-black rounded"
+                                        onClick={() => { setActionMemberId(null); setRemoveReason(""); setRemoveReviewTime(""); resetRemove(); }}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                                {removeError && <div className="text-red-500 mt-2">{removeError}</div>}
+                            </div>
+                        </div>
+                    )}
+                    {/* Edit Modal */}
+                    {editMember && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                                <h3 className="text-lg font-bold mb-2">Edit Member</h3>
+                                <input
+                                    type="text"
+                                    className="w-full mb-2 p-2 border rounded"
+                                    placeholder="Department"
+                                    value={editFields.department}
+                                    onChange={e => setEditFields({ ...editFields, department: e.target.value })}
+                                />
+                                <input
+                                    type="text"
+                                    className="w-full mb-2 p-2 border rounded"
+                                    placeholder="Designation"
+                                    value={editFields.designation}
+                                    onChange={e => setEditFields({ ...editFields, designation: e.target.value })}
+                                />
+                                <input
+                                    type="text"
+                                    className="w-full mb-2 p-2 border rounded"
+                                    placeholder="LPU ID"
+                                    value={editFields.LpuId}
+                                    onChange={e => setEditFields({ ...editFields, LpuId: e.target.value })}
+                                />
+                                <div className="flex gap-2 mt-2">
+                                    <button
+                                        className="px-4 py-2 bg-blue-700 text-white rounded"
+                                        onClick={() => handleEditMember(editMember)}
+                                        disabled={updateLoading}
+                                    >
+                                        {updateLoading ? "Updating..." : "Update"}
+                                    </button>
+                                    <button
+                                        className="px-4 py-2 bg-gray-300 text-black rounded"
+                                        onClick={() => { setEditMember(null); setEditFields({ department: "", designation: "", LpuId: "" }); resetUpdate(); }}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                                {updateError && <div className="text-red-500 mt-2">{updateError}</div>}
+                            </div>
                         </div>
                     )}
                 </div>
