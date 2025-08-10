@@ -329,18 +329,6 @@ const sendResetPasswordEmail = asyncHandler(async (req, res) => {
 const getAllMembers = asyncHandler(async (req, res) => {
     const currentUser = req.user;
 
-    // If not admin or member, restrict sensitive fields
-    if (!currentUser.admin && !currentUser.member) {
-        const members = await Member.find().select('-LpuId -year -email -password -refreshToken');
-        const totalMembers = await Member.countDocuments();
-        return res.status(200).json(
-            ApiResponse.success(
-                { members, totalMembers },
-                'Members retrieved successfully'
-            )
-        );
-    }
-
     const members = await Member.find().select('-password -refreshToken');
     const totalMembers = await Member.countDocuments();
 

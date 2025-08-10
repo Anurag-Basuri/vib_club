@@ -19,7 +19,7 @@ export const useCreateEvent = () => {
         setLoading(true);
         setError(null);
         try {
-            const res = await apiClient.post('api/event/create', eventData);
+            const res = await apiClient.post('api/eventsT/create', eventData);
             setEvent(res.data.data);
             return res.data.data;
         } catch (err) {
@@ -48,7 +48,7 @@ export const useUpdateEvent = () => {
         setLoading(true);
         setError(null);
         try {
-            const res = await apiClient.put(`api/event/${id}/update`, eventData);
+            const res = await apiClient.put(`api/events/${id}/update`, eventData);
             setEvent(res.data.data);
             return res.data.data;
         } catch (err) {
@@ -78,7 +78,7 @@ export const useDeleteEvent = () => {
         setError(null);
         setSuccess(false);
         try {
-            await apiClient.delete(`api/event/${id}/delete`);
+            await apiClient.delete(`api/events/${id}/delete`);
             setSuccess(true);
         } catch (err) {
             setError(parseError(err));
@@ -107,7 +107,7 @@ export const useGetAllEvents = () => {
         setLoading(true);
         setError(null);
         try {
-            const res = await publicClient.get('api/event/getall', {
+            const res = await publicClient.get('api/events/getall', {
                 params: status ? { status } : {}
             });
             setEvents(res.data.data);

@@ -41,7 +41,7 @@ const useMemberAction = (actionFn) => {
 // Get all members
 export const useGetAllMembers = () => {
     const actionFn = async () => {
-        const res = await publicClient.get('api/member/getall');
+        const res = await publicClient.get('api/members/getall');
         return {
             members: res.data.data.members,
             total: res.data.data.totalMembers
@@ -62,7 +62,7 @@ export const useGetAllMembers = () => {
 // Get leaders
 export const useGetLeaders = () => {
     const actionFn = async () => {
-        const res = await publicClient.get('api/member/getleaders');
+        const res = await publicClient.get('api/members/getleaders');
         return res.data.data.members;
     };
     const { action: getLeaders, data: leaders, loading, error, reset } = useMemberAction(actionFn);
@@ -74,7 +74,7 @@ export const useGetLeaders = () => {
 export const useBanMember = () => {
     const actionFn = async (id, reason, reviewTime, token) => {
         const res = await apiClient.put(
-            `api/member/${id}/ban`,
+            `api/members/${id}/ban`,
             { reason, reviewTime },
             { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -89,7 +89,7 @@ export const useBanMember = () => {
 export const useRemoveMember = () => {
     const actionFn = async (id, reason, reviewTime, token) => {
         const res = await apiClient.put(
-            `api/member/${id}/remove`,
+            `api/members/${id}/remove`,
             { reason, reviewTime },
             { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -104,7 +104,7 @@ export const useRemoveMember = () => {
 export const useUnbanMember = () => {
     const actionFn = async (id, token) => {
         const res = await apiClient.put(
-            `api/member/${id}/unban`,
+            `api/members/${id}/unban`,
             {},
             { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -118,7 +118,7 @@ export const useUnbanMember = () => {
 // Get current member
 export const useGetCurrentMember = () => {
     const actionFn = async (token) => {
-        const res = await apiClient.get('api/member/me', {
+        const res = await apiClient.get('api/members/me', {
             headers: { Authorization: `Bearer ${token}` }
         });
         return res.data.data.member;
@@ -132,7 +132,7 @@ export const useGetCurrentMember = () => {
 export const useUpdateMemberByAdmin = () => {
     const actionFn = async (id, updateData, token) => {
         const res = await apiClient.put(
-            `api/member/${id}/admin`,
+            `api/members/${id}/admin`,
             updateData,
             { headers: { Authorization: `Bearer ${token}` } }
         );
