@@ -59,7 +59,7 @@ router.patch(
 // Get all tickets for an event (admin only)
 router.get(
     '/event/:eventId',
-    // authMiddleware.verifyToken,
+    authMiddleware.verifyToken,
     // authMiddleware.isAdmin,
     validate([
         param('eventId').isMongoId().withMessage('Invalid event ID')
@@ -70,8 +70,8 @@ router.get(
 // Delete a ticket (admin only)
 router.delete(
     '/:ticketId',
-    // authMiddleware.verifyToken,
-    // authMiddleware.isAdmin,
+    authMiddleware.verifyToken,
+    authMiddleware.isAdmin,
     validate([
         param('ticketId').isMongoId().withMessage('Invalid ticket ID')
     ]),
