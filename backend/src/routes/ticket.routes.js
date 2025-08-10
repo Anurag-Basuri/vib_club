@@ -30,8 +30,15 @@ router.post(
     validate([
         body('fullName').notEmpty().withMessage('Full name is required'),
         body('email').isEmail().withMessage('Valid email is required'),
+        body('phone').notEmpty().withMessage('Phone number is required'),
         body('lpuId').notEmpty().withMessage('LPU ID is required'),
-        body('eventId').isMongoId().withMessage('Valid event ID is required')
+        body('eventId').isMongoId().withMessage('Valid event ID is required'),
+        body('eventName').notEmpty().withMessage('Event name is required'),
+        body('gender').notEmpty().withMessage('Gender is required'),
+        body('hosteler').notEmpty().withMessage('Hosteler status is required'),
+        body('hostel').notEmpty().withMessage('Hostel name is required'),
+        body('course').notEmpty().withMessage('Course name is required'),
+        body('club').notEmpty().withMessage('Club name is required')
     ]),
     createTicket
 );
