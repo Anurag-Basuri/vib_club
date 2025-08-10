@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { User, Users, Mail, LogOut, ShieldCheck, Ticket, CalendarDays, Info, Star, Ban, Undo2, Trash2, Edit } from "lucide-react";
+import { User, Users, Mail, LogOut, ShieldCheck, Ticket, CalendarDays, Info, Star, Ban, Undo2, Trash2, Edit, Plus, X, Save } from "lucide-react";
 import { useAuth } from "../hooks/useAuth.js";
 import {
     useGetAllMembers,
@@ -10,7 +10,12 @@ import {
     useUnbanMember,
     useUpdateMemberByAdmin
 } from "../hooks/useMembers.js";
-import { useGetAllEvents } from "../hooks/useEvents.js";
+import {
+    useGetAllEvents,
+    useCreateEvent,
+    useUpdateEvent,
+    useDeleteEvent
+} from "../hooks/useEvents.js";
 import { useGetTicketsByEvent } from "../hooks/useTickets.js";
 
 const AdminDash = () => {
@@ -18,28 +23,22 @@ const AdminDash = () => {
 
     // Members
     const { getAllMembers, members, total, loading: membersLoading, error: membersError, reset: resetMembers } = useGetAllMembers();
-
-    // Leaders
     const { getLeaders, leaders, loading: leadersLoading, error: leadersError, reset: resetLeaders } = useGetLeaders();
-
-    // Ban member
     const { banMember, loading: banLoading, error: banError, reset: resetBan } = useBanMember();
-
-    // Unban member
     const { unbanMember, loading: unbanLoading, error: unbanError, reset: resetUnban } = useUnbanMember();
-
-    // Remove member
     const { removeMember, loading: removeLoading, error: removeError, reset: resetRemove } = useRemoveMember();
-
-    // Update member by admin
     const { updateMemberByAdmin, loading: updateLoading, error: updateError, reset: resetUpdate } = useUpdateMemberByAdmin();
 
     // Events
     const { getAllEvents, events, loading: eventsLoading, error: eventsError, reset: resetEvents } = useGetAllEvents();
+    const { createEvent, event: createdEvent, loading: createLoading, error: createError, reset: resetCreate } = useCreateEvent();
+    const { updateEvent, event: updatedEvent, loading: updateEventLoading, error: updateEventError, reset: resetUpdateEvent } = useUpdateEvent();
+    const { deleteEvent, loading: deleteLoading, error: deleteError, reset: resetDelete } = useDeleteEvent();
 
-    // Tickets (for selected event)
+    // Tickets
     const { getTicketsByEvent, tickets, loading: ticketsLoading, error: ticketsError, reset: resetTickets } = useGetTicketsByEvent();
 
+    // UI State
     const [selectedEventId, setSelectedEventId] = useState(null);
     const [actionMemberId, setActionMemberId] = useState(null);
     const [banReason, setBanReason] = useState("");
@@ -48,6 +47,12 @@ const AdminDash = () => {
     const [removeReviewTime, setRemoveReviewTime] = useState("");
     const [editMember, setEditMember] = useState(null);
     const [editFields, setEditFields] = useState({ department: "", designation: "", LpuId: "" });
+
+    // Event modals
+    const [showCreateEvent, setShowCreateEvent] = useState(false);
+    const [showEditEvent, setShowEditEvent] = useState(false);
+    const [eventFields, setEventFields] = useState({ title: "", date: "", location: "", description: "", status: "" });
+    const [editEventId, setEditEventId] = useState(null);
 
     useEffect(() => {
         getAllMembers();
@@ -70,7 +75,7 @@ const AdminDash = () => {
         }
     };
 
-    // Ban member handler
+    // Member actions
     const handleBanMember = async (id) => {
         if (!banReason) return;
         await banMember(id, banReason, banReviewTime, token);
@@ -80,14 +85,12 @@ const AdminDash = () => {
         getAllMembers();
     };
 
-    // Unban member handler
     const handleUnbanMember = async (id) => {
         await unbanMember(id, token);
         setActionMemberId(null);
         getAllMembers();
     };
 
-    // Remove member handler
     const handleRemoveMember = async (id) => {
         if (!removeReason) return;
         await removeMember(id, removeReason, removeReviewTime, token);
@@ -97,12 +100,46 @@ const AdminDash = () => {
         getAllMembers();
     };
 
-    // Edit member handler
     const handleEditMember = async (id) => {
         await updateMemberByAdmin(id, editFields, token);
         setEditMember(null);
         setEditFields({ department: "", designation: "", LpuId: "" });
         getAllMembers();
+    };
+
+    // Event actions
+    const handleCreateEvent = async () => {
+        await createEvent(eventFields);
+        setShowCreateEvent(false);
+        setEventFields({ title: "", date: "", location: "", description: "", status: "" });
+        getAllEvents();
+    };
+
+    const handleEditEvent = async () => {
+        await updateEvent(editEventId, eventFields);
+        setShowEditEvent(false);
+        setEditEventId(null);
+        setEventFields({ title: "", date: "", location: "", description: "", status: "" });
+        getAllEvents();
+    };
+
+    const handleDeleteEvent = async (id) => {
+        await deleteEvent(id);
+        getAllEvents();
+        if (selectedEventId === id) setSelectedEventId(null);
+    };
+
+    // Fill event fields for edit
+    const openEditEvent = (event) => {
+        setEditEventId(event._id);
+        setEventFields({
+            title: event.title || "",
+            date: event.date ? new Date(event.date).toISOString().slice(0, 16) : "",
+            location: event.location || "",
+            description: event.description || "",
+            status: event.status || ""
+        });
+        setShowEditEvent(true);
     };
 
     return (
@@ -414,7 +451,15 @@ const AdminDash = () => {
                 </div>
                 {/* Events and Tickets */}
                 <div className="p-6">
-                    <h2 className="text-lg font-bold text-white mb-4">Events</h2>
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-lg font-bold text-white">Events</h2>
+                        <button
+                            className="flex items-center gap-2 px-3 py-1 rounded bg-blue-700 text-white hover:bg-blue-800"
+                            onClick={() => setShowCreateEvent(true)}
+                        >
+                            <Plus className="h-4 w-4" /> Add Event
+                        </button>
+                    </div>
                     {eventsLoading ? (
                         <div className="text-gray-400">Loading events...</div>
                     ) : eventsError ? (
@@ -434,8 +479,143 @@ const AdminDash = () => {
                                     <div className="text-gray-400 text-xs">{event.status}</div>
                                     <div className="text-gray-400 text-xs">{event.location || "No location"}</div>
                                     <div className="text-gray-400 text-xs">{event.description || ""}</div>
+                                    <div className="flex gap-2 mt-2">
+                                        <button
+                                            className="px-2 py-1 bg-blue-700 text-white rounded flex items-center gap-1"
+                                            onClick={e => { e.stopPropagation(); openEditEvent(event); }}
+                                            title="Edit"
+                                        >
+                                            <Edit className="h-4 w-4" />
+                                        </button>
+                                        <button
+                                            className="px-2 py-1 bg-red-700 text-white rounded flex items-center gap-1"
+                                            onClick={e => { e.stopPropagation(); handleDeleteEvent(event._id); }}
+                                            title="Delete"
+                                            disabled={deleteLoading}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
+                        </div>
+                    )}
+                    {/* Create Event Modal */}
+                    {showCreateEvent && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                                <h3 className="text-lg font-bold mb-2">Create Event</h3>
+                                <input
+                                    type="text"
+                                    className="w-full mb-2 p-2 border rounded"
+                                    placeholder="Title"
+                                    value={eventFields.title}
+                                    onChange={e => setEventFields({ ...eventFields, title: e.target.value })}
+                                />
+                                <input
+                                    type="datetime-local"
+                                    className="w-full mb-2 p-2 border rounded"
+                                    placeholder="Date"
+                                    value={eventFields.date}
+                                    onChange={e => setEventFields({ ...eventFields, date: e.target.value })}
+                                />
+                                <input
+                                    type="text"
+                                    className="w-full mb-2 p-2 border rounded"
+                                    placeholder="Location"
+                                    value={eventFields.location}
+                                    onChange={e => setEventFields({ ...eventFields, location: e.target.value })}
+                                />
+                                <input
+                                    type="text"
+                                    className="w-full mb-2 p-2 border rounded"
+                                    placeholder="Description"
+                                    value={eventFields.description}
+                                    onChange={e => setEventFields({ ...eventFields, description: e.target.value })}
+                                />
+                                <input
+                                    type="text"
+                                    className="w-full mb-2 p-2 border rounded"
+                                    placeholder="Status"
+                                    value={eventFields.status}
+                                    onChange={e => setEventFields({ ...eventFields, status: e.target.value })}
+                                />
+                                <div className="flex gap-2 mt-2">
+                                    <button
+                                        className="px-4 py-2 bg-blue-700 text-white rounded"
+                                        onClick={handleCreateEvent}
+                                        disabled={createLoading}
+                                    >
+                                        {createLoading ? "Creating..." : "Create"}
+                                    </button>
+                                    <button
+                                        className="px-4 py-2 bg-gray-300 text-black rounded"
+                                        onClick={() => { setShowCreateEvent(false); setEventFields({ title: "", date: "", location: "", description: "", status: "" }); resetCreate(); }}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                                {createError && <div className="text-red-500 mt-2">{createError}</div>}
+                            </div>
+                        </div>
+                    )}
+                    {/* Edit Event Modal */}
+                    {showEditEvent && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                                <h3 className="text-lg font-bold mb-2">Edit Event</h3>
+                                <input
+                                    type="text"
+                                    className="w-full mb-2 p-2 border rounded"
+                                    placeholder="Title"
+                                    value={eventFields.title}
+                                    onChange={e => setEventFields({ ...eventFields, title: e.target.value })}
+                                />
+                                <input
+                                    type="datetime-local"
+                                    className="w-full mb-2 p-2 border rounded"
+                                    placeholder="Date"
+                                    value={eventFields.date}
+                                    onChange={e => setEventFields({ ...eventFields, date: e.target.value })}
+                                />
+                                <input
+                                    type="text"
+                                    className="w-full mb-2 p-2 border rounded"
+                                    placeholder="Location"
+                                    value={eventFields.location}
+                                    onChange={e => setEventFields({ ...eventFields, location: e.target.value })}
+                                />
+                                <input
+                                    type="text"
+                                    className="w-full mb-2 p-2 border rounded"
+                                    placeholder="Description"
+                                    value={eventFields.description}
+                                    onChange={e => setEventFields({ ...eventFields, description: e.target.value })}
+                                />
+                                <input
+                                    type="text"
+                                    className="w-full mb-2 p-2 border rounded"
+                                    placeholder="Status"
+                                    value={eventFields.status}
+                                    onChange={e => setEventFields({ ...eventFields, status: e.target.value })}
+                                />
+                                <div className="flex gap-2 mt-2">
+                                    <button
+                                        className="px-4 py-2 bg-blue-700 text-white rounded"
+                                        onClick={handleEditEvent}
+                                        disabled={updateEventLoading}
+                                    >
+                                        {updateEventLoading ? "Updating..." : "Update"}
+                                    </button>
+                                    <button
+                                        className="px-4 py-2 bg-gray-300 text-black rounded"
+                                        onClick={() => { setShowEditEvent(false); setEditEventId(null); setEventFields({ title: "", date: "", location: "", description: "", status: "" }); resetUpdateEvent(); }}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                                {updateEventError && <div className="text-red-500 mt-2">{updateEventError}</div>}
+                            </div>
                         </div>
                     )}
                 </div>
