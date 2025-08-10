@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth.js';
 import { publicClient } from '../services/api.js';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Logo from '../assets/logo.png';
 
 // Reusable Components
@@ -526,6 +526,7 @@ const AuthPage = () => {
     login: {},
     register: {}
   });
+  const navigate = useNavigate();
 
   const initialRegisterState = {
     fullName: '',
@@ -544,52 +545,57 @@ const AuthPage = () => {
   const [registerData, setRegisterData] = useState(initialRegisterState);
   const containerRef = useRef(null);
   const [bgShapes, setBgShapes] = useState([]);
+  const [bgError, setBgError] = useState('');
 
   // Floating particles background
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
+    try {
+      const container = containerRef.current;
+      if (!container) return;
 
-    const particles = [];
-    const colors = ['#2563eb', '#0ea5e9', '#3b82f6', '#60a5fa'];
+      const particles = [];
+      const colors = ['#2563eb', '#0ea5e9', '#3b82f6', '#60a5fa'];
 
-    // Create particles
-    for (let i = 0; i < 30; i++) {
-      const particle = document.createElement('div');
-      particle.className = 'absolute rounded-full';
-      const size = Math.random() * 8 + 3;
-      particle.style.width = `${size}px`;
-      particle.style.height = `${size}px`;
-      const color = colors[Math.floor(Math.random() * colors.length)];
-      particle.style.background = color;
-      particle.style.boxShadow = `0 0 10px ${color}, 0 0 20px ${color}`;
-      particle.style.left = `${Math.random() * 100}%`;
-      particle.style.top = `${Math.random() * 100}%`;
-      particle.style.opacity = `${Math.random() * 0.4 + 0.1}`;
-      container.appendChild(particle);
-      particles.push(particle);
+      // Create particles
+      for (let i = 0; i < 30; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'absolute rounded-full';
+        const size = Math.random() * 8 + 3;
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        particle.style.background = color;
+        particle.style.boxShadow = `0 0 10px ${color}, 0 0 20px ${color}`;
+        particle.style.left = `${Math.random() * 100}%`;
+        particle.style.top = `${Math.random() * 100}%`;
+        particle.style.opacity = `${Math.random() * 0.4 + 0.1}`;
+        container.appendChild(particle);
+        particles.push(particle);
 
-      // Animate particles
-      const duration = 8000 + Math.random() * 8000;
-      particle.animate(
-        [
-          { transform: 'translate(0, 0)' },
+        // Animate particles
+        const duration = 8000 + Math.random() * 8000;
+        particle.animate(
+          [
+            { transform: 'translate(0, 0)' },
+            {
+              transform: `translate(${Math.random() * 200 - 100}px, ${Math.random() * 200 - 100}px)`,
+            },
+            { transform: 'translate(0, 0)' },
+          ],
           {
-            transform: `translate(${Math.random() * 200 - 100}px, ${Math.random() * 200 - 100}px)`,
-          },
-          { transform: 'translate(0, 0)' },
-        ],
-        {
-          duration,
-          iterations: Infinity,
-          easing: 'ease-in-out',
-        }
-      );
-    }
+            duration,
+            iterations: Infinity,
+            easing: 'ease-in-out',
+          }
+        );
+      }
 
-    return () => {
-      particles.forEach((p) => p.remove());
-    };
+      return () => {
+        particles.forEach((p) => p.remove());
+      };
+    } catch (err) {
+      setBgError('Background animation failed to load.');
+    }
   }, []);
 
   useEffect(() => {
@@ -692,9 +698,8 @@ const AuthPage = () => {
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setLoginError('');
-    
     if (!validateLogin()) return;
-    
+
     setLoginLoading(true);
 
     try {
@@ -702,8 +707,15 @@ const AuthPage = () => {
         identifier: loginData.identifier,
         password: loginData.password,
       });
+
+      setTimeout(() => {
+        navigate('/member/dashboard', { replace: true });
+      }, 1200);
     } catch (err) {
-      setLoginError(err.message || 'Invalid credentials. Please try again.');
+      let errorMsg = 'Invalid credentials. Please try again.';
+      if (err?.response?.data?.message) errorMsg = err.response.data.message;
+      else if (err?.message) errorMsg = err.message;
+      setLoginError(errorMsg);
     } finally {
       setLoginLoading(false);
     }
@@ -731,9 +743,8 @@ const AuthPage = () => {
     e.preventDefault();
     setRegisterError('');
     setRegisterSuccess('');
-    
     if (!validateRegister()) return;
-    
+
     setRegisterLoading(true);
 
     try {
@@ -745,10 +756,10 @@ const AuthPage = () => {
       setRegisterSuccess('Registration successful! We will contact you soon.');
       setRegisterData(initialRegisterState);
     } catch (err) {
-      const errorMessage = err?.response?.data?.message || 
-                           err.message || 
-                           'Registration failed. Please check your details or try again.';
-      setRegisterError(errorMessage);
+      let errorMsg = 'Registration failed. Please check your details or try again.';
+      if (err?.response?.data?.message) errorMsg = err.response.data.message;
+      else if (err?.message) errorMsg = err.message;
+      setRegisterError(errorMsg);
     } finally {
       setRegisterLoading(false);
     }
@@ -757,7 +768,7 @@ const AuthPage = () => {
   const handlePasswordReset = async (e) => {
     e.preventDefault();
     setResetStatus({ message: '', error: false });
-    
+
     if (!resetEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(resetEmail)) {
       setResetStatus({
         message: 'Please enter a valid email address',
@@ -776,11 +787,11 @@ const AuthPage = () => {
       });
       setResetEmail('');
     } catch (err) {
-      const errorMessage = err?.response?.data?.message || 
-                           err.message || 
-                           'Failed to send reset email. Please try again.';
+      let errorMsg = 'Failed to send reset email. Please try again.';
+      if (err?.response?.data?.message) errorMsg = err.response.data.message;
+      else if (err?.message) errorMsg = err.message;
       setResetStatus({
-        message: errorMessage,
+        message: errorMsg,
         error: true,
       });
     } finally {
@@ -795,6 +806,11 @@ const AuthPage = () => {
         ref={containerRef}
         className="absolute inset-0 w-full h-full z-0 overflow-hidden pointer-events-none"
       />
+      {bgError && (
+        <div className="absolute top-2 left-2 bg-red-900/80 text-red-300 px-4 py-2 rounded-lg z-50">
+          {bgError}
+        </div>
+      )}
 
       <div className="absolute inset-0 z-0">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-blue-500/10 blur-3xl animate-pulse-slow" />
