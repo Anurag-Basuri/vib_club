@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { User, Users, Mail, LogOut, ShieldCheck, Ticket, CalendarDays, Info, Star, Ban, Undo2, Trash2, Edit, Plus, X, Save } from "lucide-react";
+import { User, Users, LogOut, ShieldCheck, Ticket, CalendarDays, Info, Ban, Undo2, Trash2, Edit, Plus, BadgeCheck, Clock } from "lucide-react";
 import { useAuth } from "../hooks/useAuth.js";
 import {
     useGetAllMembers,
@@ -16,7 +16,7 @@ import {
     useUpdateEvent,
     useDeleteEvent
 } from "../hooks/useEvents.js";
-import { useGetTicketsByEvent } from "../hooks/useTickets.js";
+import { useGetTicketsByEvent, useGetTicketById, useUpdateTicketStatus, useDeleteTicket } from "../hooks/useTickets.js";
 
 const AdminDash = () => {
     const { user, loading: authLoading, logoutAdmin, token } = useAuth();
@@ -37,6 +37,9 @@ const AdminDash = () => {
 
     // Tickets
     const { getTicketsByEvent, tickets, loading: ticketsLoading, error: ticketsError, reset: resetTickets } = useGetTicketsByEvent();
+    const { getTicketById, ticket, loading: ticketLoading, error: ticketError, reset: resetTicket } = useGetTicketById();
+    const { updateTicketStatus, ticket: updatedTicket, loading: updateTicketLoading, error: updateTicketError, reset: resetUpdateTicket } = useUpdateTicketStatus();
+    const { deleteTicket, loading: deleteTicketLoading, error: deleteTicketError, reset: resetDeleteTicket } = useDeleteTicket();
 
     // UI State
     const [selectedEventId, setSelectedEventId] = useState(null);
@@ -54,79 +57,158 @@ const AdminDash = () => {
     const [eventFields, setEventFields] = useState({ title: "", date: "", location: "", description: "", status: "" });
     const [editEventId, setEditEventId] = useState(null);
 
+    // Error state for dashboard
+    const [dashboardError, setDashboardError] = useState("");
+
+    // New state for upcoming events and their tickets
+    const [upcomingEvents, setUpcomingEvents] = useState([]);
+    const [upcomingTickets, setUpcomingTickets] = useState({});
+    const [loadingUpcoming, setLoadingUpcoming] = useState(false);
+    const [errorUpcoming, setErrorUpcoming] = useState("");
+
     useEffect(() => {
-        getAllMembers();
-        getLeaders();
-        getAllEvents();
+        const fetchAll = async () => {
+            try {
+                await Promise.all([getAllMembers(), getLeaders(), getAllEvents()]);
+            } catch (err) {
+                setDashboardError(err?.message || "Failed to fetch dashboard data.");
+            }
+        };
+        fetchAll();
     }, []);
 
     useEffect(() => {
         if (selectedEventId) {
-            getTicketsByEvent(selectedEventId, token);
+            getTicketsByEvent(selectedEventId, token).catch(err => setDashboardError(err?.message || "Failed to fetch tickets."));
+        } else {
+            resetTickets();
         }
     }, [selectedEventId, token]);
+
+    // Helper: Get upcoming events (status === "upcoming" or date in future)
+    useEffect(() => {
+        if (!events || events.length === 0) return;
+        const now = new Date();
+        const filtered = events.filter(ev =>
+            (ev.status && ev.status.toLowerCase() === "upcoming") ||
+            (ev.date && new Date(ev.date) > now)
+        );
+        setUpcomingEvents(filtered);
+    }, [events]);
+
+    // Fetch tickets for all upcoming events
+    useEffect(() => {
+        const fetchTicketsForUpcoming = async () => {
+            setLoadingUpcoming(true);
+            setErrorUpcoming("");
+            let ticketsMap = {};
+            try {
+                for (const ev of upcomingEvents) {
+                    // Use the hook to fetch tickets for each event
+                    const res = await getTicketsByEvent(ev._id, token);
+                    ticketsMap[ev._id] = res || [];
+                }
+                setUpcomingTickets(ticketsMap);
+            } catch (err) {
+                setErrorUpcoming(err?.message || "Failed to fetch upcoming tickets.");
+            } finally {
+                setLoadingUpcoming(false);
+            }
+        };
+        if (upcomingEvents.length > 0) fetchTicketsForUpcoming();
+        else setUpcomingTickets({});
+        // eslint-disable-next-line
+    }, [upcomingEvents, token]);
 
     const handleLogout = async () => {
         try {
             await logoutAdmin();
             window.location.href = '/admin/auth';
         } catch (error) {
-            console.error("Logout failed:", error);
+            setDashboardError(error?.message || "Logout failed.");
         }
     };
 
     // Member actions
     const handleBanMember = async (id) => {
         if (!banReason) return;
-        await banMember(id, banReason, banReviewTime, token);
-        setBanReason("");
-        setBanReviewTime("");
-        setActionMemberId(null);
-        getAllMembers();
+        try {
+            await banMember(id, banReason, banReviewTime, token);
+            setBanReason("");
+            setBanReviewTime("");
+            setActionMemberId(null);
+            await getAllMembers();
+        } catch (err) {
+            setDashboardError(err?.message || "Ban failed.");
+        }
     };
 
     const handleUnbanMember = async (id) => {
-        await unbanMember(id, token);
-        setActionMemberId(null);
-        getAllMembers();
+        try {
+            await unbanMember(id, token);
+            setActionMemberId(null);
+            await getAllMembers();
+        } catch (err) {
+            setDashboardError(err?.message || "Unban failed.");
+        }
     };
 
     const handleRemoveMember = async (id) => {
         if (!removeReason) return;
-        await removeMember(id, removeReason, removeReviewTime, token);
-        setRemoveReason("");
-        setRemoveReviewTime("");
-        setActionMemberId(null);
-        getAllMembers();
+        try {
+            await removeMember(id, removeReason, removeReviewTime, token);
+            setRemoveReason("");
+            setRemoveReviewTime("");
+            setActionMemberId(null);
+            await getAllMembers();
+        } catch (err) {
+            setDashboardError(err?.message || "Remove failed.");
+        }
     };
 
     const handleEditMember = async (id) => {
-        await updateMemberByAdmin(id, editFields, token);
-        setEditMember(null);
-        setEditFields({ department: "", designation: "", LpuId: "" });
-        getAllMembers();
+        try {
+            await updateMemberByAdmin(id, editFields, token);
+            setEditMember(null);
+            setEditFields({ department: "", designation: "", LpuId: "" });
+            await getAllMembers();
+        } catch (err) {
+            setDashboardError(err?.message || "Update failed.");
+        }
     };
 
     // Event actions
     const handleCreateEvent = async () => {
-        await createEvent(eventFields);
-        setShowCreateEvent(false);
-        setEventFields({ title: "", date: "", location: "", description: "", status: "" });
-        getAllEvents();
+        try {
+            await createEvent(eventFields);
+            setShowCreateEvent(false);
+            setEventFields({ title: "", date: "", location: "", description: "", status: "" });
+            await getAllEvents();
+        } catch (err) {
+            setDashboardError(err?.message || "Create event failed.");
+        }
     };
 
     const handleEditEvent = async () => {
-        await updateEvent(editEventId, eventFields);
-        setShowEditEvent(false);
-        setEditEventId(null);
-        setEventFields({ title: "", date: "", location: "", description: "", status: "" });
-        getAllEvents();
+        try {
+            await updateEvent(editEventId, eventFields);
+            setShowEditEvent(false);
+            setEditEventId(null);
+            setEventFields({ title: "", date: "", location: "", description: "", status: "" });
+            await getAllEvents();
+        } catch (err) {
+            setDashboardError(err?.message || "Update event failed.");
+        }
     };
 
     const handleDeleteEvent = async (id) => {
-        await deleteEvent(id);
-        getAllEvents();
-        if (selectedEventId === id) setSelectedEventId(null);
+        try {
+            await deleteEvent(id);
+            await getAllEvents();
+            if (selectedEventId === id) setSelectedEventId(null);
+        } catch (err) {
+            setDashboardError(err?.message || "Delete event failed.");
+        }
     };
 
     // Fill event fields for edit
@@ -141,6 +223,20 @@ const AdminDash = () => {
         });
         setShowEditEvent(true);
     };
+
+    // Utility for error display
+    const renderError = (error) => error && (
+        <div className="text-red-500 text-sm mb-2">{error}</div>
+    );
+
+    if (authLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen bg-white">
+                <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4" />
+                <span className="text-lg font-semibold text-blue-600 animate-pulse">Loading...</span>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-[#0f172a] to-[#1e293b] flex flex-col items-center py-8 px-4 sm:px-6">
@@ -164,6 +260,7 @@ const AdminDash = () => {
                         Logout
                     </button>
                 </div>
+                {dashboardError && renderError(dashboardError)}
                 {/* Stats & User Info */}
                 <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* User Info */}
@@ -218,10 +315,9 @@ const AdminDash = () => {
                 {/* Members List with Actions */}
                 <div className="p-6">
                     <h2 className="text-lg font-bold text-white mb-4">All Members</h2>
+                    {renderError(membersError)}
                     {membersLoading ? (
                         <div className="text-gray-400">Loading members...</div>
-                    ) : membersError ? (
-                        <div className="text-red-400">{membersError}</div>
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="min-w-full bg-white/10 rounded-lg">
@@ -326,7 +422,7 @@ const AdminDash = () => {
                                         Cancel
                                     </button>
                                 </div>
-                                {banError && <div className="text-red-500 mt-2">{banError}</div>}
+                                {renderError(banError)}
                             </div>
                         </div>
                     )}
@@ -364,7 +460,7 @@ const AdminDash = () => {
                                         Cancel
                                     </button>
                                 </div>
-                                {removeError && <div className="text-red-500 mt-2">{removeError}</div>}
+                                {renderError(removeError)}
                             </div>
                         </div>
                     )}
@@ -409,7 +505,7 @@ const AdminDash = () => {
                                         Cancel
                                     </button>
                                 </div>
-                                {updateError && <div className="text-red-500 mt-2">{updateError}</div>}
+                                {renderError(updateError)}
                             </div>
                         </div>
                     )}
@@ -417,10 +513,9 @@ const AdminDash = () => {
                 {/* Leaders List */}
                 <div className="p-6">
                     <h2 className="text-lg font-bold text-white mb-4">Leaders</h2>
+                    {renderError(leadersError)}
                     {leadersLoading ? (
                         <div className="text-gray-400">Loading leaders...</div>
-                    ) : leadersError ? (
-                        <div className="text-red-400">{leadersError}</div>
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="min-w-full bg-white/10 rounded-lg">
@@ -460,10 +555,9 @@ const AdminDash = () => {
                             <Plus className="h-4 w-4" /> Add Event
                         </button>
                     </div>
+                    {renderError(eventsError)}
                     {eventsLoading ? (
                         <div className="text-gray-400">Loading events...</div>
-                    ) : eventsError ? (
-                        <div className="text-red-400">{eventsError}</div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {events.map(event => (
@@ -555,7 +649,7 @@ const AdminDash = () => {
                                         Cancel
                                     </button>
                                 </div>
-                                {createError && <div className="text-red-500 mt-2">{createError}</div>}
+                                {renderError(createError)}
                             </div>
                         </div>
                     )}
@@ -614,8 +708,74 @@ const AdminDash = () => {
                                         Cancel
                                     </button>
                                 </div>
-                                {updateEventError && <div className="text-red-500 mt-2">{updateEventError}</div>}
+                                {renderError(updateEventError)}
                             </div>
+                        </div>
+                    )}
+                </div>
+                {/* Upcoming Events & Tickets Section */}
+                <div className="p-6">
+                    <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                        <Clock className="h-5 w-5 text-cyan-400" />
+                        Upcoming Events & Tickets
+                    </h2>
+                    {loadingUpcoming ? (
+                        <div className="text-gray-400">Loading upcoming events and tickets...</div>
+                    ) : errorUpcoming ? (
+                        <div className="text-red-400">{errorUpcoming}</div>
+                    ) : upcomingEvents.length === 0 ? (
+                        <div className="text-gray-400">No upcoming events found.</div>
+                    ) : (
+                        <div className="space-y-8">
+                            {upcomingEvents.map(ev => (
+                                <div key={ev._id} className="bg-white/10 rounded-xl p-4 shadow">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <BadgeCheck className="h-5 w-5 text-green-400" />
+                                        <span className="font-semibold text-white text-lg">{ev.title}</span>
+                                        <span className="ml-auto text-xs text-gray-300">
+                                            {ev.date ? new Date(ev.date).toLocaleString() : ""}
+                                        </span>
+                                    </div>
+                                    <div className="text-gray-400 text-sm mb-2">
+                                        {ev.location && <span className="mr-4">Location: {ev.location}</span>}
+                                        {ev.status && <span>Status: {ev.status}</span>}
+                                    </div>
+                                    <div className="text-gray-300 text-xs mb-2">{ev.description}</div>
+                                    <div>
+                                        <span className="font-medium text-white">Tickets:</span>
+                                        {upcomingTickets[ev._id] && upcomingTickets[ev._id].length > 0 ? (
+                                            <div className="overflow-x-auto mt-2">
+                                                <table className="min-w-full bg-white/10 rounded-lg">
+                                                    <thead>
+                                                        <tr>
+                                                            <th className="px-3 py-2 text-left text-white">Ticket ID</th>
+                                                            <th className="px-3 py-2 text-left text-white">Member</th>
+                                                            <th className="px-3 py-2 text-left text-white">Status</th>
+                                                            <th className="px-3 py-2 text-left text-white">Created</th>
+                                                            <th className="px-3 py-2 text-left text-white">Info</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {upcomingTickets[ev._id].map(ticket => (
+                                                            <tr key={ticket._id} className="border-b border-white/10">
+                                                                <td className="px-3 py-2 text-gray-200">{ticket._id}</td>
+                                                                <td className="px-3 py-2 text-gray-200">{ticket.member?.fullname || "N/A"}</td>
+                                                                <td className="px-3 py-2 text-gray-200">{ticket.status}</td>
+                                                                <td className="px-3 py-2 text-gray-200">{ticket.createdAt ? new Date(ticket.createdAt).toLocaleString() : ""}</td>
+                                                                <td className="px-3 py-2 text-gray-200">
+                                                                    <Info className="inline h-4 w-4 text-blue-400" title={ticket.description || "No info"} />
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        ) : (
+                                            <div className="text-gray-400 mt-2">No tickets for this event.</div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     )}
                 </div>
@@ -623,10 +783,9 @@ const AdminDash = () => {
                 {selectedEventId && (
                     <div className="p-6">
                         <h2 className="text-lg font-bold text-white mb-4">Tickets for Selected Event</h2>
+                        {renderError(ticketsError)}
                         {ticketsLoading ? (
                             <div className="text-gray-400">Loading tickets...</div>
-                        ) : ticketsError ? (
-                            <div className="text-red-400">{ticketsError}</div>
                         ) : (
                             <div className="overflow-x-auto">
                                 <table className="min-w-full bg-white/10 rounded-lg">
