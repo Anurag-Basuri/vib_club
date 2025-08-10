@@ -59,6 +59,7 @@ import TicketTable from '../components/admin/TicketTable.jsx';
 import TicketStatusDistribution from '../components/admin/TicketStatusDistribution.jsx';
 import EventModal from '../components/admin/EventModal.jsx';
 import EditMemberModal from '../components/admin/EditMemberModal.jsx';
+import CreateTicket from '../components/admin/createTicket.jsx';
 
 // Main Admin Dashboard Component
 const AdminDash = () => {
@@ -150,6 +151,7 @@ const AdminDash = () => {
 		sort: 'newest',
 	});
 	const [expandedEvents, setExpandedEvents] = useState({});
+	const [showCreateTicketModal, setShowCreateTicketModal] = useState(false);
 
 	// Ticket status distribution
 	const ticketStatusCount = tickets.reduce((acc, ticket) => {
@@ -382,6 +384,14 @@ const AdminDash = () => {
 							<User className="h-5 w-5 text-blue-300" />
 							<span className="text-white">{user?.fullname || 'Admin'}</span>
 						</div>
+						{/* Create Ticket Button (opens modal) */}
+						<button
+							onClick={() => setShowCreateTicketModal(true)}
+							className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-700/80 text-white hover:bg-blue-600 transition"
+						>
+							<Ticket className="h-5 w-5" />
+							Create Ticket
+						</button>
 						<button
 							onClick={handleLogout}
 							className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-700/80 text-white hover:bg-red-600 transition"
@@ -624,8 +634,24 @@ const AdminDash = () => {
 							)}
 						</div>
 					)}
+
+					{/* Create Ticket Tab */}
+					{activeTab === 'create-ticket' && (
+						<CreateTicket />
+					)}
 				</div>
 			</motion.div>
+
+			{/* Create Ticket Modal */}
+			{showCreateTicketModal && (
+				<Modal
+					title="Create Ticket"
+					onClose={() => setShowCreateTicketModal(false)}
+					size="lg"
+				>
+					<CreateTicket />
+				</Modal>
+			)}
 
 			{/* Modals */}
 			{showCreateEvent && (

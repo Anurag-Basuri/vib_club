@@ -36,9 +36,7 @@ router.post(
         body('eventName').notEmpty().withMessage('Event name is required'),
         body('gender').notEmpty().withMessage('Gender is required'),
         body('hosteler').notEmpty().withMessage('Hosteler status is required'),
-        body('hostel').notEmpty().withMessage('Hostel name is required'),
         body('course').notEmpty().withMessage('Course name is required'),
-        body('club').notEmpty().withMessage('Club name is required')
     ]),
     createTicket
 );
