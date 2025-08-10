@@ -45,75 +45,11 @@ import {
 	useUpdateTicketStatus,
 	useDeleteTicket,
 } from '../hooks/useTickets.js';
-
-// Reusable Components
-const LoadingSpinner = () => (
-	<div className="flex justify-center py-8">
-		<div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-	</div>
-);
-
-const ErrorMessage = ({ error }) =>
-	error && (
-		<div className="bg-red-500/20 border border-red-500/50 text-red-200 rounded-lg p-3 mb-4">
-			{error}
-		</div>
-	);
-
-const StatusBadge = ({ status }) => {
-	const statusColors = {
-		active: 'bg-green-500/20 text-green-400',
-		banned: 'bg-red-500/20 text-red-400',
-		pending: 'bg-yellow-500/20 text-yellow-400',
-		completed: 'bg-blue-500/20 text-blue-400',
-		upcoming: 'bg-purple-500/20 text-purple-400',
-	};
-
-	return (
-		<span
-			className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[status] || 'bg-gray-500/20'}`}
-		>
-			{status}
-		</span>
-	);
-};
-
-const ActionButton = ({ onClick, icon: Icon, label, color = 'blue', disabled = false }) => (
-	<button
-		onClick={onClick}
-		disabled={disabled}
-		className={`flex items-center gap-1 px-3 py-2 rounded-lg ${
-			color === 'red'
-				? 'bg-red-600 hover:bg-red-700'
-				: color === 'green'
-					? 'bg-green-600 hover:bg-green-700'
-					: color === 'yellow'
-						? 'bg-yellow-600 hover:bg-yellow-700'
-						: 'bg-blue-600 hover:bg-blue-700'
-		} transition ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-	>
-		<Icon className="h-4 w-4" />
-		<span>{label}</span>
-	</button>
-);
-
-const Modal = ({ children, title, onClose, width = 'max-w-md' }) => (
-	<div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-		<motion.div
-			className={`bg-gray-800 rounded-xl p-6 w-full ${width} border border-gray-700 shadow-2xl`}
-			initial={{ opacity: 0, y: 20 }}
-			animate={{ opacity: 1, y: 0 }}
-		>
-			<div className="flex justify-between items-center mb-4">
-				<h3 className="text-xl font-bold text-white">{title}</h3>
-				<button onClick={onClose} className="text-gray-400 hover:text-white">
-					&times;
-				</button>
-			</div>
-			{children}
-		</motion.div>
-	</div>
-);
+import LoadingSpinner from '../components/LoadingSpinner.js';
+import ErrorMessage from '../components/ErrorMessage.js';
+import StatusBadge from '../components/StatusBadge.js';
+import Modal from '../components/Modal.js';
+import MembersTable from '../components/MembersTable.js';
 
 // Main Admin Dashboard Component
 const AdminDash = () => {
@@ -665,153 +601,19 @@ const AdminDash = () => {
 					{/* Members Tab */}
 					{activeTab === 'members' && (
 						<div className="space-y-6">
-							<div className="flex flex-col md:flex-row justify-between gap-4">
-								<div className="relative w-full md:w-64">
-									<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-									<input
-										type="text"
-										placeholder="Search members..."
-										className="w-full pl-10 pr-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-										value={searchTerm}
-										onChange={(e) => setSearchTerm(e.target.value)}
-									/>
-								</div>
-
-								<div className="flex gap-2">
-									<button
-										className="px-4 py-2 bg-gray-700/50 hover:bg-gray-600 rounded-lg flex items-center gap-2"
-										onClick={() => getAllMembers()}
-									>
-										<RefreshCw className="h-4 w-4" />
-										Refresh
-									</button>
-								</div>
-							</div>
-
-							<ErrorMessage error={membersError} />
-
-							{membersLoading ? (
-								<LoadingSpinner />
-							) : (
-								<div className="overflow-x-auto rounded-xl border border-gray-700">
-									<table className="min-w-full">
-										<thead className="bg-gray-700/80">
-											<tr>
-												<th className="px-4 py-3 text-left text-gray-300 font-medium">
-													Member
-												</th>
-												<th className="px-4 py-3 text-left text-gray-300 font-medium">
-													LPU ID
-												</th>
-												<th className="px-4 py-3 text-left text-gray-300 font-medium">
-													Department
-												</th>
-												<th className="px-4 py-3 text-left text-gray-300 font-medium">
-													Status
-												</th>
-												<th className="px-4 py-3 text-left text-gray-300 font-medium">
-													Actions
-												</th>
-											</tr>
-										</thead>
-										<tbody className="divide-y divide-gray-700">
-											{filteredMembers.map((member) => (
-												<tr
-													key={member._id}
-													className="hover:bg-gray-800/50 transition"
-												>
-													<td className="px-4 py-3">
-														<div className="font-medium text-white">
-															{member.fullname}
-														</div>
-														<div className="text-gray-400 text-sm">
-															{member.email}
-														</div>
-													</td>
-													<td className="px-4 py-3 text-gray-300">
-														{member.LpuId}
-													</td>
-													<td className="px-4 py-3 text-gray-300">
-														<div>{member.department}</div>
-														<div className="text-sm text-gray-500">
-															{member.designation}
-														</div>
-													</td>
-													<td className="px-4 py-3">
-														<StatusBadge status={member.status} />
-													</td>
-													<td className="px-4 py-3">
-														<div className="flex gap-2">
-															{member.status === 'active' && (
-																<>
-																	<button
-																		className="p-2 rounded-lg bg-yellow-600/50 hover:bg-yellow-600"
-																		onClick={() =>
-																			setActionMemberId(
-																				member._id
-																			)
-																		}
-																		title="Ban"
-																	>
-																		<Ban className="h-4 w-4" />
-																	</button>
-																	<button
-																		className="p-2 rounded-lg bg-red-600/50 hover:bg-red-600"
-																		onClick={() =>
-																			setActionMemberId(
-																				member._id +
-																					'-remove'
-																			)
-																		}
-																		title="Remove"
-																	>
-																		<Trash2 className="h-4 w-4" />
-																	</button>
-																</>
-															)}
-															{member.status === 'banned' && (
-																<button
-																	className="p-2 rounded-lg bg-green-600/50 hover:bg-green-600"
-																	onClick={() =>
-																		handleUnbanMember(
-																			member._id
-																		)
-																	}
-																	title="Unban"
-																>
-																	<Undo2 className="h-4 w-4" />
-																</button>
-															)}
-															<button
-																className="p-2 rounded-lg bg-blue-600/50 hover:bg-blue-600"
-																onClick={() => {
-																	setEditMember(member._id);
-																	setEditFields({
-																		department:
-																			member.department,
-																		designation:
-																			member.designation,
-																		LpuId: member.LpuId,
-																	});
-																}}
-																title="Edit"
-															>
-																<Edit className="h-4 w-4" />
-															</button>
-														</div>
-													</td>
-												</tr>
-											))}
-										</tbody>
-									</table>
-
-									{filteredMembers.length === 0 && (
-										<div className="text-center py-8 text-gray-400">
-											No members found
-										</div>
-									)}
-								</div>
-							)}
+							<MembersTable
+								members={members}
+								filteredMembers={filteredMembers}
+								membersLoading={membersLoading}
+								membersError={membersError}
+								searchTerm={searchTerm}
+								setSearchTerm={setSearchTerm}
+								getAllMembers={getAllMembers}
+								setActionMemberId={setActionMemberId}
+								handleUnbanMember={handleUnbanMember}
+								setEditMember={setEditMember}
+								setEditFields={setEditFields}
+							/>
 
 							{/* Leaders Section */}
 							<div className="mt-10">
