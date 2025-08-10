@@ -52,7 +52,7 @@ import Modal from '../components/admin/Modal.jsx';
 import MembersTable from '../components/admin/MembersTable.jsx';
 import LeadersSection from '../components/admin/LeadersSection.jsx';
 import DashboardStatsCards from '../components/admin/DashboardStatsCards.jsx';
-import UpcomingEventsSection from '../components/admin/UpcomingEventsSection.js';
+import UpcomingEventsSection from '../components/admin/UpcomingEventsSection.jsx';
 import RecentActivitySection from '../components/admin/RecentActivitySection.jsx';
 import EventCardList from '../components/admin/EventCardList.jsx';
 import TicketTable from '../components/admin/TicketTable.jsx';
