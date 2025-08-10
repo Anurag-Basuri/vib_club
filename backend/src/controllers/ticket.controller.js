@@ -10,87 +10,115 @@ import { deleteFile } from '../utils/cloudinary.js';
 
 // Create a new ticket
 const createTicket = asyncHandler(async (req, res) => {
-	const { fullName, email, lpuId, eventId, eventName, gender, hosteler, hostel, course } = req.body;
-
-	if (!fullName || !email || !lpuId || !eventId || !eventName || !gender || !hosteler || !hostel || !course) {
-		throw new ApiError(400, 'All fields are required');
-	}
-
-	const event = await Event.findById(eventId);
-	if (!event) {
-		throw new ApiError(404, 'Event not found');
-	}
-
-	// Check for duplicate ticket by email or lpuId for this event
-	const existingTicket = await Ticket.findOne({
-		eventId,
-		$or: [
-			{ email: email.trim().toLowerCase() },
-			{ lpuId: typeof lpuId === 'string' ? lpuId.trim() : lpuId },
-		],
-	});
-	if (existingTicket) {
-		throw new ApiError(409, 'You have already registered for this event');
-	}
-
-	const ticket = new Ticket({
-		ticketId: uuidv4(),
+	const {
 		fullName,
-		email: email.trim().toLowerCase(),
-		lpuId: typeof lpuId === 'string' ? lpuId.trim() : lpuId,
+		email,
+		phone,
+		lpuId,
 		eventId,
 		eventName,
 		gender,
 		hosteler,
 		hostel,
 		course,
-		isUsed: false,
-		isCancelled: false,
-	});
+		club,
+	} = req.body;
 
-	await ticket.save();
-
-	let qrCode;
-	try {
-		qrCode = await generateTicketQR(ticket.ticketId);
-
-		if (!qrCode || !qrCode.url || !qrCode.public_id) {
-			throw new Error('Invalid QR code generated');
-		}
-
-		ticket.qrCode = {
-			url: qrCode.url,
-			publicId: qrCode.public_id,
-		};
-
-		await ticket.save();
-	} catch (qrErr) {
-		// Cleanup: remove ticket and QR if QR failed
-		await Ticket.findByIdAndDelete(ticket._id);
-		if (qrCode?.public_id && qrCode.url) {
-			await deleteFile({ public_id: qrCode.public_id, resource_type: 'image' });
-		}
-		throw new ApiError(500, 'Failed to generate QR code for the ticket');
+	if (
+		!fullName ||
+		!email ||
+		!phone ||
+		!lpuId ||
+		!eventId ||
+		!eventName ||
+		!gender ||
+		!hosteler ||
+		!course
+	) {
+		throw new ApiError(400, 'All fields are required');
 	}
 
-	try {
-		await sendRegistrationEmail({
-			to: email.trim().toLowerCase(),
-			name: fullName,
-			eventName: eventName,
-			eventDate: event.date,
-			qrUrl: qrCode.url,
+	// Check if ticket already exists
+	let ticket = await Ticket.findOne({ email, eventId });
+	if (!ticket) {
+		// Create ticket and QR
+		ticket = new Ticket({
+			ticketId: uuidv4(),
+			fullName,
+			email,
+			lpuId,
+			phone,
+			gender,
+			hosteler,
+			hostel,
+			course,
+			eventId,
+			eventName,
+			isUsed: false,
+			isCancelled: false,
+			club,
 		});
-	} catch (emailErr) {
-		// Cleanup: delete ticket and QR if email fails
-		await Ticket.findByIdAndDelete(ticket._id);
-		if (qrCode?.public_id && qrCode.url) {
-			await deleteFile({ public_id: qrCode.public_id, resource_type: 'image' });
+		await ticket.save();
+
+		// Add ticket to event registrations
+		try {
+			await Event.findByIdAndUpdate(
+				eventId,
+				{ $addToSet: { registrations: ticket._id } },
+				{ new: true }
+			);
+		} catch (eventUpdateErr) {
+			console.error('Failed to add ticket to event registrations:', eventUpdateErr);
 		}
-		throw new ApiError(500, 'Failed to send registration email, ticket deleted');
+
+		let qrCode;
+		try {
+			qrCode = await generateTicketQR(ticket.ticketId);
+			if (!qrCode || !qrCode.url || !qrCode.public_id) {
+				throw new Error('Invalid QR code generated');
+			}
+			ticket.qrCode = {
+				url: qrCode.url,
+				publicId: qrCode.public_id,
+			};
+			await ticket.save();
+		} catch (qrErr) {
+			await Ticket.findByIdAndDelete(ticket._id);
+			if (qrCode?.public_id && qrCode.url) {
+				await deleteFile({ public_id: qrCode.public_id, resource_type: 'image' });
+			}
+			throw new ApiError(500, 'Failed to generate QR code for the ticket');
+		}
+
+		try {
+			await sendRegistrationEmail({
+				to: email,
+				name: fullName,
+				eventName,
+				eventDate: '22nd August 2025',
+				eventTime: '5:00 PM',
+				qrUrl: qrCode.url,
+			});
+		} catch (emailErr) {
+			await Ticket.findByIdAndDelete(ticket._id);
+			if (qrCode?.public_id && qrCode.url) {
+				await deleteFile({ public_id: qrCode.public_id, resource_type: 'image' });
+			}
+			throw new ApiError(500, 'Failed to send registration email, ticket deleted');
+		}
+	} else {
+		throw new ApiError(409, 'A ticket with this email already exists for this event');
 	}
 
-	return res.status(201).json(new ApiResponse(201, ticket, 'Ticket created successfully'));
+	return res
+		.status(201)
+		.json(
+			new ApiResponse(
+				201,
+				ticket,
+				'Ticket created successfully'
+			)
+		);
 });
 
 // Get ticket by ID
