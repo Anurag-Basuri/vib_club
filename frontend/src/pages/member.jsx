@@ -16,21 +16,10 @@ import {
 	X,
 	Copy,
 } from 'lucide-react';
+import { apiClient } from "../services/api.js";
 
 const MemberProfile = () => {
-	const [user, setUser] = useState({
-		name: 'Alex Johnson',
-		lpuId: 'LPU123456',
-		email: 'alex.johnson@example.com',
-		program: 'B.Tech Computer Science',
-		year: '3rd Year',
-		bio: 'Passionate about AI and machine learning. Currently working on a computer vision project.',
-		social: {
-			linkedin: 'https://linkedin.com/in/alexjohnson',
-			github: 'https://github.com/alexjohnson',
-		},
-	});
-
+	const [user, setUser] = useState({});
 	const [isEditing, setIsEditing] = useState(false);
 	const [showPasswordForm, setShowPasswordForm] = useState(false);
 	const [showUpload, setShowUpload] = useState(false);

@@ -45,20 +45,20 @@ import {
 	useUpdateTicketStatus,
 	useDeleteTicket,
 } from '../hooks/useTickets.js';
-import LoadingSpinner from '../components/LoadingSpinner.js';
-import ErrorMessage from '../components/ErrorMessage.js';
-import StatusBadge from '../components/StatusBadge.js';
-import Modal from '../components/Modal.js';
-import MembersTable from '../components/MembersTable.js';
-import LeadersSection from '../components/LeadersSection.js';
-import DashboardStatsCards from '../components/DashboardStatsCards.js';
-import UpcomingEventsSection from '../components/UpcomingEventsSection.js';
-import RecentActivitySection from '../components/RecentActivitySection.js';
-import EventCardList from '../components/EventCardList';
-import TicketTable from '../components/TicketTable';
-import TicketStatusDistribution from '../components/TicketStatusDistribution';
-import EventModal from '../components/EventModal';
-import EditMemberModal from '../components/EditMemberModal';
+import LoadingSpinner from '../components/admin/LoadingSpinner.jsx';
+import ErrorMessage from '../components/admin/ErrorMessage.jsx';
+import StatusBadge from '../components/admin/StatusBadge.jsx';
+import Modal from '../components/admin/Modal.jsx';
+import MembersTable from '../components/admin/MembersTable.jsx';
+import LeadersSection from '../components/admin/LeadersSection.jsx';
+import DashboardStatsCards from '../components/admin/DashboardStatsCards.jsx';
+import UpcomingEventsSection from '../components/admin/UpcomingEventsSection.js';
+import RecentActivitySection from '../components/admin/RecentActivitySection.jsx';
+import EventCardList from '../components/admin/EventCardList.jsx';
+import TicketTable from '../components/admin/TicketTable.jsx';
+import TicketStatusDistribution from '../components/admin/TicketStatusDistribution.jsx';
+import EventModal from '../components/admin/EventModal.jsx';
+import EditMemberModal from '../components/admin/EditMemberModal.jsx';
 
 // Main Admin Dashboard Component
 const AdminDash = () => {
