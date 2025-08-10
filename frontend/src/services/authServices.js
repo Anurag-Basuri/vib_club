@@ -49,9 +49,8 @@ export const memberLogin = async (data) => {
 
 export const memberLogout = async () => {
   try {
-    const { refreshToken } = getToken();
-    const response = await apiClient.post('/api/members/logout', { refreshToken });
-
+    console.log('Member logout successful');
+    const response = await apiClient.post('/api/members/logout');
     removeToken(); // Clear tokens on logout
     return response.data;
   } catch (error) {

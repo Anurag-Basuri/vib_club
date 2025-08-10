@@ -58,9 +58,8 @@ router.post(
 // Logout Member
 router.post(
     '/logout',
-    validate([
-        body('refreshToken').notEmpty().withMessage('Refresh token is required')
-    ]),
+    authMiddleware.verifyToken,
+    authMiddleware.isMember,
     logoutMember
 );
 

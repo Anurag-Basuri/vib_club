@@ -134,15 +134,11 @@ const unbanMember = asyncHandler(async (req, res) => {
 
 // Logout member
 const logoutMember = asyncHandler(async (req, res) => {
-    const { refreshToken } = req.body;
-    if (!refreshToken) {
-        return res.status(400).json(ApiResponse.badRequest('Refresh token is required'));
+    const member = req.member;
+    if (!member) {
+        return res.status(401).json(ApiResponse.unauthorized('Unauthorized access'));
     }
 
-    const member = await Member.findOne({ refreshToken });
-    if (!member) {
-        return res.status(404).json(ApiResponse.notFound('Member not found'));
-    }
     member.refreshToken = null;
     await member.save();
 
