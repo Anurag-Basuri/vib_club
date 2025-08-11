@@ -24,9 +24,11 @@ router.post(
     checkEmailAvailability
 );
 
-// Create a new ticket (public, with rate limit)
+// Create a new ticket
 router.post(
     '/create',
+    authMiddleware.verifyToken,
+    authMiddleware.isAdmin,
     validate([
         body('fullName').notEmpty().withMessage('Full name is required'),
         body('email').isEmail().withMessage('Valid email is required'),
@@ -61,11 +63,10 @@ router.patch(
     updateTicketStatus
 );
 
-// Get all tickets for an event (admin only)
+// Get all tickets for an event
 router.get(
     '/event/:eventId',
     authMiddleware.verifyToken,
-    // authMiddleware.isAdmin,
     validate([
         param('eventId').isMongoId().withMessage('Invalid event ID')
     ]),
