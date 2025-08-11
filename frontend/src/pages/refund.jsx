@@ -24,9 +24,33 @@ const RefundPolicy = () => {
         </div>
         <ol className="list-decimal pl-6 space-y-8 text-blue-100 text-base leading-relaxed">
           <li>
+            <span className="font-semibold text-blue-300">Cancellation Requests:</span><br />
+            <span className="text-blue-200">
+              Cancellations will be considered only if the request is made immediately after placing the order. However, the cancellation request may not be entertained if the orders have been communicated to the vendors/merchants and they have initiated the process of shipping them.
+            </span>
+          </li>
+          <li>
             <span className="font-semibold text-blue-300">No Cancellation After Registration:</span><br />
             <span className="text-blue-200">
               Once your registration for any VIBRANTA event is successfully completed and payment is processed, <b>it cannot be cancelled</b> under any circumstances. All registrations are considered final.
+            </span>
+          </li>
+          <li>
+            <span className="font-semibold text-blue-300">Perishable Items:</span><br />
+            <span className="text-blue-200">
+              We do not accept cancellation requests for perishable items like flowers, eatables etc. However, refund/replacement can be made if the customer establishes that the quality of product delivered is not good.
+            </span>
+          </li>
+          <li>
+            <span className="font-semibold text-blue-300">Damaged or Defective Items:</span><br />
+            <span className="text-blue-200">
+              In case of receipt of damaged or defective items, please report the same to our Customer Service team within <b>7 days</b> of receipt. The request will be entertained once the merchant has checked and determined the same at their end. If you feel that the product received is not as shown on the site or as per your expectations, you must bring it to the notice of our customer service within <b>7 days</b> of receiving the product. The Customer Service Team after looking into your complaint will take an appropriate decision.
+            </span>
+          </li>
+          <li>
+            <span className="font-semibold text-blue-300">Products with Manufacturer Warranty:</span><br />
+            <span className="text-blue-200">
+              For complaints regarding products that come with a warranty from manufacturers, please refer the issue to them directly.
             </span>
           </li>
           <li>
@@ -48,6 +72,12 @@ const RefundPolicy = () => {
             </span>
           </li>
           <li>
+            <span className="font-semibold text-blue-300">Refund Processing Time:</span><br />
+            <span className="text-blue-200">
+              In case of any refunds approved by the VIB Club, it will take <b>3–5 business days</b> for the refund to be processed to the end customer.
+            </span>
+          </li>
+          <li>
             <span className="font-semibold text-blue-300">Disputes:</span><br />
             <span className="text-blue-200">
               All refund and cancellation-related disputes will be handled exclusively by the VIB Club management team. Their decision will be considered final in all cases.
@@ -56,7 +86,8 @@ const RefundPolicy = () => {
           <li>
             <span className="font-semibold text-blue-300">How to Request Refunds:</span><br />
             <span className="text-blue-200">
-              Email us at <a href="mailto:vibranta.studorg@gmail.com" className="underline text-blue-300">vibranta.studorg@gmail.com</a> with:
+              Email us at <a href="mailto:vibranta.helpdesk@gmail.com"
+               className="underline text-blue-300">vibranta.helpdesk@gmail.com</a> with:
             </span>
             <ul className="list-disc pl-6 mt-2 space-y-1 text-sm text-blue-200">
               <li>Your Full Name</li>
