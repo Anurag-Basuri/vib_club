@@ -261,13 +261,9 @@ const uploadProfilePicture = asyncHandler(async (req, res) => {
 
 // Get current member
 const getCurrentMember = asyncHandler(async (req, res) => {
-    const id = req.id;
-    if (!id) {
-        return res.status(401).json(ApiResponse.unauthorized('Unauthorized access'));
-    }
-    const member = await Member.findById(id).select('-password -refreshToken');
+    const member = req.member;
     if (!member) {
-        return res.status(404).json(ApiResponse.notFound('Member not found'));
+        return res.status(401).json(ApiResponse.unauthorized('Unauthorized access'));
     }
 
     return res.status(200).json(
