@@ -60,6 +60,7 @@ import TicketStatusDistribution from '../components/admin/TicketStatusDistributi
 import EventModal from '../components/admin/EventModal.jsx';
 import EditMemberModal from '../components/admin/EditMemberModal.jsx';
 import CreateTicket from '../components/admin/createTicket.jsx';
+import { saveAs } from 'file-saver';
 
 // Main Admin Dashboard Component
 const AdminDash = () => {
@@ -331,6 +332,50 @@ const AdminDash = () => {
 		}
 	};
 
+	// Export tickets as CSV
+	const handleExportTicketsCSV = () => {
+		if (!tickets || tickets.length === 0) return;
+
+		const fields = [
+			'ticketId',
+			'_id',
+			'fullName',
+			'email',
+			'phone',
+			'lpuId',
+			'gender',
+			'hosteler',
+			'hostel',
+			'course',
+			'club',
+			'eventId',
+			'eventName',
+			'isUsed',
+			'isCancelled',
+			'createdAt',
+			'updatedAt',
+			'qrCodeUrl',
+		];
+
+		const csvRows = [
+			fields.join(','),
+			...tickets.map((ticket) =>
+				fields
+					.map((field) => {
+						if (field === 'qrCodeUrl') return ticket.qrCode?.url || '';
+						return typeof ticket[field] === 'string' || typeof ticket[field] === 'number'
+							? `"${String(ticket[field]).replace(/"/g, '""')}`
+							: `"${ticket[field] ? String(ticket[field]) : ''}"`;
+					})
+					.join(',')
+			),
+		];
+
+		const csvContent = csvRows.join('\r\n');
+		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+		saveAs(blob, 'tickets_export.csv');
+	};
+
 	// UI Helpers
 	const toggleEventExpansion = (eventId) => {
 		setExpandedEvents((prev) => ({
@@ -398,6 +443,14 @@ const AdminDash = () => {
 						>
 							<LogOut className="h-5 w-5" />
 							Logout
+						</button>
+						<button
+							onClick={handleExportTicketsCSV}
+							className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-700/80 text-white hover:bg-cyan-600 transition"
+							title="Export Tickets CSV"
+						>
+							<BarChart2 className="h-5 w-5" />
+							Export Tickets
 						</button>
 					</div>
 				</div>
