@@ -32,7 +32,7 @@ const createTicket = asyncHandler(async (req, res) => {
 		!eventId ||
 		!eventName ||
 		!gender ||
-		!hosteler ||
+		typeof hosteler !== 'boolean' ||
 		!course
 	) {
 		throw new ApiError(400, 'All fields are required');
