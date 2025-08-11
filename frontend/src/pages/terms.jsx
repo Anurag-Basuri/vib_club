@@ -3,64 +3,79 @@ import { useNavigate } from 'react-router-dom';
 
 const termsList = [
   {
-    title: "Eligibility",
+    title: "Acceptance & Modification of Terms",
     description:
-      "Participation in VIBRANTA events and use of our services is open to eligible students, faculty, and invited guests of Lovely Professional University (LPU) only. Valid credentials or registration may be required."
+      "By using our website and availing the Services, you agree that you have read and accepted these Terms (including the Privacy Policy). We reserve the right to modify these Terms at any time and without assigning any reason. It is your responsibility to periodically review these Terms to stay informed of updates."
   },
   {
-    title: "Code of Conduct",
+    title: "Use of Services",
     description:
-      "All participants must maintain respectful, inclusive, and responsible behavior. Any misconduct or violation of campus rules may result in removal without refund."
+      "The use of this website or availing of our Services is subject to the following terms of use. To access and use the Services, you agree to provide true, accurate and complete information to us during and after registration, and you shall be responsible for all acts done through the use of your registered account."
   },
   {
-    title: "Registration",
+    title: "Accuracy & Warranty Disclaimer",
     description:
-      "Accurate personal and academic information is required for registration. Incomplete or fraudulent registrations may be rejected."
+      "Neither we nor any third parties provide any warranty or guarantee as to the accuracy, timeliness, performance, completeness or suitability of the information and materials offered on this website or through the Services, for any specific purpose. You acknowledge that such information and materials may contain inaccuracies or errors and we expressly exclude liability for any such inaccuracies or errors to the fullest extent permitted by law."
   },
   {
-    title: "Payment and Invoicing",
+    title: "Risk & Assessment",
     description:
-      "Payments must be made via the official platform using supported gateways like Cashfree. Confirmation will be sent to your registered email."
+      "Your use of our Services and the website is solely at your own risk and discretion. You are required to independently assess and ensure that the Services meet your requirements."
   },
   {
-    title: "Refund & Cancellation",
+    title: "Intellectual Property",
     description:
-      "Fees are non-refundable unless explicitly stated. For details, refer to our separate Refund & Cancellation Policy page."
+      "The contents of the Website and the Services are proprietary to Us and you will not have any authority to claim any intellectual property rights, title, or interest in its contents."
   },
   {
-    title: "Event Changes",
+    title: "Unauthorized Use",
     description:
-      "VIBRANTA reserves the right to change event schedules, formats, venues, or cancel events due to unforeseen circumstances. Updates will be communicated via official channels."
+      "You acknowledge that unauthorized use of the Website or the Services may lead to action against you as per these Terms or applicable laws."
   },
   {
-    title: "Data Privacy & Security",
+    title: "Charges & Payments",
     description:
-      "Your personal data is protected and used only for event communication, analytics, and updates. We do not sell data to third parties."
+      "You agree to pay us the charges associated with availing the Services."
   },
   {
-    title: "Photography & Media Consent",
+    title: "Lawful Use",
     description:
-      "By attending, you consent to being photographed or recorded for promotional purposes by VIBRANTA or LPU."
+      "You agree not to use the website and/or Services for any purpose that is unlawful, illegal or forbidden by these Terms, or Indian or local laws that might apply to you."
   },
   {
-    title: "Health and Safety",
+    title: "Third Party Links",
     description:
-      "Attendees must follow all safety guidelines. VIBRANTA is not responsible for injuries, lost items, or damages during events."
+      "You agree and acknowledge that website and the Services may contain links to other third party websites. On accessing these links, you will be governed by the terms of use, privacy policy and such other policies of such third party websites."
   },
   {
-    title: "Technical Glitches",
+    title: "Binding Contract",
     description:
-      "In case of technical issues (platform errors, payment glitches, etc.), VIBRANTA will attempt resolution but is not liable for delays or losses."
+      "You understand that upon initiating a transaction for availing the Services you are entering into a legally binding and enforceable contract with us for the Services."
   },
   {
-    title: "Liability Disclaimer",
+    title: "Refunds",
     description:
-      "Participation is voluntary. VIBRANTA, its members, and LPU are not responsible for any loss, damage, or injury during or after events."
+      "You shall be entitled to claim a refund of the payment made by you in case we are not able to provide the Service. The timelines for such return and refund will be according to the specific Service you have availed or within the time period provided in our policies (as applicable). In case you do not raise a refund claim within the stipulated time, then this would make you ineligible for a refund."
   },
   {
-    title: "Support and Dispute Resolution",
+    title: "Force Majeure",
     description:
-      "For support, contact vibclub@lpu.in. Disputes will be handled internally and escalated only if necessary."
+      "Notwithstanding anything contained in these Terms, the parties shall not be liable for any failure to perform an obligation under these Terms if performance is prevented or delayed by a force majeure event."
+  },
+  {
+    title: "Governing Law",
+    description:
+      "These Terms and any dispute or claim relating to it, or its enforceability, shall be governed by and construed in accordance with the laws of India."
+  },
+  {
+    title: "Jurisdiction",
+    description:
+      "All disputes arising out of or in connection with these Terms shall be subject to the exclusive jurisdiction of the courts in Phagwara, Punjab."
+  },
+  {
+    title: "Communication",
+    description:
+      "All concerns or communications relating to these Terms must be communicated to us using the contact information provided on this website."
   }
 ];
 
@@ -69,7 +84,7 @@ const Terms = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-blue-950 to-black text-white px-4 py-16 flex justify-center items-start">
-      <div className="w-full max-w-5xl bg-blue-900/30 backdrop-blur-md rounded-2xl p-10 shadow-2xl border border-blue-500/40">
+      <div className="w-full max-w-4xl bg-blue-900/30 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-blue-500/40">
         <button
           onClick={() => navigate(-1)}
           className="mb-8 px-5 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg font-semibold transition-colors"
@@ -95,8 +110,8 @@ const Terms = () => {
         </ol>
 
         <p className="mt-10 text-sm text-center text-blue-300 italic">
-          By participating in our events or using our services, you fully agree to these Terms & Conditions. For any queries, contact us at{' '}
-          <a href="mailto:vibclub@lpu.in" className="underline text-blue-400">vibclub@lpu.in</a>.
+          By using our website and availing the Services, you fully agree to these Terms & Conditions. For any queries, contact us at{' '}
+          <a href="mailto:vibranta.helpdesk@gmail.com" className="underline text-blue-400">vibranta.helpdesk@gmail.com</a>.
         </p>
       </div>
     </div>
