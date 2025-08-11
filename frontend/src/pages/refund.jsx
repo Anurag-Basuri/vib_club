@@ -62,7 +62,7 @@ const RefundPolicy = () => {
           <li>
             <span className="font-semibold text-blue-300">Unintended Payments:</span><br />
             <span className="text-blue-200">
-              If you made a payment but were not registered successfully, you can choose to retry registration. However, if you decide not to register, you must inform us within <b>48 hours</b> by emailing us at <a href="mailto:vibranta.studorg@gmail.com" className="underline text-blue-300">vibranta.studorg@gmail.com</a>. In such cases, the team will verify the transaction and <b>initiate a full refund</b> within <b>5–7 business days</b>.
+              If you made a payment but were not registered successfully, you can choose to retry registration. However, if you decide not to register, you must inform us within <b>48 hours</b> by emailing us at <a href="mailto:vibranta.helpdesk@gmail.com" className="underline text-blue-300">vibranta.helpdesk@gmail.com</a>. In such cases, the team will verify the transaction and <b>initiate a full refund</b> within <b>5–7 business days</b>.
             </span>
           </li>
           <li>
