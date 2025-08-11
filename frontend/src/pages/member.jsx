@@ -28,8 +28,8 @@ const MemberProfile = () => {
 		const fetchCurrentUser = async () => {
 			try {
 				const response = await apiClient.get('api/members/me');
-				console.log('Current User:', response.data);
-				setCurrentUser(response.data);
+				console.log('Current User:', response.data.data.member);
+				setCurrentUser(response.data.data.member);
 			} catch (error) {
 				console.error('Error fetching user data:', error);
 			}

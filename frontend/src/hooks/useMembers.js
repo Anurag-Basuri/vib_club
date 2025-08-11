@@ -115,19 +115,6 @@ export const useUnbanMember = () => {
     return { unbanMember, member, loading, error, reset };
 };
 
-// Get current member
-export const useGetCurrentMember = () => {
-    const actionFn = async (token) => {
-        const res = await apiClient.get('api/members/me', {
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        return res.data.data.member;
-    };
-    const { action: getCurrentMember, data: member, loading, error, reset } = useMemberAction(actionFn);
-
-    return { getCurrentMember, member, loading, error, reset };
-};
-
 // Update member by admin
 export const useUpdateMemberByAdmin = () => {
     const actionFn = async (id, updateData, token) => {
