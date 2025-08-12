@@ -14,6 +14,7 @@ import PaymentVerify from '../components/event/paymentVerify.jsx';
 import Terms from '../pages/terms.jsx';
 import Refund from '../pages/refund.jsx';
 import CookiePolicy from '../pages/cookie.jsx';
+import PrivacyPolicy from '../pages/privacy.jsx';
 
 const AppRoutes = () => {
     return (
@@ -31,6 +32,7 @@ const AppRoutes = () => {
 
             <Route path="/policy/terms" element={<Terms />} />
             <Route path="/policy/refund-policy" element={<Refund />} />
+            <Route path="/policy/privacy" element={<PrivacyPolicy />} />
             <Route path="/policy/cookie" element={<CookiePolicy />} />
 
             {/* Protected routes */}

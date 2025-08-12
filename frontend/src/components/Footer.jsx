@@ -16,6 +16,7 @@ const Footer = () => {
       items: [
         { name: "Terms and Conditions", to: "/policy/terms" },
         { name: "Cancellation and Refund", to: "/policy/refund-policy" },
+        { name: "Privacy Policy", to: "/policy/privacy" },
         { name: "Cookie Policy", to: "/policy/cookie" }
       ]
     }

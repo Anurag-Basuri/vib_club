@@ -25,7 +25,7 @@ const termsList = [
   {
     title: "Intellectual Property",
     description:
-      "The contents of the Website and the Services are proprietary to Us and you will not have any authority to claim any intellectual property rights, title, or interest in its contents."
+      "The contents of the Website and the Services are proprietary to Subham Raj and you will not have any authority to claim any intellectual property rights, title, or interest in its contents."
   },
   {
     title: "Unauthorized Use",
@@ -50,7 +50,7 @@ const termsList = [
   {
     title: "Binding Contract",
     description:
-      "You understand that upon initiating a transaction for availing the Services you are entering into a legally binding and enforceable contract with us for the Services."
+      "You understand that upon initiating a transaction for availing the Services you are entering into a legally binding and enforceable contract with Subham Raj for the Services."
   },
   {
     title: "Refunds",
