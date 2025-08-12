@@ -362,10 +362,16 @@ const AdminDash = () => {
 			...tickets.map((ticket) =>
 				fields
 					.map((field) => {
-						if (field === 'qrCodeUrl') return ticket.qrCode?.url || '';
-						return typeof ticket[field] === 'string' || typeof ticket[field] === 'number'
-							? `"${String(ticket[field]).replace(/"/g, '""')}`
-							: `"${ticket[field] ? String(ticket[field]) : ''}"`;
+						if (field === 'qrCodeUrl') return `"${ticket.qrCode?.url || ''}"`;
+						const value = ticket[field];
+						// Escape quotes and commas
+						if (typeof value === 'string' || typeof value === 'number') {
+							return `"${String(value).replace(/"/g, '""')}"`;
+						}
+						if (typeof value === 'boolean') {
+							return value ? '"Yes"' : '"No"';
+						}
+						return '""';
 					})
 					.join(',')
 			),
