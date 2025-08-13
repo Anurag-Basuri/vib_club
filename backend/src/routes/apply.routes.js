@@ -4,7 +4,8 @@ import {
 	getAllApplications,
 	getApplicationById,
 	updateApplicationStatus,
-	deleteApplication
+	deleteApplication,
+	markApplicationAsSeen
 } from "../controllers/apply.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { validate } from "../middlewares/validator.middleware.js";
@@ -78,6 +79,15 @@ router.patch(
             .withMessage("Invalid status value")
     ]),
     updateApplicationStatus
+);
+
+// Mark application as seen (protected)
+router.patch(
+  "/applications/:id/seen",
+  authMiddleware.verifyToken,
+  authMiddleware.isAdmin,
+  validate([param("id").isMongoId().withMessage("Invalid application ID")]),
+  markApplicationAsSeen
 );
 
 // Delete an application (protected)

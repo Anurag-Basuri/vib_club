@@ -81,6 +81,10 @@ const applySchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    seen: {
+        type: Boolean,
+        default: false
+    },
 
     bio: {
         type: String,

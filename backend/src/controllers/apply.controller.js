@@ -173,11 +173,20 @@ const deleteApplication = asyncHandler(async (req, res) => {
         );
 });
 
+// Mark application as seen
+const markApplicationAsSeen = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const updated = await Apply.findByIdAndUpdate(id, { seen: true }, { new: true });
+  if (!updated) throw new ApiError(404, "Application not found");
+  return res.status(200).json(new ApiResponse(200, "Marked as seen", updated));
+});
+
 // Export all controller functions
 export {
 	applyController,
 	getAllApplications,
 	getApplicationById,
 	updateApplicationStatus,
-	deleteApplication
+	deleteApplication,
+	markApplicationAsSeen
 };
