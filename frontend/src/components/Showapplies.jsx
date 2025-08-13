@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
     useGetAllApplications,
     useGetApplicationById,
@@ -44,16 +44,31 @@ const ShowApplies = () => {
     const [exportFormat, setExportFormat] = useState('csv');
     const [localApplications, setLocalApplications] = useState([]);
 
+    // Track if initial fetch is done
+    const initialFetchDone = useRef(false);
+
     // Fetch applications only once on mount
     useEffect(() => {
-        getAllApplications({});
+        getAllApplications();
         // eslint-disable-next-line
     }, []);
 
-    // When applications are fetched, set localApplications
+    // Set localApplications only on first fetch
     useEffect(() => {
-        if (applications.length) setLocalApplications(applications);
+        if (!initialFetchDone.current && applications.length) {
+            setLocalApplications(applications);
+            initialFetchDone.current = true;
+        }
     }, [applications]);
+
+    // Manual refresh if needed
+    const handleRefresh = async () => {
+        const data = await getAllApplications();
+        // Wait for the API call to finish and update localApplications
+        if (data?.data?.docs) {
+            setLocalApplications(data.data.docs);
+        }
+    };
 
     // Optimistic update: update localApplications only, do NOT refetch all
     const handleMarkAsSeen = async (id) => {
@@ -84,7 +99,7 @@ const ShowApplies = () => {
                 prev.map((app) => (app._id === id ? { ...app, status } : app))
             );
         } catch (e) {
-            console.error('Error updating application status:', e);
+            // handle error
         }
     };
 
@@ -94,7 +109,7 @@ const ShowApplies = () => {
             await deleteApplication(id);
             setLocalApplications((prev) => prev.filter((app) => app._id !== id));
         } catch (e) {
-            console.error('Error deleting application:', e);
+            // handle error
         }
     };
 
@@ -160,15 +175,18 @@ const ShowApplies = () => {
         else {
             const jsonData = dataToExport.map((app) => ({
                 name: app.fullName,
+                LpuId: app.LpuId,
                 email: app.email,
-                position: app.position,
-                status: app.status,
-                seen: app.seen,
-                createdAt: new Date(app.createdAt).toISOString(),
                 phone: app.phone,
-                experience: app.experience,
-                coverLetter: app.coverLetter,
-                resume: app.resume,
+                gender: app.gender,
+                domains: app.domains?.join(', ') || '',
+                accommodation: app.accommodation?.join(', ') || '',
+                experience: app.previousExperience,
+                anyOtherOrg: app.anyotherorg,
+                bio: app.bio,
+                seen: app.seen,
+                status: app.status,
+                createdAt: new Date(app.createdAt).toISOString(),
             }));
 
             const jsonString = JSON.stringify(jsonData, null, 2);
@@ -188,7 +206,7 @@ const ShowApplies = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4 md:p-8">
-            {/* Confirmation Modal */}
+            {/* Export Modal */}
             {showExportOptions && (
                 <div className="fixed inset-0 bg-black/70 backdrop-blur-lg flex items-center justify-center z-50">
                     <div className="bg-gray-800/80 backdrop-blur-lg border border-cyan-500/30 rounded-xl p-6 max-w-md w-full shadow-2xl">
@@ -313,6 +331,13 @@ const ShowApplies = () => {
                                 />
                             </svg>
                             Export
+                        </button>
+
+                        <button
+                            onClick={handleRefresh}
+                            className="px-4 py-2 bg-cyan-700 hover:bg-cyan-800 text-white rounded-lg text-sm"
+                        >
+                            Refresh
                         </button>
 
                         <div className="relative">
@@ -561,20 +586,26 @@ const ShowApplies = () => {
                                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                                     <div>
                                                                         <h4 className="text-gray-400 text-sm font-medium mb-1">
-                                                                            Cover Letter
+                                                                            Full Name
                                                                         </h4>
-                                                                        <p className="text-gray-300 text-sm whitespace-pre-wrap">
-                                                                            {selectedApplication.coverLetter ||
-                                                                                'No cover letter provided'}
+                                                                        <p className="text-gray-300 text-sm">
+                                                                            {selectedApplication.fullName}
                                                                         </p>
                                                                     </div>
                                                                     <div>
                                                                         <h4 className="text-gray-400 text-sm font-medium mb-1">
-                                                                            Experience
+                                                                            LPU ID
                                                                         </h4>
-                                                                        <p className="text-gray-300 text-sm whitespace-pre-wrap">
-                                                                            {selectedApplication.experience ||
-                                                                                'No experience details provided'}
+                                                                        <p className="text-gray-300 text-sm">
+                                                                            {selectedApplication.LpuId}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div>
+                                                                        <h4 className="text-gray-400 text-sm font-medium mb-1">
+                                                                            Email
+                                                                        </h4>
+                                                                        <p className="text-gray-300 text-sm">
+                                                                            {selectedApplication.email}
                                                                         </p>
                                                                     </div>
                                                                     <div>
@@ -582,29 +613,96 @@ const ShowApplies = () => {
                                                                             Phone
                                                                         </h4>
                                                                         <p className="text-gray-300 text-sm">
-                                                                            {selectedApplication.phone ||
-                                                                                'Not provided'}
+                                                                            {selectedApplication.phone}
                                                                         </p>
                                                                     </div>
                                                                     <div>
                                                                         <h4 className="text-gray-400 text-sm font-medium mb-1">
-                                                                            Resume
+                                                                            Course
                                                                         </h4>
                                                                         <p className="text-gray-300 text-sm">
-                                                                            {selectedApplication.resume ? (
-                                                                                <a
-                                                                                    href={
-                                                                                        selectedApplication.resume
-                                                                                    }
-                                                                                    target="_blank"
-                                                                                    rel="noopener noreferrer"
-                                                                                    className="text-cyan-400 hover:text-cyan-300 hover:underline"
-                                                                                >
-                                                                                    View Resume
-                                                                                </a>
-                                                                            ) : (
-                                                                                'No resume uploaded'
+                                                                            {selectedApplication.course}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div>
+                                                                        <h4 className="text-gray-400 text-sm font-medium mb-1">
+                                                                            Gender
+                                                                        </h4>
+                                                                        <p className="text-gray-300 text-sm">
+                                                                            {selectedApplication.gender}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div>
+                                                                        <h4 className="text-gray-400 text-sm font-medium mb-1">
+                                                                            Domains
+                                                                        </h4>
+                                                                        <p className="text-gray-300 text-sm">
+                                                                            {(selectedApplication.domains || []).join(
+                                                                                ', '
                                                                             )}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div>
+                                                                        <h4 className="text-gray-400 text-sm font-medium mb-1">
+                                                                            Accommodation
+                                                                        </h4>
+                                                                        <p className="text-gray-300 text-sm">
+                                                                            {selectedApplication.accommodation}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div>
+                                                                        <h4 className="text-gray-400 text-sm font-medium mb-1">
+                                                                            Previous Experience
+                                                                        </h4>
+                                                                        <p className="text-gray-300 text-sm">
+                                                                            {selectedApplication.previousExperience
+                                                                                ? 'Yes'
+                                                                                : 'No'}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div>
+                                                                        <h4 className="text-gray-400 text-sm font-medium mb-1">
+                                                                            Any Other Org
+                                                                        </h4>
+                                                                        <p className="text-gray-300 text-sm">
+                                                                            {selectedApplication.anyotherorg
+                                                                                ? 'Yes'
+                                                                                : 'No'}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div className="md:col-span-2">
+                                                                        <h4 className="text-gray-400 text-sm font-medium mb-1">
+                                                                            Bio
+                                                                        </h4>
+                                                                        <p className="text-gray-300 text-sm whitespace-pre-wrap">
+                                                                            {selectedApplication.bio ||
+                                                                                'No bio provided'}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div>
+                                                                        <h4 className="text-gray-400 text-sm font-medium mb-1">
+                                                                            Status
+                                                                        </h4>
+                                                                        <p className="text-gray-300 text-sm">
+                                                                            {selectedApplication.status}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div>
+                                                                        <h4 className="text-gray-400 text-sm font-medium mb-1">
+                                                                            Seen
+                                                                        </h4>
+                                                                        <p className="text-gray-300 text-sm">
+                                                                            {selectedApplication.seen ? 'Yes' : 'No'}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div>
+                                                                        <h4 className="text-gray-400 text-sm font-medium mb-1">
+                                                                            Created At
+                                                                        </h4>
+                                                                        <p className="text-gray-300 text-sm">
+                                                                            {new Date(
+                                                                                selectedApplication.createdAt
+                                                                            ).toLocaleString()}
                                                                         </p>
                                                                     </div>
                                                                 </div>

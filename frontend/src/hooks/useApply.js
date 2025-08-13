@@ -46,7 +46,7 @@ export const useGetAllApplications = () => {
 	const actionFn = async () => {
 		const res = await apiClient.get('api/apply/applications');
 		console.log('Applications fetched:', res.data);
-		return res.data.data;
+		return res.data;
 	};
 	const {
 		action: getAllApplications,
