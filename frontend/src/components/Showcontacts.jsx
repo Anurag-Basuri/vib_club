@@ -1,4 +1,3 @@
-// src/components/ShowContacts.jsx
 import { useEffect, useState } from 'react';
 import {
 	useGetAllContacts,
@@ -17,7 +16,6 @@ const ShowContacts = () => {
 	} = useGetContactById();
 	const {
 		markAsResolved,
-		updated,
 		loading: resolving,
 		error: errorResolve,
 		reset: resetResolve,
@@ -29,10 +27,16 @@ const ShowContacts = () => {
 	const [showExportOptions, setShowExportOptions] = useState(false);
 	const [exportType, setExportType] = useState('current');
 	const [exportFormat, setExportFormat] = useState('csv');
+	const [localContacts, setLocalContacts] = useState([]);
 
 	useEffect(() => {
 		getAllContacts({});
-	}, [getAllContacts]);
+		// eslint-disable-next-line
+	}, []);
+
+	useEffect(() => {
+		if (contacts.length) setLocalContacts(contacts);
+	}, [contacts]);
 
 	const handleExpand = async (id) => {
 		if (expandedId === id) {
@@ -46,11 +50,12 @@ const ShowContacts = () => {
 
 	const handleResolve = async (id) => {
 		await markAsResolved(id);
-		getAllContacts({});
-		resetResolve();
+		setLocalContacts((prev) =>
+			prev.map((c) => (c._id === id ? { ...c, status: 'resolved' } : c))
+		);
 	};
 
-	const filteredContacts = contacts
+	const filteredContacts = localContacts
 		.filter(
 			(c) =>
 				c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
