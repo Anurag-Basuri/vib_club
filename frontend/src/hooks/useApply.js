@@ -109,6 +109,27 @@ export const useUpdateApplicationStatus = () => {
 	return { updateApplicationStatus, updated, loading, error, reset };
 };
 
+// Mark application as seen (admin)
+export const useMarkApplicationAsSeen = () => {
+	const actionFn = async (id, token) => {
+		const res = await apiClient.patch(
+			`api/apply/applications/${id}/seen`,
+			{},
+			{ headers: { Authorization: `Bearer ${token}` } }
+		);
+		return res.data.data;
+	};
+	const {
+		action: markAsSeen,
+		data: updated,
+		loading,
+		error,
+		reset,
+	} = useApplicationAction(actionFn);
+
+	return { markAsSeen, updated, loading, error, reset };
+};
+
 // Delete an application (admin)
 export const useDeleteApplication = () => {
 	const actionFn = async (id, token) => {
