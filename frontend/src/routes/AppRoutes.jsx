@@ -15,6 +15,7 @@ import Terms from '../pages/terms.jsx';
 import Refund from '../pages/refund.jsx';
 import CookiePolicy from '../pages/cookie.jsx';
 import PrivacyPolicy from '../pages/privacy.jsx';
+import ShowPage from '../pages/show.jsx';
 
 const AppRoutes = () => {
     return (
@@ -41,6 +42,7 @@ const AppRoutes = () => {
             </Route>
             <Route element={<ProtectedRoutes allowedRoles={['admin']} />}>
                 <Route path="/admin/dashboard" element={<AdminDash />} />
+                <Route path="/admin/show" element={<ShowPage />} />
             </Route>
         </Routes>
     )
