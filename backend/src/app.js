@@ -23,7 +23,7 @@ InitializeCloudinary();
 
 // Initialize rate limiter
 await initRateLimiter();
-app.use(rateLimiter);
+// app.use(rateLimiter);
 
 // Middleware
 app.use(express.json());
