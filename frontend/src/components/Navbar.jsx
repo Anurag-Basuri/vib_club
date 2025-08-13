@@ -419,6 +419,13 @@ const Navbar = () => {
                                                     <LayoutDashboard className="h-5 w-5 text-cyan-400 group-hover:scale-110 transition-transform" />
                                                     <span>Dashboard</span>
                                                 </button>
+                                                <button
+                                                    onClick={() => navigate('/admin/show')}
+                                                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-all duration-300 text-white group"
+                                                >
+                                                    <LayoutDashboard className="h-5 w-5 text-cyan-400 group-hover:scale-110 transition-transform" />
+                                                    <span>Show</span>
+                                                </button>
                                             </div>
                                             <div className="p-3 border-t border-white/10">
                                                 <button
