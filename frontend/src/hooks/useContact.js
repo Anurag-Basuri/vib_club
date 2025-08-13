@@ -44,7 +44,7 @@ const useContactAction = (actionFn) => {
 // Get all contacts (admin)
 export const useGetAllContacts = () => {
     const actionFn = async (params = {}) => {
-        const res = await apiClient.get('/api/contacts/getall', { params });
+        const res = await apiClient.get('/api/contact/getall', { params });
         return res.data;
     };
     const {
@@ -69,7 +69,7 @@ export const useGetAllContacts = () => {
 // Get single contact by ID (admin)
 export const useGetContactById = () => {
     const actionFn = async (id) => {
-        const res = await apiClient.get(`/api/contacts/${id}`);
+        const res = await apiClient.get(`/api/contact/${id}`);
         return res.data;
     };
     const {
@@ -86,7 +86,7 @@ export const useGetContactById = () => {
 // Mark contact as resolved (admin)
 export const useMarkContactAsResolved = () => {
     const actionFn = async (id) => {
-        const res = await apiClient.patch(`/api/contacts/${id}/resolve`);
+        const res = await apiClient.patch(`/api/contact/${id}/resolve`);
         return res.data;
     };
     const {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
 	useGetAllContacts,
 	useGetContactById,
@@ -29,14 +29,30 @@ const ShowContacts = () => {
 	const [exportFormat, setExportFormat] = useState('csv');
 	const [localContacts, setLocalContacts] = useState([]);
 
+	// Track if initial fetch is done
+	const initialFetchDone = useRef(false);
+
+	// Fetch contacts only once on mount
 	useEffect(() => {
-		getAllContacts({});
+		getAllContacts();
 		// eslint-disable-next-line
 	}, []);
 
+	// Set localContacts only on first fetch or manual refresh
 	useEffect(() => {
-		if (contacts.length) setLocalContacts(contacts);
+		if (!initialFetchDone.current && contacts.length) {
+			setLocalContacts(contacts);
+			initialFetchDone.current = true;
+		}
 	}, [contacts]);
+
+	// Manual refresh if needed
+	const handleRefresh = async () => {
+		const data = await getAllContacts();
+		if (data?.data?.docs) {
+			setLocalContacts(data.data.docs);
+		}
+	};
 
 	const handleExpand = async (id) => {
 		if (expandedId === id) {
@@ -86,13 +102,13 @@ const ShowContacts = () => {
 		}
 
 		let content = '';
-		const headers = ['Name', 'Email', 'Subject', 'Status', 'Created At', 'Message'];
+		const headers = ['Name', 'Email', 'Phone', 'LPU ID', 'Subject', 'Status', 'Created At', 'Message'];
 
 		// CSV format
 		if (exportFormat === 'csv') {
 			content += headers.join(',') + '\n';
 			dataToExport.forEach((contact) => {
-				content += `"${contact.name}","${contact.email}","${contact.subject || ''}","${contact.status}","${new Date(contact.createdAt).toLocaleString()}","${contact.message.replace(/"/g, '""')}"\n`;
+				content += `"${contact.name}","${contact.email}","${contact.phone}","${contact.lpuID}","${contact.subject || ''}","${contact.status}","${new Date(contact.createdAt).toLocaleString()}","${contact.message.replace(/"/g, '""')}"\n`;
 			});
 
 			const blob = new Blob([content], { type: 'text/csv' });
@@ -110,12 +126,12 @@ const ShowContacts = () => {
 			const jsonData = dataToExport.map((contact) => ({
 				name: contact.name,
 				email: contact.email,
+				phone: contact.phone,
+				lpuID: contact.lpuID,
 				subject: contact.subject,
 				status: contact.status,
 				createdAt: new Date(contact.createdAt).toISOString(),
-				phone: contact.phone,
 				message: contact.message,
-				lpuID: contact.lpuID,
 			}));
 
 			const jsonString = JSON.stringify(jsonData, null, 2);
@@ -260,7 +276,12 @@ const ShowContacts = () => {
 							</svg>
 							Export
 						</button>
-
+						<button
+							onClick={handleRefresh}
+							className="px-4 py-2 bg-cyan-700 hover:bg-cyan-800 text-white rounded-lg text-sm"
+						>
+							Refresh
+						</button>
 						<div className="relative">
 							<input
 								type="text"
@@ -495,23 +516,20 @@ const ShowContacts = () => {
 														selectedContact && (
 															<div className="mt-4 pt-4 border-t border-gray-700">
 																<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-																	<div className="md:col-span-2">
+																	<div>
 																		<h4 className="text-gray-400 text-sm font-medium mb-1">
-																			Message
+																			Name
 																		</h4>
-																		<p className="text-gray-300 text-sm bg-gray-900/30 rounded-lg p-3 whitespace-pre-wrap">
-																			{
-																				selectedContact.message
-																			}
+																		<p className="text-gray-300 text-sm">
+																			{selectedContact.name}
 																		</p>
 																	</div>
 																	<div>
 																		<h4 className="text-gray-400 text-sm font-medium mb-1">
-																			LPU ID
+																			Email
 																		</h4>
 																		<p className="text-gray-300 text-sm">
-																			{selectedContact.lpuID ||
-																				'Not provided'}
+																			{selectedContact.email}
 																		</p>
 																	</div>
 																	<div>
@@ -519,8 +537,39 @@ const ShowContacts = () => {
 																			Phone
 																		</h4>
 																		<p className="text-gray-300 text-sm">
-																			{selectedContact.phone ||
-																				'Not provided'}
+																			{selectedContact.phone}
+																		</p>
+																	</div>
+																	<div>
+																		<h4 className="text-gray-400 text-sm font-medium mb-1">
+																			LPU ID
+																		</h4>
+																		<p className="text-gray-300 text-sm">
+																			{selectedContact.lpuID}
+																		</p>
+																	</div>
+																	<div>
+																		<h4 className="text-gray-400 text-sm font-medium mb-1">
+																			Subject
+																		</h4>
+																		<p className="text-gray-300 text-sm">
+																			{selectedContact.subject}
+																		</p>
+																	</div>
+																	<div className="md:col-span-2">
+																		<h4 className="text-gray-400 text-sm font-medium mb-1">
+																			Message
+																		</h4>
+																		<p className="text-gray-300 text-sm bg-gray-900/30 rounded-lg p-3 whitespace-pre-wrap">
+																			{selectedContact.message}
+																		</p>
+																	</div>
+																	<div>
+																		<h4 className="text-gray-400 text-sm font-medium mb-1">
+																			Status
+																		</h4>
+																		<p className="text-gray-300 text-sm">
+																			{selectedContact.status}
 																		</p>
 																	</div>
 																	<div>
