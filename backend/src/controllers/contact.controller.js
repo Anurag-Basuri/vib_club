@@ -56,8 +56,8 @@ const getAllContacts = asyncHandler(async (req, res) => {
 		.json(
 			new ApiResponse(
 				200,
-				'Contacts retrieved successfully',
-				contacts
+				contacts,
+				'Contacts retrieved successfully'
 			)
 		);
 });
@@ -82,8 +82,8 @@ const getContactById = asyncHandler(async (req, res) => {
 		.json(
 			new ApiResponse(
 				200,
-				'Contact retrieved successfully',
-				contact
+				contact,
+				'Contact retrieved successfully'
 			)
 		);
 });
@@ -112,8 +112,8 @@ const markContactAsResolved = asyncHandler(async (req, res) => {
 		.json(
 			new ApiResponse(
 				200,
-				'Contact marked as resolved',
-				contact
+				contact,
+				'Contact marked as resolved'
 			)
 		);
 });

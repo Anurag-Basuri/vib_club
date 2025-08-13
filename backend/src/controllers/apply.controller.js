@@ -95,8 +95,8 @@ const getAllApplications = asyncHandler(async (req, res) => {
 		.json(
             new ApiResponse(
                 200,
-                "Applications retrieved successfully",
-                applications
+                applications,
+                "Applications retrieved successfully"
             )
         );
 });
@@ -120,8 +120,8 @@ const getApplicationById = asyncHandler(async (req, res) => {
 		.json(
             new ApiResponse(
                 200,
-                "Application retrieved successfully",
-                application
+                application,
+                "Application retrieved successfully"
             )
         );
 });
@@ -146,8 +146,8 @@ const updateApplicationStatus = asyncHandler(async (req, res) => {
 		.json(
             new ApiResponse(
                 200,
-                "Status updated successfully",
-                updated
+                updated,
+                "Status updated successfully"
             )
         );
 });
@@ -167,18 +167,27 @@ const deleteApplication = asyncHandler(async (req, res) => {
 		.json(
             new ApiResponse(
                 200,
-                "Application deleted successfully",
-                deleted
+                deleted,
+                "Application deleted successfully"
             )
         );
 });
 
 // Mark application as seen
 const markApplicationAsSeen = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const updated = await Apply.findByIdAndUpdate(id, { seen: true }, { new: true });
-  if (!updated) throw new ApiError(404, "Application not found");
-  return res.status(200).json(new ApiResponse(200, "Marked as seen", updated));
+	const { id } = req.params;
+	const updated = await Apply.findByIdAndUpdate(id, { seen: true }, { new: true });
+	if (!updated) throw new ApiError(404, "Application not found");
+
+	return res
+		.status(200)
+		.json(
+			new ApiResponse(
+				200,
+				updated,
+				"Marked as seen"
+			)
+		);
 });
 
 // Export all controller functions

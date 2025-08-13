@@ -43,9 +43,10 @@ const useApplicationAction = (actionFn) => {
 
 // Get all applications (admin)
 export const useGetAllApplications = () => {
-	const actionFn = async (params = {}) => {
-		const res = await apiClient.get('api/apply/applications', { params });
-		return res.data;
+	const actionFn = async () => {
+		const res = await apiClient.get('api/apply/applications');
+		console.log('Applications fetched:', res.data);
+		return res.data.data;
 	};
 	const {
 		action: getAllApplications,
