@@ -1,53 +1,101 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { apiClient } from '../services/api';
 
-const useContact = (contactId) => {
-    const [contact, setContact] = useState(null);
-    const [resolved, setResolved] = useState(false);
+// Utility for consistent error parsing
+const parseError = (err) => {
+    if (err?.data?.message) return err.data.message;
+    if (err?.data?.error) return err.data.error;
+    if (err?.message) return err.message;
+    return 'Unknown error occurred';
+};
+
+// Generic hook for contact actions
+const useContactAction = (actionFn) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [data, setData] = useState(null);
 
-    const resolveContact = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            await apiClient.post(`/api/contacts/${contactId}/resolve`);
-            setResolved(true);
-        } catch (err) {
-            setError(err?.message || err);
-        } finally {
-            setLoading(false);
-        }
-    }, [contactId]);
-
-    useEffect(() => {
-        const fetchContact = async () => {
+    const action = useCallback(
+        async (...args) => {
             setLoading(true);
             setError(null);
             try {
-                const response = await apiClient.get(`/api/contacts/${contactId}`);
-                setContact(response.data.contact);
-                setResolved(response.data.contact?.resolved || false);
+                const result = await actionFn(...args);
+                setData(result);
+                return result;
             } catch (err) {
-                setError(err?.message || err);
-                setContact(null);
+                setError(parseError(err));
+                throw err;
             } finally {
                 setLoading(false);
             }
-        };
+        },
+        [actionFn]
+    );
 
-        if (contactId) {
-            fetchContact();
-        }
-    }, [contactId]);
+    const reset = () => {
+        setData(null);
+        setError(null);
+    };
 
-    useEffect(() => {
-        if (resolved) {
-            resolveContact();
-        }
-    }, [resolved, resolveContact]);
-
-    return { contact, loading, error, resolved, setResolved, resolveContact };
+    return { action, data, loading, error, reset };
 };
 
-export default useContact;
+// Get all contacts (admin)
+export const useGetAllContacts = () => {
+    const actionFn = async (params = {}) => {
+        const res = await apiClient.get('/api/contacts/getall', { params });
+        return res.data;
+    };
+    const {
+        action: getAllContacts,
+        data,
+        loading,
+        error,
+        reset,
+    } = useContactAction(actionFn);
+
+    return {
+        getAllContacts,
+        contacts: data?.data?.docs || [],
+        total: data?.data?.totalDocs || 0,
+        pagination: data?.data || {},
+        loading,
+        error,
+        reset,
+    };
+};
+
+// Get single contact by ID (admin)
+export const useGetContactById = () => {
+    const actionFn = async (id) => {
+        const res = await apiClient.get(`/api/contacts/${id}`);
+        return res.data;
+    };
+    const {
+        action: getContactById,
+        data: contact,
+        loading,
+        error,
+        reset,
+    } = useContactAction(actionFn);
+
+    return { getContactById, contact: contact?.data, loading, error, reset };
+};
+
+// Mark contact as resolved (admin)
+export const useMarkContactAsResolved = () => {
+    const actionFn = async (id) => {
+        const res = await apiClient.patch(`/api/contacts/${id}/resolve`);
+        return res.data;
+    };
+    const {
+        action: markAsResolved,
+        data: updated,
+        loading,
+        error,
+        reset,
+    } = useContactAction(actionFn);
+
+    return { markAsResolved, updated: updated?.data, loading, error, reset };
+};
