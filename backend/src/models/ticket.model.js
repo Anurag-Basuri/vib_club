@@ -116,7 +116,12 @@ const ticketSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now
-    }
+    },
+
+    emailFailed: {
+        type: Boolean,
+        default: false
+    },
 }, {
     timestamps: true
 })
