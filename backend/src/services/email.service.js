@@ -2,11 +2,11 @@ import nodemailer from 'nodemailer';
 import { ApiError } from '../utils/ApiError.js';
 
 const transporter = nodemailer.createTransport({
-	service: 'gmail',
-	auth: {
-		user: 'vibranta.studorg@gmail.com',
-		pass: 'buizcqiuufqzcgcu',
-	},
+    service: 'gmail',
+    auth: {
+        user: 'vibranta.studorg@gmail.com',
+        pass: 'buizcqiuufqzcgcu',
+    },
 });
 
 export const sendRegistrationEmail = async ({ to, name, eventName, eventDate, eventTime, qrUrl }) => {
@@ -67,29 +67,31 @@ export const sendRegistrationEmail = async ({ to, name, eventName, eventDate, ev
     try {
         await transporter.sendMail(mailOptions);
     } catch (error) {
+        console.error('Email sending failed:', error);
         throw new ApiError(500, 'Failed to send registration email: ' + error.message);
     }
 };
 
 export const sendPasswordResetEmail = async (email, token) => {
-	const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${token}`;
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${token}`;
 
-	const mailOptions = {
-		from: `"Vibranta Club" <${process.env.MAIL_USER}>`,
-		to: email,
-		subject: 'Password Reset Request',
-		html: `
-			<h3>Password Reset</h3>
-			<p>Click the link below to reset your password. This link is valid for 15 minutes:</p>
-			<a href="${resetUrl}" target="_blank">${resetUrl}</a>
-			<br /><br />
-			<p>If you did not request this, please ignore this email.</p>
-		`
-	};
+    const mailOptions = {
+        from: `"Vibranta Club" <${process.env.MAIL_USER}>`,
+        to: email,
+        subject: 'Password Reset Request',
+        html: `
+            <h3>Password Reset</h3>
+            <p>Click the link below to reset your password. This link is valid for 15 minutes:</p>
+            <a href="${resetUrl}" target="_blank">${resetUrl}</a>
+            <br /><br />
+            <p>If you did not request this, please ignore this email.</p>
+        `
+    };
 
-	try {
-		await transporter.sendMail(mailOptions);
-	} catch (error) {
-		throw new ApiError(500, 'Failed to send password reset email');
-	}
+    try {
+        await transporter.sendMail(mailOptions);
+    } catch (error) {
+        console.error('Password reset email failed:', error);
+        throw new ApiError(500, 'Failed to send password reset email: ' + error.message);
+    }
 };
