@@ -21,7 +21,7 @@ router.post('/validate', validateCoupon);
 router.post('/redeem', redeemCoupon);
 
 // Admin: Delete a coupon
-router.delete('/:code', authMiddleware, deleteCoupon);
+router.delete('/:code', authMiddleware.verifyToken, deleteCoupon);
 
 // Admin: Create a new coupon
 router.post('/create',
