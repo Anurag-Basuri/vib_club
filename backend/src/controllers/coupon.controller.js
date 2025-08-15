@@ -1,7 +1,7 @@
 import Coupon from '../models/coupon.model.js';
 import { ApiError } from '../utils/ApiError.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
-import asyncHandler from '../utils/asyncHandler.js';
+import {asyncHandler} from '../utils/asyncHandler.js';
 
 // Create a new coupon
 const createCoupon = asyncHandler(async (req, res) => {
