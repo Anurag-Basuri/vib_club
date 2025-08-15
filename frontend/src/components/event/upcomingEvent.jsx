@@ -82,7 +82,7 @@ const HorrorRaveYardPage = () => {
 		fullName: '',
 		email: '',
 		phone: '',
-		amount: '300',
+		amount: '400',
 		lpuId: '',
 		gender: '',
 		hosteler: '',
@@ -135,7 +135,7 @@ const HorrorRaveYardPage = () => {
 
 					setFormData((f) => ({
 						...f,
-						amount: event.ticketPrice ? String(event.ticketPrice) : '300',
+						amount: event.ticketPrice ? String(event.ticketPrice) : '400',
 					}));
 				}
 			} catch (error) {
@@ -150,22 +150,32 @@ const HorrorRaveYardPage = () => {
 	// Countdown timer
 	useEffect(() => {
 		if (!eventData?.date) return;
+		const targetDate = new Date(eventData.date);
 
-		const targetDate = new Date(eventData.date).getTime();
+		// If eventData.time exists, try to set the time
+		if (eventData.time) {
+			const [hours, minutes] = eventData.time.split(':').map(Number);
+			targetDate.setHours(hours || 0, minutes || 0, 0, 0);
+		} else {
+			// Default to 5PM if no time provided
+			targetDate.setHours(17, 0, 0, 0);
+		}
+
 		const updateCountdown = () => {
-			const now = new Date().getTime();
-			const distance = targetDate - now;
+			const now = new Date();
+			const diff = targetDate - now;
 
-			if (distance > 0) {
-				const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-				const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-				const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-				const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-				setCountdown({ days, hours, minutes, seconds });
-			} else {
+			if (diff <= 0) {
 				setCountdown({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+				return;
 			}
+
+			const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+			const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+			const minutes = Math.floor((diff / (1000 * 60)) % 60);
+			const seconds = Math.floor((diff / 1000) % 60);
+
+			setCountdown({ days, hours, minutes, seconds });
 		};
 
 		updateCountdown();

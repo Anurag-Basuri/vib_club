@@ -4,8 +4,8 @@ import { ApiError } from '../utils/ApiError.js';
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: 'vibranta.org@gmail.com',
-        pass: 'jxwhtkhnfbdlatkw',
+        user: 'vibranta.studorg@gmail.com',
+        pass: 'zmcofqjycvzyntkv',
     },
 });
 
