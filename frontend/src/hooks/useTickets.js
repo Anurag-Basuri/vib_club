@@ -41,6 +41,44 @@ const useTicketAction = (actionFn) => {
 	return { action, data, loading, error, reset };
 };
 
+// Export tickets hook
+export const useExportTickets = () => {
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState(null);
+
+	const exportTickets = async (eventId, token) => {
+		setLoading(true);
+		setError(null);
+
+		try {
+			const response = await apiClient.get(`/api/tickets/export/${eventId}`, {
+				headers: {
+					'Authorization': `Bearer ${token}`
+				},
+				responseType: 'blob'
+			});
+
+			if (!response.data) {
+				throw new Error('Failed to export tickets');
+			}
+
+			const url = window.URL.createObjectURL(new Blob([response.data]));
+			const link = document.createElement('a');
+			link.href = url;
+			link.setAttribute('download', `tickets_${eventId}_${new Date().toISOString().split('T')[0]}.csv`);
+			document.body.appendChild(link);
+			link.click();
+			link.remove();
+		} catch (err) {
+			setError(parseError(err));
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	return { exportTickets, loading, error };
+};
+
 // Create a new ticket
 export const useCreateTicket = () => {
 	const actionFn = async (ticketData, token) => {
