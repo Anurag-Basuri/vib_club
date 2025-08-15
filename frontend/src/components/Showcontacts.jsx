@@ -102,7 +102,16 @@ const ShowContacts = () => {
 		}
 
 		let content = '';
-		const headers = ['Name', 'Email', 'Phone', 'LPU ID', 'Subject', 'Status', 'Created At', 'Message'];
+		const headers = [
+			'Name',
+			'Email',
+			'Phone',
+			'LPU ID',
+			'Subject',
+			'Status',
+			'Created At',
+			'Message',
+		];
 
 		// CSV format
 		if (exportFormat === 'csv') {
@@ -553,7 +562,9 @@ const ShowContacts = () => {
 																			Subject
 																		</h4>
 																		<p className="text-gray-300 text-sm">
-																			{selectedContact.subject}
+																			{
+																				selectedContact.subject
+																			}
 																		</p>
 																	</div>
 																	<div className="md:col-span-2">
@@ -561,7 +572,9 @@ const ShowContacts = () => {
 																			Message
 																		</h4>
 																		<p className="text-gray-300 text-sm bg-gray-900/30 rounded-lg p-3 whitespace-pre-wrap">
-																			{selectedContact.message}
+																			{
+																				selectedContact.message
+																			}
 																		</p>
 																	</div>
 																	<div>

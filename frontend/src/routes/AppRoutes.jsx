@@ -18,34 +18,34 @@ import PrivacyPolicy from '../pages/privacy.jsx';
 import ShowPage from '../pages/show.jsx';
 
 const AppRoutes = () => {
-    return (
-        <Routes>
-            <Route path="/auth/*" element={<Auth />} />
-            <Route path="/admin/auth/*" element={<AdminAuth />} />
+	return (
+		<Routes>
+			<Route path="/auth/*" element={<Auth />} />
+			<Route path="/admin/auth/*" element={<AdminAuth />} />
 
-            <Route path="/home" element={<Home />} />
-            <Route path="/payment/verify" element={<PaymentVerify />} />
-            <Route path="/event" element={<Current />} />
-            <Route path="/" element={<Current />} />
-            <Route path="/team" element={<Team />} />
-            <Route path='/social-page' element={<Social />} />
-            <Route path="/contact" element={<Contact />} />
+			<Route path="/home" element={<Home />} />
+			<Route path="/payment/verify" element={<PaymentVerify />} />
+			<Route path="/event" element={<Current />} />
+			<Route path="/" element={<Current />} />
+			<Route path="/team" element={<Team />} />
+			<Route path="/social-page" element={<Social />} />
+			<Route path="/contact" element={<Contact />} />
 
-            <Route path="/policy/terms" element={<Terms />} />
-            <Route path="/policy/refund-policy" element={<Refund />} />
-            <Route path="/policy/privacy" element={<PrivacyPolicy />} />
-            <Route path="/policy/cookie" element={<CookiePolicy />} />
+			<Route path="/policy/terms" element={<Terms />} />
+			<Route path="/policy/refund-policy" element={<Refund />} />
+			<Route path="/policy/privacy" element={<PrivacyPolicy />} />
+			<Route path="/policy/cookie" element={<CookiePolicy />} />
 
-            {/* Protected routes */}
-            <Route element={<ProtectedRoutes allowedRoles={['member']} />}>
-                <Route path="/member/dashboard" element={<MemberProfile />} />
-            </Route>
-            <Route element={<ProtectedRoutes allowedRoles={['admin']} />}>
-                <Route path="/admin/dashboard" element={<AdminDash />} />
-                <Route path="/admin/show" element={<ShowPage />} />
-            </Route>
-        </Routes>
-    )
-}
+			{/* Protected routes */}
+			<Route element={<ProtectedRoutes allowedRoles={['member']} />}>
+				<Route path="/member/dashboard" element={<MemberProfile />} />
+			</Route>
+			<Route element={<ProtectedRoutes allowedRoles={['admin']} />}>
+				<Route path="/admin/dashboard" element={<AdminDash />} />
+				<Route path="/admin/show" element={<ShowPage />} />
+			</Route>
+		</Routes>
+	);
+};
 
 export default AppRoutes;

@@ -515,14 +515,16 @@ const HorrorRaveYardPage = () => {
 									style={{
 										background: 'rgba(90, 35, 25, 0.55)',
 										border: '1.5px solid rgba(205, 133, 63, 0.4)',
-										boxShadow: '0 6px 24px 0 rgba(220,38,38,0.12), 0 1.5px 0 #a04000',
+										boxShadow:
+											'0 6px 24px 0 rgba(220,38,38,0.12), 0 1.5px 0 #a04000',
 										backgroundImage: `url("https://www.transparenttextures.com/patterns/rust.png")`,
 										backgroundBlendMode: 'overlay',
 										overflow: 'hidden',
 									}}
 									whileHover={{
 										scale: 1.08,
-										boxShadow: '0 0 32px 8px rgba(220,38,38,0.25), 0 2px 0 #a04000',
+										boxShadow:
+											'0 0 32px 8px rgba(220,38,38,0.25), 0 2px 0 #a04000',
 										borderColor: '#e25822',
 									}}
 									transition={{
@@ -552,7 +554,8 @@ const HorrorRaveYardPage = () => {
 										}}
 									/>
 									{/* Icon with metallic shine */}
-									<span className="text-5xl mb-3 relative z-10 group-hover:animate-pulse"
+									<span
+										className="text-5xl mb-3 relative z-10 group-hover:animate-pulse"
 										style={{
 											filter: 'drop-shadow(0 2px 8px #a04000)',
 											transition: 'filter 0.3s',
@@ -560,9 +563,11 @@ const HorrorRaveYardPage = () => {
 									>
 										{item.icon}
 										{/* Shine effect */}
-										<span className="absolute left-1/2 top-1/2 w-10 h-10 rounded-full pointer-events-none"
+										<span
+											className="absolute left-1/2 top-1/2 w-10 h-10 rounded-full pointer-events-none"
 											style={{
-												background: 'radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%)',
+												background:
+													'radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%)',
 												transform: 'translate(-50%, -60%)',
 												zIndex: 1,
 											}}
@@ -872,23 +877,27 @@ const HorrorRaveYardPage = () => {
 											{eventData?.date
 												? (() => {
 														const eventDate = new Date(eventData.date);
-														const dateStr = eventDate.toLocaleDateString(
-															undefined,
-															{
-																weekday: 'long',
-																year: 'numeric',
-																month: 'short',
-																day: 'numeric',
-															}
-														);
+														const dateStr =
+															eventDate.toLocaleDateString(
+																undefined,
+																{
+																	weekday: 'long',
+																	year: 'numeric',
+																	month: 'short',
+																	day: 'numeric',
+																}
+															);
 														const timeStr =
 															eventData.time ||
-															eventDate.toLocaleTimeString(undefined, {
-																hour: '2-digit',
-																minute: '2-digit',
-															});
+															eventDate.toLocaleTimeString(
+																undefined,
+																{
+																	hour: '2-digit',
+																	minute: '2-digit',
+																}
+															);
 														return `${dateStr} • ${timeStr}`;
-												  })()
+													})()
 												: '-- • --'}
 										</div>
 									</div>
@@ -975,7 +984,9 @@ const HorrorRaveYardPage = () => {
 												<div className="aspect-[2/3] overflow-hidden flex items-center justify-center bg-black rounded-2xl">
 													<img
 														src={poster.url}
-														alt={poster.alt || `Event Poster ${idx + 1}`}
+														alt={
+															poster.alt || `Event Poster ${idx + 1}`
+														}
 														className="w-full h-full object-contain rounded-2xl"
 														style={{
 															background: '#181818',
@@ -994,9 +1005,12 @@ const HorrorRaveYardPage = () => {
 							) : (
 								<div className="flex flex-col items-center justify-center h-full w-full py-16 border-2 border-dashed border-red-700/30 rounded-xl bg-black/40">
 									<div className="text-6xl mb-4">🖼️</div>
-									<h3 className="text-xl font-bold text-white mb-2">Posters Coming Soon</h3>
+									<h3 className="text-xl font-bold text-white mb-2">
+										Posters Coming Soon
+									</h3>
 									<p className="text-red-200 text-center max-w-md">
-										Creepy visuals are being conjured in the underworld.<br />
+										Creepy visuals are being conjured in the underworld.
+										<br />
 										Stay tuned for the reveal!
 									</p>
 								</div>

@@ -21,27 +21,27 @@ export const getToken = () => {
 };
 
 export const removeToken = () => {
-  try {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-  } catch (err) {
-    console.error('Error removing token', err);
-  }
+	try {
+		localStorage.removeItem('accessToken');
+		localStorage.removeItem('refreshToken');
+	} catch (err) {
+		console.error('Error removing token', err);
+	}
 };
 
 export const decodeToken = (token) => {
-  try {
-    if (!token || typeof token !== 'string') return null;
-    return jwtDecode(token);
-  } catch (err) {
-    console.error('Error decoding token', err);
-    return null;
-  }
+	try {
+		if (!token || typeof token !== 'string') return null;
+		return jwtDecode(token);
+	} catch (err) {
+		console.error('Error decoding token', err);
+		return null;
+	}
 };
 
 export const isTokenExpired = (token) => {
-  if (!token) return true;
-  const decoded = decodeToken(token);
-  if (!decoded || !decoded.exp) return true;
-  return Date.now() >= decoded.exp * 1000;
+	if (!token) return true;
+	const decoded = decodeToken(token);
+	if (!decoded || !decoded.exp) return true;
+	return Date.now() >= decoded.exp * 1000;
 };

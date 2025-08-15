@@ -53,9 +53,9 @@ export const useExportTickets = () => {
 		try {
 			const response = await apiClient.get(`/api/tickets/export/${eventId}`, {
 				headers: {
-					'Authorization': `Bearer ${token}`
+					Authorization: `Bearer ${token}`,
 				},
-				responseType: 'blob'
+				responseType: 'blob',
 			});
 
 			if (!response.data) {
@@ -65,7 +65,10 @@ export const useExportTickets = () => {
 			const url = window.URL.createObjectURL(new Blob([response.data]));
 			const link = document.createElement('a');
 			link.href = url;
-			link.setAttribute('download', `tickets_${eventId}_${new Date().toISOString().split('T')[0]}.csv`);
+			link.setAttribute(
+				'download',
+				`tickets_${eventId}_${new Date().toISOString().split('T')[0]}.csv`
+			);
 			document.body.appendChild(link);
 			link.click();
 			link.remove();

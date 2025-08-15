@@ -3,99 +3,93 @@ import { apiClient } from '../services/api';
 
 // Utility for consistent error parsing
 const parseError = (err) => {
-    if (err?.data?.message) return err.data.message;
-    if (err?.data?.error) return err.data.error;
-    if (err?.message) return err.message;
-    return 'Unknown error occurred';
+	if (err?.data?.message) return err.data.message;
+	if (err?.data?.error) return err.data.error;
+	if (err?.message) return err.message;
+	return 'Unknown error occurred';
 };
 
 // Generic hook for contact actions
 const useContactAction = (actionFn) => {
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [data, setData] = useState(null);
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState(null);
+	const [data, setData] = useState(null);
 
-    const action = useCallback(
-        async (...args) => {
-            setLoading(true);
-            setError(null);
-            try {
-                const result = await actionFn(...args);
-                setData(result);
-                return result;
-            } catch (err) {
-                setError(parseError(err));
-                throw err;
-            } finally {
-                setLoading(false);
-            }
-        },
-        [actionFn]
-    );
+	const action = useCallback(
+		async (...args) => {
+			setLoading(true);
+			setError(null);
+			try {
+				const result = await actionFn(...args);
+				setData(result);
+				return result;
+			} catch (err) {
+				setError(parseError(err));
+				throw err;
+			} finally {
+				setLoading(false);
+			}
+		},
+		[actionFn]
+	);
 
-    const reset = () => {
-        setData(null);
-        setError(null);
-    };
+	const reset = () => {
+		setData(null);
+		setError(null);
+	};
 
-    return { action, data, loading, error, reset };
+	return { action, data, loading, error, reset };
 };
 
 // Get all contacts (admin)
 export const useGetAllContacts = () => {
-    const actionFn = async (params = {}) => {
-        const res = await apiClient.get('/api/contact/getall', { params });
-        return res.data;
-    };
-    const {
-        action: getAllContacts,
-        data,
-        loading,
-        error,
-        reset,
-    } = useContactAction(actionFn);
+	const actionFn = async (params = {}) => {
+		const res = await apiClient.get('/api/contact/getall', { params });
+		return res.data;
+	};
+	const { action: getAllContacts, data, loading, error, reset } = useContactAction(actionFn);
 
-    return {
-        getAllContacts,
-        contacts: data?.data?.docs || [],
-        total: data?.data?.totalDocs || 0,
-        pagination: data?.data || {},
-        loading,
-        error,
-        reset,
-    };
+	return {
+		getAllContacts,
+		contacts: data?.data?.docs || [],
+		total: data?.data?.totalDocs || 0,
+		pagination: data?.data || {},
+		loading,
+		error,
+		reset,
+	};
 };
 
 // Get single contact by ID (admin)
 export const useGetContactById = () => {
-    const actionFn = async (id) => {
-        const res = await apiClient.get(`/api/contact/${id}`);
-        return res.data;
-    };
-    const {
-        action: getContactById,
-        data: contact,
-        loading,
-        error,
-        reset,
-    } = useContactAction(actionFn);
+	const actionFn = async (id) => {
+		const res = await apiClient.get(`/api/contact/${id}`);
+		return res.data;
+	};
+	const {
+		action: getContactById,
+		data: contact,
+		loading,
+		error,
+		reset,
+	} = useContactAction(actionFn);
 
-    return { getContactById, contact: contact?.data, loading, error, reset };
+	return { getContactById, contact: contact?.data, loading, error, reset };
 };
 
 // Mark contact as resolved (admin)
 export const useMarkContactAsResolved = () => {
-    const actionFn = async (id) => {
-        const res = await apiClient.patch(`/api/contact/${id}/resolve`);
-        return res.data;
-    };
-    const {
-        action: markAsResolved,
-        data: updated,
-        loading,
-        error,
-        reset,
-    } = useContactAction(actionFn);
+	const actionFn = async (id) => {
+		const res = await apiClient.patch(`/api/contact/${id}/resolve`);
+		return res.data;
+	};
+	const {
+		action: markAsResolved,
+		data: updated,
+		loading,
+		error,
+		reset,
+	} = useContactAction(actionFn);
 
-    return { markAsResolved, updated: updated?.data, loading, error, reset };
+	return { markAsResolved, updated: updated?.data, loading, error, reset };
 };

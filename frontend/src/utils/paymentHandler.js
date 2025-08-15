@@ -15,8 +15,17 @@ export const handlePayment = async ({
 
 	try {
 		// Validate form data
-		const { fullName, email, phone, lpuId, gender, hosteler, hostel, course, club, amount } = formData;
-		if (!fullName || !email || !phone || !lpuId || !gender || hosteler === undefined || !course) {
+		const { fullName, email, phone, lpuId, gender, hosteler, hostel, course, club, amount } =
+			formData;
+		if (
+			!fullName ||
+			!email ||
+			!phone ||
+			!lpuId ||
+			!gender ||
+			hosteler === undefined ||
+			!course
+		) {
 			setError('Please fill all required fields.');
 			setLoading(false);
 			return;
@@ -63,8 +72,8 @@ export const handlePayment = async ({
 
 		// Load and initialize Cashfree
 		const cashfree = await load({
-            mode: import.meta.env.VITE_CASHFREE_MODE || 'sandbox',
-        });
+			mode: import.meta.env.VITE_CASHFREE_MODE || 'sandbox',
+		});
 
 		// Close the payment form before redirecting
 		// if (setShowPaymentForm) {
