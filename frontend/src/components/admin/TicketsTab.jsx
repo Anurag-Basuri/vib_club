@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Ticket, Download, Search, ChevronDown, BarChart2, Filter } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Ticket, Download, Search, ChevronDown } from 'lucide-react';
 import {
 	useGetTicketsByEvent,
 	useUpdateTicketStatus,
@@ -12,7 +12,7 @@ import StatusBadge from './StatusBadge.jsx';
 import TicketStats from './TicketStats.jsx';
 
 const TicketsTab = ({ token, events, setDashboardError }) => {
-	const [selectedEventId, setSelectedEventId] = useState(null);
+	const [selectedEventId, setSelectedEventId] = useState('');
 	const [ticketFilters, setTicketFilters] = useState({
 		status: 'all',
 		sort: 'newest',
@@ -28,22 +28,22 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
 	} = useGetTicketsByEvent();
 
 	const { updateTicketStatus, loading: updateTicketLoading } = useUpdateTicketStatus();
-
 	const { deleteTicket, loading: deleteTicketLoading } = useDeleteTicket();
-
 	const { exportTickets, loading: exportLoading, error: exportError } = useExportTickets();
 
+	// Fetch tickets when event changes
 	useEffect(() => {
 		if (selectedEventId) {
-			getTicketsByEvent(selectedEventId, token).catch((err) =>
+			getTicketsByEvent(selectedEventId, token).catch(() =>
 				setDashboardError('Failed to load tickets')
 			);
 		}
+		// eslint-disable-next-line
 	}, [selectedEventId, token]);
 
+	// Calculate ticket stats
 	useEffect(() => {
 		if (tickets && tickets.length > 0) {
-			// Calculate ticket statistics
 			const stats = {
 				total: tickets.length,
 				pending: tickets.filter((t) => t.status === 'pending').length,
@@ -63,18 +63,19 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
 			if (selectedEventId) {
 				await getTicketsByEvent(selectedEventId, token);
 			}
-		} catch (err) {
+		} catch {
 			setDashboardError('Ticket update failed');
 		}
 	};
 
 	const handleDeleteTicket = async (ticketId) => {
+		if (!window.confirm('Are you sure you want to delete this ticket?')) return;
 		try {
 			await deleteTicket(ticketId, token);
 			if (selectedEventId) {
 				await getTicketsByEvent(selectedEventId, token);
 			}
-		} catch (err) {
+		} catch {
 			setDashboardError('Ticket deletion failed');
 		}
 	};
@@ -89,29 +90,27 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
 	};
 
 	// Filter and sort tickets
-	const filteredTickets = tickets
-		.filter((ticket) => {
-			// Status filter
-			if (ticketFilters.status !== 'all' && ticket.status !== ticketFilters.status) {
-				return false;
-			}
-
-			// Search filter (LPU ID or email only)
-			if (searchTerm) {
-				const searchLower = searchTerm.toLowerCase();
-				const matchesLpuId = ticket.lpuId?.toLowerCase().includes(searchLower);
-				const matchesEmail = ticket.email?.toLowerCase().includes(searchLower);
-				return matchesLpuId || matchesEmail;
-			}
-
-			return true;
-		})
-		.sort((a, b) => {
+	const filteredTickets = useMemo(() => {
+		let filtered = tickets;
+		if (ticketFilters.status !== 'all') {
+			filtered = filtered.filter((t) => t.status === ticketFilters.status);
+		}
+		if (searchTerm) {
+			const searchLower = searchTerm.toLowerCase();
+			filtered = filtered.filter(
+				(t) =>
+					t.lpuId?.toLowerCase().includes(searchLower) ||
+					t.email?.toLowerCase().includes(searchLower)
+			);
+		}
+		filtered = filtered.sort((a, b) => {
 			if (ticketFilters.sort === 'newest') {
 				return new Date(b.createdAt) - new Date(a.createdAt);
 			}
 			return new Date(a.createdAt) - new Date(b.createdAt);
 		});
+		return filtered;
+	}, [tickets, ticketFilters, searchTerm]);
 
 	return (
 		<div className="space-y-6">
@@ -120,8 +119,8 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
 					<div className="relative">
 						<select
 							className="appearance-none bg-gray-700/50 border border-gray-600 rounded-lg pl-4 pr-10 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-							value={selectedEventId || ''}
-							onChange={(e) => setSelectedEventId(e.target.value || null)}
+							value={selectedEventId}
+							onChange={(e) => setSelectedEventId(e.target.value)}
 						>
 							<option value="">Select an event</option>
 							{events.map((event) => (
@@ -132,7 +131,6 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
 						</select>
 						<ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
 					</div>
-
 					<div className="relative">
 						<select
 							className="appearance-none bg-gray-700/50 border border-gray-600 rounded-lg pl-4 pr-10 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -149,7 +147,6 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
 						</select>
 						<ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
 					</div>
-
 					<div className="relative">
 						<select
 							className="appearance-none bg-gray-700/50 border border-gray-600 rounded-lg pl-4 pr-10 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -164,7 +161,6 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
 						<ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
 					</div>
 				</div>
-
 				<div className="flex gap-2">
 					<div className="relative w-full md:w-64">
 						<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -176,7 +172,6 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
 							onChange={(e) => setSearchTerm(e.target.value)}
 						/>
 					</div>
-
 					<button
 						onClick={handleExportTickets}
 						disabled={exportLoading || !selectedEventId}
@@ -235,15 +230,12 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
 							</thead>
 							<tbody className="bg-gray-800 divide-y divide-gray-700">
 								{filteredTickets.map((ticket) => (
-									<tr
-										key={ticket._id}
-										className="hover:bg-gray-750/50 transition"
-									>
+									<tr key={ticket._id} className="hover:bg-gray-750/50 transition">
 										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
 											{ticket.lpuId || 'N/A'}
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
-											{ticket.fullName}
+											{ticket.fullName || ticket.fullname || 'N/A'}
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
 											{ticket.email}
@@ -252,16 +244,15 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
 											<StatusBadge status={ticket.status} />
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-											{new Date(ticket.createdAt).toLocaleDateString()}
+											{ticket.createdAt
+												? new Date(ticket.createdAt).toLocaleDateString()
+												: ''}
 										</td>
 										<td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
 											{ticket.status !== 'approved' && (
 												<button
 													onClick={() =>
-														handleUpdateTicketStatus(
-															ticket._id,
-															'approved'
-														)
+														handleUpdateTicketStatus(ticket._id, 'approved')
 													}
 													disabled={updateTicketLoading}
 													className="text-green-500 hover:text-green-400 disabled:opacity-50"
@@ -273,10 +264,7 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
 											{ticket.status !== 'rejected' && (
 												<button
 													onClick={() =>
-														handleUpdateTicketStatus(
-															ticket._id,
-															'rejected'
-														)
+														handleUpdateTicketStatus(ticket._id, 'rejected')
 													}
 													disabled={updateTicketLoading}
 													className="text-red-500 hover:text-red-400 disabled:opacity-50"
