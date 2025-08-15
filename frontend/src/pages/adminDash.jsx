@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { ShieldCheck, Ticket, LogOut, Download } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth.js';
 import { useGetAllEvents } from '../hooks/useEvents.js';
-import DashboardTab from '../components/admin/DashboardTab.jsx';
+// import DashboardTab from '../components/admin/DashboardTab.jsx';
 import MembersTab from '../components/admin/MembersTab.jsx';
 import EventsTab from '../components/admin/EventsTab.jsx';
 import TicketsTab from '../components/admin/TicketsTab.jsx';
@@ -119,13 +119,13 @@ const AdminDash = () => {
 
 				{/* Dashboard Content */}
 				<div className="p-6">
-					{activeTab === 'dashboard' && (
+					{/* {activeTab === 'dashboard' && (
 						<DashboardTab
 							events={events}
 							eventsLoading={eventsLoading}
 							setActiveTab={setActiveTab}
 						/>
-					)}
+					)} */}
 
 					{activeTab === 'members' && (
 						<MembersTab token={token} setDashboardError={setDashboardError} />

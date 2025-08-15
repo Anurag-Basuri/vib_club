@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Filter, UserPlus, Download } from 'lucide-react';
+import { Search, Filter, UserPlus, Download, Users } from 'lucide-react';
 import {
 	useGetAllMembers,
 	useBanMember,
