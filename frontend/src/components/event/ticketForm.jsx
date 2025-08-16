@@ -265,6 +265,49 @@ const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }
 							/>
 						</div>
 						<div>
+							<label className="block text-xs font-semibold mb-1 text-red-200 tracking-wide">
+								How did you hear about us? <span className="text-red-400">*</span>
+							</label>
+							<div className="flex flex-col gap-1">
+								<label className="inline-flex items-center gap-2">
+									<input
+										type="radio"
+										name="referrerType"
+										value="vibranta"
+										checked={formData.referrerType === 'vibranta'}
+										onChange={handleInputChange}
+										required
+										className="accent-red-600"
+									/>
+									<span className="text-red-100">Vibranta</span>
+								</label>
+								<label className="inline-flex items-center gap-2">
+									<input
+										type="radio"
+										name="referrerType"
+										value="SML"
+										checked={formData.referrerType === 'SML'}
+										onChange={handleInputChange}
+										required
+										className="accent-red-600"
+									/>
+									<span className="text-red-100">SML</span>
+								</label>
+								<label className="inline-flex items-center gap-2">
+									<input
+										type="radio"
+										name="referrerType"
+										value="others"
+										checked={formData.referrerType === 'others'}
+										onChange={handleInputChange}
+										required
+										className="accent-red-600"
+									/>
+									<span className="text-red-100">Others</span>
+								</label>
+							</div>
+						</div>
+						<div>
 							<label
 								htmlFor="club"
 								className="block text-xs font-semibold mb-1 text-red-200 tracking-wide"
