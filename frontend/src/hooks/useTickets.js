@@ -130,7 +130,7 @@ export const useDeleteTicket = () => {
 	return { deleteTicket, success: !!success, loading, error, reset };
 };
 
-// Delete a ticket
+// Update a ticket
 export const useUpdateTicket = () => {
 	const actionFn = async (ticketId, updateData, token) => {
 		const res = await apiClient.patch(`api/tickets/${ticketId}/status`, updateData, {

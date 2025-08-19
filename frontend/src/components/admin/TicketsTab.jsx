@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Ticket, Download, Search, ChevronDown, Trash2 } from 'lucide-react';
+import { Ticket, Download, Search, ChevronDown, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import {
     useGetTicketsByEvent,
     useUpdateTicketStatus,
     useDeleteTicket,
+    useUpdateTicket
 } from '../../hooks/useTickets.js';
 import LoadingSpinner from './LoadingSpinner.jsx';
 import ErrorMessage from './ErrorMessage.jsx';
@@ -29,7 +30,7 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
         error: ticketsError,
     } = useGetTicketsByEvent();
 
-    const { updateTicketStatus, loading: updateTicketLoading } = useUpdateTicketStatus();
+    const { updateTicket, loading: updateTicketLoading } = useUpdateTicket();
     const { deleteTicket, loading: deleteTicketLoading } = useDeleteTicket();
 
     // Fetch tickets when event changes
@@ -56,6 +57,7 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
         }
     }, [tickets]);
 
+	// Handle ticket deletion
     const handleDeleteTicket = async (ticketId) => {
         if (!window.confirm('Are you sure you want to delete this ticket?')) return;
         try {
@@ -65,6 +67,18 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
             }
         } catch {
             setDashboardError('Ticket deletion failed');
+        }
+    };
+
+    // Only update isUsed field
+    const handleToggleIsUsed = async (ticketId, currentIsUsed) => {
+        try {
+            await updateTicket(ticketId, { isUsed: !currentIsUsed }, token);
+            if (selectedEventId) {
+                await getTicketsByEvent(selectedEventId, token);
+            }
+        } catch {
+            setDashboardError('Ticket update failed');
         }
     };
 
@@ -291,31 +305,13 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
                                         Phone
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                                        Gender
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                                        Hosteler
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                                         Hostel
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                                        Course
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                                         Club
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                                        Event Name
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                                        Status
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                                         Is Used
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                                        Is Cancelled
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                                         Created At
@@ -341,31 +337,16 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
                                             {ticket.phone || 'N/A'}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                                            {ticket.gender || 'N/A'}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                                            {ticket.hosteler === true ? 'Yes' : 'No'}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                                             {ticket.hostel || 'N/A'}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                                            {ticket.course || 'N/A'}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                                             {ticket.club || 'N/A'}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                                            {ticket.eventName || 'N/A'}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                                            <StatusBadge status={ticket.status} />
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                                            {ticket.isUsed === true ? 'Yes' : 'No'}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                                            {ticket.isCancelled === true ? 'Yes' : 'No'}
+                                            {ticket.isUsed
+                                                ? <span className="flex items-center text-green-400"><CheckCircle className="h-4 w-4 mr-1" />Yes</span>
+                                                : <span className="flex items-center text-gray-400"><XCircle className="h-4 w-4 mr-1" />No</span>
+                                            }
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
                                             {ticket.createdAt
@@ -381,6 +362,19 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                                 Delete
+                                            </button>
+                                            <button
+                                                onClick={() => handleToggleIsUsed(ticket._id, ticket.isUsed)}
+                                                disabled={updateTicketLoading}
+                                                className={`${
+                                                    ticket.isUsed
+                                                        ? 'text-yellow-600 hover:text-yellow-400'
+                                                        : 'text-green-700 hover:text-green-500'
+                                                } disabled:opacity-50 flex items-center gap-1`}
+                                                title={ticket.isUsed ? 'Mark as Not Used' : 'Mark as Used'}
+                                            >
+                                                {ticket.isUsed ? <XCircle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
+                                                {ticket.isUsed ? 'Mark Not Used' : 'Mark Used'}
                                             </button>
                                         </td>
                                     </tr>
