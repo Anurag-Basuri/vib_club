@@ -25,7 +25,7 @@ apiClient.interceptors.response.use(
 
 export const memberRegister = async (data) => {
 	try {
-		const response = await publicClient.post('/api/members/register', data);
+		const response = await apiClient.post('/api/members/register', data);
 
 		return response.data;
 	} catch (error) {
