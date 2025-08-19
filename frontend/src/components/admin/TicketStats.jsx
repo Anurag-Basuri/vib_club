@@ -1,3 +1,4 @@
+
 import { BarChart2, Ticket, CheckCircle, XCircle, Clock } from 'lucide-react';
 
 const TicketStats = ({ stats }) => {
