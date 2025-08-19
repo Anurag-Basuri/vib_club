@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
     User,
     Mail,
@@ -7,15 +7,17 @@ import {
     Ticket,
     X,
     QrCode,
-    Calendar,
     AtSign,
     Building2,
     BadgeCheck,
-    MapPin,
+    AlertTriangle,
 } from 'lucide-react';
 import { useCreateTicket } from '../../hooks/useTickets.js';
 import ErrorMessage from './ErrorMessage.jsx';
 import StatusBadge from './StatusBadge.jsx';
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const phoneRegex = /^[0-9+\-\s]{7,15}$/;
 
 const CreateTicket = ({ token, events, onClose }) => {
     const [formData, setFormData] = useState({
@@ -32,10 +34,27 @@ const CreateTicket = ({ token, events, onClose }) => {
         eventName: events?.[0]?.title || '',
     });
     const [error, setError] = useState('');
+    const [fieldErrors, setFieldErrors] = useState({});
     const [success, setSuccess] = useState(false);
     const [ticketDetails, setTicketDetails] = useState(null);
 
+    // Refs for focusing on error fields
+    const refs = {
+        fullName: useRef(),
+        email: useRef(),
+        eventId: useRef(),
+        phone: useRef(),
+    };
+
     const { createTicket, loading } = useCreateTicket();
+
+    useEffect(() => {
+        // Focus on the first field with error after submit
+        const firstError = Object.keys(fieldErrors)[0];
+        if (firstError && refs[firstError] && refs[firstError].current) {
+            refs[firstError].current.focus();
+        }
+    }, [fieldErrors]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -49,14 +68,32 @@ const CreateTicket = ({ token, events, onClose }) => {
                   }
                 : {}),
         }));
+        setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
     };
+
+    const validateFields = () => {
+        const errors = {};
+        if (!formData.fullName) errors.fullName = 'Full Name is required';
+        if (!formData.email) errors.email = 'Email is required';
+        else if (!emailRegex.test(formData.email))
+            errors.email = 'Enter a valid email address';
+        if (!formData.eventId) errors.eventId = 'Event selection is required';
+        if (formData.phone && !phoneRegex.test(formData.phone))
+            errors.phone = 'Enter a valid phone number';
+        return errors;
+    };
+
+    const handleDismissError = () => setError('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        setFieldErrors({});
 
-        if (!formData.fullName || !formData.email || !formData.eventId) {
-            setError('Please fill in all required fields');
+        const errors = validateFields();
+        if (Object.keys(errors).length > 0) {
+            setFieldErrors(errors);
+            setError('Please correct the highlighted fields.');
             return;
         }
 
@@ -86,17 +123,29 @@ const CreateTicket = ({ token, events, onClose }) => {
                 eventName: events?.[0]?.title || '',
             });
         } catch (err) {
-            setError(
-                err?.response?.data?.message ||
-                    err?.message ||
-                    'Failed to create ticket'
-            );
+            // Backend validation errors (array or object)
+            if (err?.response?.data?.errors) {
+                const backendErrors = err.response.data.errors;
+                let newFieldErrors = {};
+                if (Array.isArray(backendErrors)) {
+                    backendErrors.forEach((e) => {
+                        if (e.path && e.msg) {
+                            newFieldErrors[e.path] = e.msg;
+                        }
+                    });
+                } else if (typeof backendErrors === 'object') {
+                    newFieldErrors = backendErrors;
+                }
+                setFieldErrors(newFieldErrors);
+                setError('Please correct the highlighted fields.');
+            } else if (err?.response?.data?.message) {
+                setError(err.response.data.message);
+            } else if (err?.message) {
+                setError(err.message);
+            } else {
+                setError('Failed to create ticket');
+            }
         }
-    };
-
-    // Helper to get event details for ticket summary
-    const getEventDetails = (eventId) => {
-        return events.find((ev) => ev._id === eventId) || {};
     };
 
     return (
@@ -213,6 +262,20 @@ const CreateTicket = ({ token, events, onClose }) => {
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-6">
+                        {error && (
+                            <div className="flex items-center bg-red-700/20 border border-red-500 text-red-300 px-4 py-2 rounded mb-2">
+                                <AlertTriangle className="h-5 w-5 mr-2" />
+                                <span className="flex-1">{error}</span>
+                                <button
+                                    type="button"
+                                    onClick={handleDismissError}
+                                    className="ml-2 text-red-300 hover:text-white"
+                                    aria-label="Dismiss error"
+                                >
+                                    <X className="h-5 w-5" />
+                                </button>
+                            </div>
+                        )}
                         <div className="flex flex-col gap-6 md:flex-row">
                             {/* Personal Info */}
                             <div className="flex-1 space-y-4">
@@ -231,12 +294,28 @@ const CreateTicket = ({ token, events, onClose }) => {
                                         type="text"
                                         id="fullName"
                                         name="fullName"
+                                        ref={refs.fullName}
                                         value={formData.fullName}
                                         onChange={handleChange}
-                                        className="w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className={`w-full px-4 py-2 bg-gray-700/50 border ${
+                                            fieldErrors.fullName
+                                                ? 'border-red-500'
+                                                : 'border-gray-600'
+                                        } rounded-lg text-white focus:outline-none focus:ring-2 ${
+                                            fieldErrors.fullName
+                                                ? 'focus:ring-red-500'
+                                                : 'focus:ring-blue-500'
+                                        }`}
                                         placeholder="John Doe"
                                         autoComplete="off"
+                                        aria-invalid={!!fieldErrors.fullName}
                                     />
+                                    {fieldErrors.fullName && (
+                                        <div className="flex items-center gap-1 text-xs text-red-400 mt-1">
+                                            <AlertTriangle className="h-4 w-4" />
+                                            {fieldErrors.fullName}
+                                        </div>
+                                    )}
                                 </div>
                                 <div>
                                     <label
@@ -251,13 +330,29 @@ const CreateTicket = ({ token, events, onClose }) => {
                                             type="email"
                                             id="email"
                                             name="email"
+                                            ref={refs.email}
                                             value={formData.email}
                                             onChange={handleChange}
-                                            className="w-full pl-10 pr-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className={`w-full pl-10 pr-4 py-2 bg-gray-700/50 border ${
+                                                fieldErrors.email
+                                                    ? 'border-red-500'
+                                                    : 'border-gray-600'
+                                            } rounded-lg text-white focus:outline-none focus:ring-2 ${
+                                                fieldErrors.email
+                                                    ? 'focus:ring-red-500'
+                                                    : 'focus:ring-blue-500'
+                                            }`}
                                             placeholder="john@example.com"
                                             autoComplete="off"
+                                            aria-invalid={!!fieldErrors.email}
                                         />
                                     </div>
+                                    {fieldErrors.email && (
+                                        <div className="flex items-center gap-1 text-xs text-red-400 mt-1">
+                                            <AlertTriangle className="h-4 w-4" />
+                                            {fieldErrors.email}
+                                        </div>
+                                    )}
                                 </div>
                                 <div>
                                     <label
@@ -272,13 +367,29 @@ const CreateTicket = ({ token, events, onClose }) => {
                                             type="tel"
                                             id="phone"
                                             name="phone"
+                                            ref={refs.phone}
                                             value={formData.phone}
                                             onChange={handleChange}
-                                            className="w-full pl-10 pr-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className={`w-full pl-10 pr-4 py-2 bg-gray-700/50 border ${
+                                                fieldErrors.phone
+                                                    ? 'border-red-500'
+                                                    : 'border-gray-600'
+                                            } rounded-lg text-white focus:outline-none focus:ring-2 ${
+                                                fieldErrors.phone
+                                                    ? 'focus:ring-red-500'
+                                                    : 'focus:ring-blue-500'
+                                            }`}
                                             placeholder="+91 9876543210"
                                             autoComplete="off"
+                                            aria-invalid={!!fieldErrors.phone}
                                         />
                                     </div>
+                                    {fieldErrors.phone && (
+                                        <div className="flex items-center gap-1 text-xs text-red-400 mt-1">
+                                            <AlertTriangle className="h-4 w-4" />
+                                            {fieldErrors.phone}
+                                        </div>
+                                    )}
                                 </div>
                                 <div>
                                     <label
@@ -412,10 +523,22 @@ const CreateTicket = ({ token, events, onClose }) => {
                                         type="text"
                                         id="eventId"
                                         name="eventId"
+                                        ref={refs.eventId}
                                         value={formData.eventId}
                                         disabled
-                                        className="w-full px-4 py-2 bg-gray-700/30 border border-gray-600 rounded-lg text-gray-400"
+                                        className={`w-full px-4 py-2 bg-gray-700/30 border ${
+                                            fieldErrors.eventId
+                                                ? 'border-red-500'
+                                                : 'border-gray-600'
+                                        } rounded-lg text-gray-400`}
+                                        aria-invalid={!!fieldErrors.eventId}
                                     />
+                                    {fieldErrors.eventId && (
+                                        <div className="flex items-center gap-1 text-xs text-red-400 mt-1">
+                                            <AlertTriangle className="h-4 w-4" />
+                                            {fieldErrors.eventId}
+                                        </div>
+                                    )}
                                 </div>
                                 <div>
                                     <label
@@ -435,12 +558,12 @@ const CreateTicket = ({ token, events, onClose }) => {
                                 </div>
                             </div>
                         </div>
-                        {error && <ErrorMessage error={error} />}
                         <div className="flex flex-col md:flex-row justify-end gap-3 pt-4">
                             <button
                                 type="button"
                                 onClick={onClose}
                                 className="px-6 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg text-white"
+                                disabled={loading}
                             >
                                 Cancel
                             </button>
