@@ -24,7 +24,6 @@ const memberSchema = new mongoose.Schema({
         },
         publicId: {
             type: String,
-            unique: true
         }
     },
     fullname: {
