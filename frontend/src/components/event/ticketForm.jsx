@@ -303,25 +303,21 @@ const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }
 										required
 										className="accent-red-600"
 									/>
-									<span className="text-red-100">Others</span>
+									<span className="text-red-100">VIBE</span>
+								</label>
+								<label className="inline-flex items-center gap-2">
+									<input
+										type="radio"
+										name="referrerType"
+										value="others"
+										checked={formData.referrerType === 'others'}
+										onChange={handleInputChange}
+										required
+										className="accent-red-600"
+									/>
+									<span className="text-red-100">BEAST</span>
 								</label>
 							</div>
-						</div>
-						<div>
-							<label
-								htmlFor="club"
-								className="block text-xs font-semibold mb-1 text-red-200 tracking-wide"
-							>
-								Referred by (optional)
-							</label>
-							<input
-								id="club"
-								name="club"
-								value={formData.club || ''}
-								onChange={handleInputChange}
-								className="w-full border border-red-700 bg-black/60 text-red-100 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-600 transition"
-								placeholder="Club name if referred"
-							/>
 						</div>
 					</div>
 					<div>
