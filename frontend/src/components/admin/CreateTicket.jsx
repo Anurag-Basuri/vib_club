@@ -95,16 +95,6 @@ const CreateTicket = ({ token, events, onClose }) => {
 
 	return (
 		<div className="bg-gray-800 rounded-xl p-4 md:p-6 max-w-3xl w-full mx-auto">
-			<div className="flex justify-between items-center mb-6">
-				<h3 className="text-lg md:text-xl font-bold text-white flex items-center gap-2">
-					<Ticket className="h-6 w-6 text-blue-400" />
-					Create New Ticket
-				</h3>
-				<button onClick={onClose} className="text-gray-400 hover:text-white">
-					<X className="h-6 w-6" />
-				</button>
-			</div>
-
 			{success ? (
 				<div className="text-center py-8">
 					<div className="mx-auto bg-green-500/20 rounded-full p-3 w-16 h-16 flex items-center justify-center mb-4">
@@ -232,7 +222,7 @@ const CreateTicket = ({ token, events, onClose }) => {
 								</div>
 							</div>
 
-							{formData.hosteler === true && (
+							{formData.hosteler && (
 								<div>
 									<label className="block text-sm text-gray-400 mb-1" htmlFor="hostel">
 										Hostel
