@@ -6,9 +6,9 @@ import { sendPasswordResetEmail } from '../services/email.service.js';
 
 // Register a new member
 const registerMember = asyncHandler(async (req, res) => {
-    const { fullname, LpuId, email, password, department, program } = req.body;
-    if (!fullname || !LpuId || !password || !department) {
-        return res.status(400).json(ApiResponse.badRequest('Full name, LPU ID, password, and department are required'));
+    const { fullname, LpuId, email, password, department, designation } = req.body;
+    if (!fullname || !LpuId || !password || !department || !designation) {
+        return res.status(400).json(ApiResponse.badRequest('Full name, LPU ID, password, department, and designation are required'));
     }
 
     const existingMember = await Member.findOne({ LpuId });
@@ -22,7 +22,7 @@ const registerMember = asyncHandler(async (req, res) => {
         email,
         password,
         department,
-        program,
+        designation,
     });
 
     const accessToken = member.generateAuthToken();
