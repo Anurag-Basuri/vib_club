@@ -19,7 +19,7 @@ import Modal from './Modal.jsx';
 // Enum options for department and designation
 const DEPARTMENT_OPTIONS = [
   'HR', 'Technical', 'Marketing', 'Management', 'Content Writing',
-  'Event Management', 'Media', 'Design', 'Coordinator'
+  'Event Management', 'Media', 'Design', 'Coordinator', 'PR'
 ];
 const DESIGNATION_OPTIONS = [
   'CEO', 'CTO', 'CFO', 'CMO', 'COO', 'Head', 'member'
