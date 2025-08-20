@@ -90,7 +90,7 @@ const memberSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Department is required'],
         enum: {
-            values: ['HR', 'Technical', 'Marketing', 'Management', 'Content Writing', 'Event Management', 'Media', 'Design', 'Coordinator'],
+            values: ['HR', 'Technical', 'Marketing', 'Management', 'Content Writing', 'Event Management', 'Media', 'Design', 'Coordinator', 'PR'],
             message: 'Please select a valid department'
         }
     },

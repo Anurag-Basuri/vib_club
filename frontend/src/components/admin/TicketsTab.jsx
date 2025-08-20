@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
     Ticket, Download, Search, ChevronDown, Trash2, CheckCircle,
     XCircle, ArrowUpDown, Filter, Mail, Phone, Home, Users, Calendar, Loader2,
-    AlertCircle
+    AlertCircle, X
 } from 'lucide-react';
 import {
     useGetTicketsByEvent,
@@ -10,9 +10,7 @@ import {
     useDeleteTicket
 } from '../../hooks/useTickets';
 import TicketStats from './TicketStats';
-import TicketActivityTimeline from './TicketActivityTimeline';
 
-// External helper function for date formatting
 const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
@@ -23,7 +21,6 @@ const formatDate = (dateString) => {
     });
 };
 
-// Mobile Filter Menu Component
 const MobileFilterMenu = React.memo(({
     isOpen,
     onClose,
@@ -43,7 +40,7 @@ const MobileFilterMenu = React.memo(({
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-lg font-semibold text-white">Filters</h3>
                     <button onClick={onClose} className="text-gray-400 hover:text-white">
-                        <XCircle size={20} />
+                        <X className="h-5 w-5" />
                     </button>
                 </div>
                 <div className="space-y-4">
@@ -95,7 +92,6 @@ const MobileFilterMenu = React.memo(({
     );
 });
 
-// Ticket Row Component
 const TicketRow = React.memo(({
     ticket,
     onToggleIsUsed,
@@ -104,25 +100,25 @@ const TicketRow = React.memo(({
     deleteLoading
 }) => (
     <tr className="hover:bg-gray-750/50 transition">
-        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-300">
             {ticket.lpuId || 'N/A'}
         </td>
-        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
+        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-white max-w-[120px] truncate">
             {ticket.fullName || 'N/A'}
         </td>
-        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300 truncate max-w-xs">
+        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-300 max-w-[160px] truncate">
             {ticket.email || 'N/A'}
         </td>
-        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-300">
             {ticket.phone || 'N/A'}
         </td>
-        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-300">
             {ticket.hostel || 'N/A'}
         </td>
-        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-300">
             {ticket.club || 'N/A'}
         </td>
-        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-300">
             {ticket.isUsed ? (
                 <span className="flex items-center text-green-400">
                     <CheckCircle className="h-4 w-4 mr-1" />Yes
@@ -133,10 +129,10 @@ const TicketRow = React.memo(({
                 </span>
             )}
         </td>
-        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
+        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-400">
             {ticket.createdAt ? formatDate(ticket.createdAt) : 'N/A'}
         </td>
-        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium space-x-2">
             <button
                 onClick={() => onToggleIsUsed(ticket._id, ticket.isUsed)}
                 disabled={updateLoading}
@@ -165,7 +161,6 @@ const TicketRow = React.memo(({
     </tr>
 ));
 
-// Ticket Card Component
 const TicketCard = React.memo(({
     ticket,
     onToggleIsUsed,
@@ -243,7 +238,6 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-    // API hooks
     const {
         getTicketsByEvent,
         tickets,
@@ -266,7 +260,6 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
         reset: resetDeleteError
     } = useDeleteTicket();
 
-    // Stats calculation
     const ticketStats = useMemo(() => {
         if (!tickets || tickets.length === 0) return null;
         return {
@@ -276,7 +269,6 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
         };
     }, [tickets]);
 
-    // Fetch tickets when event changes
     useEffect(() => {
         resetTicketsError();
         resetUpdateError();
@@ -286,10 +278,8 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
                 setDashboardError('Failed to load tickets');
             });
         }
-        // eslint-disable-next-line
     }, [selectedEventId, token]);
 
-    // Handle ticket deletion
     const handleDeleteTicket = async (ticketId) => {
         if (!window.confirm('Are you sure you want to delete this ticket?')) return;
         try {
@@ -300,7 +290,6 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
         }
     };
 
-    // Toggle ticket usage status
     const handleToggleIsUsed = async (ticketId, currentIsUsed) => {
         try {
             await updateTicket(ticketId, { isUsed: !currentIsUsed }, token);
@@ -310,7 +299,6 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
         }
     };
 
-    // CSV Export
     const [exportLoading, setExportLoading] = useState(false);
     const [exportError, setExportError] = useState('');
     const handleExportTickets = async () => {
@@ -322,7 +310,7 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
                 setExportLoading(false);
                 return;
             }
-            // Define all columns you want to export
+            
             const headers = [
                 'Ticket ID',
                 'Full Name',
@@ -363,7 +351,7 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
                 t.createdAt ? new Date(t.createdAt).toLocaleString() : '',
                 t.emailFailed ? 'Yes' : 'No'
             ]);
-            // Properly escape CSV values
+            
             const csvContent = [headers, ...rows].map(row =>
                 row.map(cell =>
                     typeof cell === 'string' && cell.includes(',')
@@ -371,6 +359,7 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
                         : cell
                 ).join(',')
             ).join('\n');
+            
             const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -387,7 +376,6 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
         }
     };
 
-    // Memoize filtered tickets for better performance
     const filteredTickets = useMemo(() => {
         if (!tickets) return [];
         return tickets
@@ -408,12 +396,10 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
             });
     }, [tickets, sortBy, searchTerm]);
 
-    // Toggle sort direction
     const toggleSort = () => {
         setSortBy(prev => prev === 'newest' ? 'oldest' : 'newest');
     };
 
-    // Clear all errors
     const clearAllErrors = () => {
         resetTicketsError();
         resetUpdateError();
@@ -466,7 +452,6 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
                             <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
                         </div>
                     </div>
-                    {/* Mobile Filter Button */}
                     <button
                         className="sm:hidden flex items-center gap-2 px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white"
                         onClick={() => setIsMobileMenuOpen(true)}
@@ -520,7 +505,7 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
                         className="ml-4 px-3 py-1 bg-red-800/40 rounded text-sm hover:bg-red-700/60 flex items-center gap-1"
                         onClick={clearAllErrors}
                     >
-                        <XCircle className="h-4 w-4" />
+                        <X className="h-4 w-4" />
                         Dismiss
                     </button>
                 </div>
@@ -553,60 +538,58 @@ const TicketsTab = ({ token, events, setDashboardError }) => {
                 ) : (
                     <>
                         {/* Desktop Table */}
-                        <div className="hidden md:block rounded-lg border border-gray-700 overflow-x-auto">
-                            <div className="max-h-[60vh] overflow-y-auto">
-                                <table className="min-w-full divide-y divide-gray-700">
-                                    <thead className="bg-gray-750 sticky top-0 z-10">
-                                        <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                                                <button
-                                                    className="flex items-center"
-                                                    onClick={toggleSort}
-                                                >
-                                                    <span>LPU ID</span>
-                                                    <ArrowUpDown className="ml-1 h-3 w-3" />
-                                                </button>
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                                                Name
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                                                Email
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                                                Phone
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                                                Hostel
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                                                Club
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                                                Is Used
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                                                Created At
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                                                Actions
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-gray-800 divide-y divide-gray-700">
-                                        {filteredTickets.map((ticket) => (
-                                            <TicketRow
-                                                key={ticket._id}
-                                                ticket={ticket}
-                                                onToggleIsUsed={handleToggleIsUsed}
-                                                onDeleteTicket={handleDeleteTicket}
-                                                updateLoading={updateLoading}
-                                                deleteLoading={deleteLoading}
-                                            />
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                        <div className="hidden md:block rounded-lg border border-gray-700 bg-gray-900/80 mt-4 overflow-x-auto">
+                            <table className="w-full divide-y divide-gray-700 min-w-[1000px]">
+                                <thead className="bg-gray-750 sticky top-0 z-10">
+                                    <tr>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                            <button
+                                                className="flex items-center"
+                                                onClick={toggleSort}
+                                            >
+                                                <span>LPU ID</span>
+                                                <ArrowUpDown className="ml-1 h-3 w-3" />
+                                            </button>
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                            Name
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                            Email
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                            Phone
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                            Hostel
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                            Club
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                            Is Used
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                            Created At
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                            Actions
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-gray-800 divide-y divide-gray-700">
+                                    {filteredTickets.map((ticket) => (
+                                        <TicketRow
+                                            key={ticket._id}
+                                            ticket={ticket}
+                                            onToggleIsUsed={handleToggleIsUsed}
+                                            onDeleteTicket={handleDeleteTicket}
+                                            updateLoading={updateLoading}
+                                            deleteLoading={deleteLoading}
+                                        />
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
                         {/* Mobile Card List */}
                         <div className="md:hidden space-y-3">
