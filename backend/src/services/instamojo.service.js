@@ -2,8 +2,26 @@ import axios from "axios";
 import { config } from "dotenv";
 config();
 
-const INSTAMOJO_AUTH_URL = "https://api.instamojo.com/oauth2/token/"
+// Toggle between live & sandbox
+const INSTAMOJO_BASE_URL =
+  process.env.NODE_ENV === "production"
+    ? "https://api.instamojo.com/v2"
+    : "https://test.instamojo.com/v2";
 
+const INSTAMOJO_AUTH_URL =
+  process.env.NODE_ENV === "production"
+    ? "https://api.instamojo.com/oauth2/token/"
+    : "https://test.instamojo.com/oauth2/token/";
+
+const CLIENT_ID = process.env.INSTAMOJO_CLIENT_ID;
+const CLIENT_SECRET = process.env.INSTAMOJO_CLIENT_SECRET;
+
+let accessToken = null;
+let tokenExpiry = null;
+
+/**
+ * Get (or refresh) Instamojo access token
+ */
 async function getAccessToken() {
   const now = Math.floor(Date.now() / 1000);
 
@@ -23,18 +41,22 @@ async function getAccessToken() {
     );
 
     accessToken = response.data.access_token;
-    tokenExpiry = now + response.data.expires_in - 60;
+    tokenExpiry = now + response.data.expires_in - 60; // refresh 1min early
 
     console.log("✅ Instamojo token fetched successfully");
     return accessToken;
   } catch (error) {
-    console.error("❌ Failed to fetch Instamojo token:", error.response?.data || error.message);
+    console.error(
+      "❌ Failed to fetch Instamojo token:",
+      error.response?.data || error.message
+    );
     throw new Error("Instamojo authentication failed");
   }
 }
 
 /**
- * Create Instamojo Payment Request
+ * Create Instamojo Payment Order
+ * @param {Object} orderDetails
  */
 export async function createInstamojoOrder(orderDetails) {
   try {
@@ -51,9 +73,15 @@ export async function createInstamojoOrder(orderDetails) {
       }
     );
 
+    console.log("✅ Instamojo order created:", response.data);
     return response.data;
   } catch (error) {
-    console.error("❌ Instamojo order error:", error.response?.data || error.message);
-    throw new Error(error.response?.data?.message || "Instamojo order creation failed");
+    console.error(
+      "❌ Instamojo order error:",
+      error.response?.data || error.message
+    );
+    throw new Error(
+      error.response?.data?.message || "Instamojo order creation failed"
+    );
   }
 }
