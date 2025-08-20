@@ -6,6 +6,7 @@ import handlePayment from '../../utils/paymentHandler.js';
 import logo1 from '../../assets/smp.png';
 import logo2 from '../../assets/whiteHeaven.png';
 import logo3 from '../../assets/cabNest.png';
+import Footer from '../Footer.jsx';
 
 // Custom hook to prevent background scroll when modal is open
 const usePreventBodyScroll = (preventScroll) => {
@@ -1263,6 +1264,7 @@ const HorrorRaveYardPage = () => {
 					</motion.div>
 				)}
 			</AnimatePresence>
+			<Footer />
 		</div>
 	);
 };
