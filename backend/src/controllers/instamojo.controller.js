@@ -8,7 +8,7 @@ import { generateTicketQR } from '../services/qrcode.service.js';
 import { sendRegistrationEmail } from '../services/email.service.js';
 import { deleteFile } from '../utils/cloudinary.js';
 import { v4 as uuidv4 } from 'uuid';
-import createInstamojoOrder from '../services/instamojo.service.js';
+import { createInstamojoOrder } from '../services/instamojo.service.js';
 import axios from 'axios';
 import { config } from 'dotenv';
 config();
