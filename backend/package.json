@@ -12,6 +12,7 @@
     "express-validator": "^7.2.1",
     "helmet": "^8.1.0",
     "html5-qrcode": "^2.3.8",
+    "instamojo-nodejs": "^0.0.5",
     "ioredis": "^5.7.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.4",
