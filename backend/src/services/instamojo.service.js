@@ -2,7 +2,7 @@ import axios from 'axios';
 import { config } from 'dotenv';
 config();
 
-const INSTAMOJO_BASE_URL ='https://test.instamojo.com/v2';
+const INSTAMOJO_BASE_URL ='https://api.instamojo.com/v2';
 
 const INSTAMOJO_API_KEY = process.env.INSTAMOJO_API_KEY || "68422fce4df07f082b83f80ec8aa9eb6";
 const INSTAMOJO_AUTH_TOKEN = process.env.INSTAMOJO_AUTH_TOKEN || "d56633e22ecc452b397caae09f546ec7";
