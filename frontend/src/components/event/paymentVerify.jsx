@@ -26,7 +26,7 @@ const PaymentSuccess = () => {
 			}
 
 			// Call verify payment endpoint
-			const response = await publicClient.post(`api/instamojo/verify?order_id=${orderId}`);
+			const response = await publicClient.post(`api/cashfree/verify?order_id=${orderId}`);
 			const { data } = response.data;
 
 			if (!data || !data.transaction) {

@@ -1,4 +1,4 @@
-{/*import { publicClient } from '../services/api.js';
+import { publicClient } from '../services/api.js';
 import { load } from '@cashfreepayments/cashfree-js';
 
 export const handlePayment = async ({
@@ -106,7 +106,8 @@ export const handlePayment = async ({
 	}
 };
 
-export default handlePayment;*/}
+export default handlePayment;
+{/*
 import { publicClient } from '../services/api.js';
 	
 	export const handlePayment = async ({
@@ -205,4 +206,4 @@ import { publicClient } from '../services/api.js';
 		}
 };
 
-export default handlePayment;
+export default handlePayment;*/}
