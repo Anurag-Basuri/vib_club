@@ -16,6 +16,7 @@ import socialRouter from './routes/socials.routes.js';
 import ticketRouter from './routes/ticket.routes.js';
 import cashFreeRoutes from './routes/cashFree.routes.js';
 import couponRoutes from './routes/coupon.routes.js';
+import instamojoRoutes from './routes/instamojo.routes.js';
 
 const app = express();
 
@@ -40,6 +41,7 @@ app.use('/api/members', memberRoutes);
 app.use('/api/socials', socialRouter);
 app.use('/api/tickets', ticketRouter);
 app.use('/api/cashfree', cashFreeRoutes);
+app.use('/api/instamojo', instamojoRoutes);
 app.use('/api/coupons', couponRoutes);
 
 // Health check route
