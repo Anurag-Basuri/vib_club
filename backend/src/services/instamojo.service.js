@@ -3,15 +3,9 @@ import { config } from "dotenv";
 config();
 
 // Toggle between live & sandbox
-const INSTAMOJO_BASE_URL =
-  process.env.NODE_ENV === "production"
-    ? "https://api.instamojo.com/v2"
-    : "https://test.instamojo.com/v2";
+const INSTAMOJO_BASE_URL = "https://api.instamojo.com/v2";
 
-const INSTAMOJO_AUTH_URL =
-  process.env.NODE_ENV === "production"
-    ? "https://api.instamojo.com/oauth2/token/"
-    : "https://test.instamojo.com/oauth2/token/";
+const INSTAMOJO_AUTH_URL = "https://api.instamojo.com/oauth2/token/";
 
 const CLIENT_ID = process.env.INSTAMOJO_CLIENT_ID;
 const CLIENT_SECRET = process.env.INSTAMOJO_CLIENT_SECRET;
