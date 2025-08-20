@@ -12,7 +12,7 @@ const INSTAMOJO_AUTH_TOKEN = process.env.INSTAMOJO_AUTH_TOKEN || 'd56633e22ecc45
 async function createInstamojoOrder(orderDetails) {
   try {
     const response = await axios.post(
-      `${INSTAMOJO_BASE_URL}/payment-requests/`,
+      `${INSTAMOJO_BASE_URL}/payment_requests/`,
       orderDetails,
       {
         headers: {
