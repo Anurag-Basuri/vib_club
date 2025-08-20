@@ -3,8 +3,11 @@ import cors from 'cors';
 const allowedOrigins = [
 	process.env.FRONTEND_URL || 'http://localhost:5173',
 	'http://localhost:5173',
+	'http://localhost:5174',
 	'https://vibranta.in',
 	'https://www.vibranta.in',
+	'https://vibranta.org',
+	'https://www.vibranta.org',
 	'http://185.199.52.113', // VPS IP
 ];
 
