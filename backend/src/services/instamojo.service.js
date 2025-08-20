@@ -2,18 +2,8 @@ import axios from "axios";
 import { config } from "dotenv";
 config();
 
-const INSTAMOJO_BASE_URL = "https://api.instamojo.com/v2"
+const INSTAMOJO_AUTH_URL = "https://api.instamojo.com/oauth2/token/"
 
-// ⚡ Put these in your .env
-const CLIENT_ID = process.env.INSTAMOJO_CLIENT_ID;
-const CLIENT_SECRET = process.env.INSTAMOJO_CLIENT_SECRET;
-
-let accessToken = null;
-let tokenExpiry = null;
-
-/**
- * Get OAuth Access Token
- */
 async function getAccessToken() {
   const now = Math.floor(Date.now() / 1000);
 
@@ -23,7 +13,7 @@ async function getAccessToken() {
 
   try {
     const response = await axios.post(
-      `${INSTAMOJO_BASE_URL}/oauth2/token/`,
+      INSTAMOJO_AUTH_URL,
       new URLSearchParams({
         grant_type: "client_credentials",
         client_id: CLIENT_ID,
@@ -33,7 +23,7 @@ async function getAccessToken() {
     );
 
     accessToken = response.data.access_token;
-    tokenExpiry = now + response.data.expires_in - 60; // refresh 1 min early
+    tokenExpiry = now + response.data.expires_in - 60;
 
     console.log("✅ Instamojo token fetched successfully");
     return accessToken;
