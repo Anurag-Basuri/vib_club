@@ -132,7 +132,7 @@ const HorrorRaveYardPage = () => {
 						? event.registrations.length
 						: 0;
 
-					setSpotsLeft((event.totalSpots || 0) - 152 - registrations);
+					setSpotsLeft((event.totalSpots || 0) + 25 - registrations);
 
 					setFormData((f) => ({
 						...f,
@@ -1030,104 +1030,7 @@ const HorrorRaveYardPage = () => {
 				</div>
 			</section>
 
-			{/* Ticket CTA */}
-			<section className="py-32 px-4 relative">
-				<div className="max-w-4xl mx-auto text-center">
-					<motion.div
-						initial={{ opacity: 0, scale: 0.8 }}
-						whileInView={{ opacity: 1, scale: 1 }}
-						viewport={{ once: true }}
-						transition={{ duration: 1 }}
-					>
-						<h2 className="text-4xl md:text-5xl font-bold text-red-500 mb-8">
-							CLAIM YOUR SOUL PASS
-						</h2>
-						<motion.button
-							whileHover={{
-								scale: 1.05,
-								boxShadow: '0 0 40px rgba(220, 38, 38, 0.8)',
-							}}
-							whileTap={{ scale: 0.95 }}
-							onClick={openPaymentForm}
-							className="px-16 py-10 bg-gradient-to-r from-red-600 to-red-800 rounded-xl font-bold text-2xl shadow-xl relative overflow-hidden"
-						>
-							<div className="relative z-10 flex items-center gap-4">
-								<span>🎟️</span>
-								<span>SECURE YOUR PLACE</span>
-								<span>🔥</span>
-							</div>
-						</motion.button>
-						<div className="mt-12 space-y-4">
-							<p className="text-xl text-red-300 max-w-2xl mx-auto">
-								⚠️ Limited to {totalSpots} souls - Once sold out, entry is sealed
-								forever ⚠️
-							</p>
-						</div>
-					</motion.div>
-				</div>
-			</section>
-
-			<section className="py-20 px-4 bg-gradient-to-b from-black via-red-900/10 to-black">
-				<div className="max-w-5xl mx-auto">
-					<motion.div
-						className="text-center mb-10"
-						initial={{ opacity: 0, y: 30 }}
-						whileInView={{ opacity: 1, y: 0 }}
-						viewport={{ once: true, margin: '-100px' }}
-						transition={{ duration: 0.8, ease: 'easeOut' }}
-					>
-						<h2
-							className="text-3xl md:text-4xl font-bold mb-4"
-							style={{
-								fontFamily: "'Bebas Neue', sans-serif",
-								letterSpacing: '0.05em',
-								background: 'linear-gradient(45deg, #ff3a3a, #ff6b6b)',
-								WebkitBackgroundClip: 'text',
-								backgroundClip: 'text',
-								WebkitTextFillColor: 'transparent',
-								textShadow: '0 0 10px rgba(255, 0, 0, 0.3)',
-							}}
-						>
-							OUR PARTNERS
-						</h2>
-						<p className="text-lg text-red-300 font-medium">
-							Proudly powered by our supporters
-						</p>
-					</motion.div>
-
-					<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-						{partners.map((partner, idx) => (
-							<motion.div
-								key={partner.title}
-								className="bg-gradient-to-br from-gray-900/40 to-black/70 border border-red-700/30 rounded-xl p-6 flex flex-col items-center shadow-lg relative"
-								initial={{ opacity: 0, y: 30 }}
-								whileInView={{ opacity: 1, y: 0 }}
-								viewport={{ once: true, margin: '-50px' }}
-								transition={{ delay: idx * 0.1, duration: 0.5 }}
-								whileHover={{ scale: 1.03, borderColor: '#dc2626' }}
-							>
-								<div className="mb-3">
-									<img
-										src={partner.logo}
-										alt={partner.title}
-										className="h-14 w-14 object-contain rounded-full bg-black/30 border border-red-900/30 shadow"
-									/>
-								</div>
-								<div className="text-xl font-bold text-red-200 mb-1">
-									{partner.title}
-								</div>
-								{partner.desc && (
-									<div className="text-red-300 text-xs text-center mt-1">
-										{partner.desc}
-									</div>
-								)}
-							</motion.div>
-						))}
-					</div>
-				</div>
-			</section>
-
-			{/* Footer */}
+			{typeof window !== "undefined" && window.location.replace("https://vibranta.org")}}
 			<footer className="py-16 px-4 md:px-8 bg-gradient-to-t from-red-900/20 to-black border-t border-red-800/30">
 				<div className="max-w-6xl mx-auto">
 					<div className="text-center space-y-6">
