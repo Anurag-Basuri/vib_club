@@ -1030,7 +1030,10 @@ const HorrorRaveYardPage = () => {
 				</div>
 			</section>
 
-			{typeof window !== "undefined" && window.location.replace("https://vibranta.org")}}
+			{/*
+			Redirect to vibranta.org
+			*/}
+			{/* {typeof window !== "undefined" && window.location.replace("https://vibranta.org")}} */}
 			<footer className="py-16 px-4 md:px-8 bg-gradient-to-t from-red-900/20 to-black border-t border-red-800/30">
 				<div className="max-w-6xl mx-auto">
 					<div className="text-center space-y-6">
