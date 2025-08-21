@@ -244,6 +244,58 @@ const checkEmailAvailability = asyncHandler(async (req, res) => {
 		);
 });
 
+const ticketForQR = asyncHandler(async (req, res) => {
+    const ticketId = req.params.ticketId || req.body.ticketId;
+
+    if (!ticketId) {
+        throw new ApiError(400, "Ticket ID is required");
+    }
+
+    const ticket = await Ticket.findOne({ ticketId });
+    if (!ticket) {
+        throw new ApiError(404, "Ticket not found");
+    }
+
+    // Optionally, avoid sending sensitive fields
+    const ticketData = ticket.toObject();
+    delete ticketData.__v;
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, ticketData, "Ticket retrieved successfully"));
+});
+
+const updateStatusForQR = asyncHandler(async (req, res) => {
+    const ticketId = req.params.ticketId || req.body.ticketId;
+    const { isUsed } = req.body;
+
+    if (!ticketId) {
+        throw new ApiError(400, "Ticket ID is required");
+    }
+    if (typeof isUsed !== "boolean") {
+        throw new ApiError(400, "isUsed field must be a boolean");
+    }
+
+    const ticket = await Ticket.findOne({ ticketId });
+    if (!ticket) {
+        throw new ApiError(404, "Ticket not found");
+    }
+
+    // Only update if status is actually changing
+    if (ticket.isUsed !== isUsed) {
+        ticket.isUsed = isUsed;
+        await ticket.save();
+    }
+
+    // Optionally, avoid sending sensitive fields
+    const ticketData = ticket.toObject();
+    delete ticketData.__v;
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, ticketData, "Ticket status updated successfully"));
+});
+
 export {
 	createTicket,
 	getTicketById,
@@ -251,4 +303,6 @@ export {
 	getTicketsByEvent,
 	deleteTicket,
 	checkEmailAvailability,
+    ticketForQR,
+    updateStatusForQR
 };
