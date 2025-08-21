@@ -34,13 +34,14 @@ const sendContact = asyncHandler(async (req, res) => {
 });
 
 const getAllContacts = asyncHandler(async (req, res) => {
-	const options = {
-		page: parseInt(req.query.page) || 1,
-		limit: parseInt(req.query.limit) || 10,
-	};
+	// const options = {
+	// 	page: parseInt(req.query.page) || 1,
+	// 	limit: parseInt(req.query.limit) || 10,
+	// };
 
 	// Fetch paginated contacts
-	const contacts = await Contact.getPaginatedContacts(options);
+	// const contacts = await Contact.getPaginatedContacts(options);
+	const contacts = await Contact.find().sort({ createdAt: -1 });
 	if (!contacts || contacts.length === 0) {
 		throw new ApiError.notFound('No contacts found');
 	}

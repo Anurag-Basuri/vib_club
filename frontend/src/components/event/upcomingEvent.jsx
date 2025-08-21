@@ -132,7 +132,7 @@ const HorrorRaveYardPage = () => {
 						? event.registrations.length
 						: 0;
 
-					setSpotsLeft((event.totalSpots || 0) + 25 - registrations);
+					setSpotsLeft((event.totalSpots || 0) + 200 - registrations);
 
 					setFormData((f) => ({
 						...f,
@@ -156,9 +156,7 @@ const HorrorRaveYardPage = () => {
 		// If eventData.time exists, try to set the time
 		if (eventData.time) {
 			const [hours, minutes] = eventData.time.split(':').map(Number);
-			targetDate.setHours(hours || 0, minutes || 0, 0, 0);
-		} else {
-			// Default to 5PM if no time provided
+			// targetDate.setHours(hours || 0, minutes || 0, 0, 0);
 			targetDate.setHours(17, 0, 0, 0);
 		}
 
