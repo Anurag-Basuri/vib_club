@@ -272,9 +272,9 @@ const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }
 								<label className="inline-flex items-center gap-2">
 									<input
 										type="radio"
-										name="referrerType"
+										name="club"
 										value="vibranta"
-										checked={formData.referrerType === 'vibranta'}
+										checked={formData.club === 'vibranta'}
 										onChange={handleInputChange}
 										required
 										className="accent-red-600"
@@ -284,9 +284,9 @@ const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }
 								<label className="inline-flex items-center gap-2">
 									<input
 										type="radio"
-										name="referrerType"
+										name="club"
 										value="SML"
-										checked={formData.referrerType === 'SML'}
+										checked={formData.club === 'SML'}
 										onChange={handleInputChange}
 										required
 										className="accent-red-600"
@@ -296,9 +296,9 @@ const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }
 								<label className="inline-flex items-center gap-2">
 									<input
 										type="radio"
-										name="referrerType"
-										value="others"
-										checked={formData.referrerType === 'others'}
+										name="club"
+										value="VIBE"
+										checked={formData.club === 'VIBE'}
 										onChange={handleInputChange}
 										required
 										className="accent-red-600"
@@ -308,9 +308,9 @@ const TicketForm = ({ formData, setFormData, loading, error, onClose, onSubmit }
 								<label className="inline-flex items-center gap-2">
 									<input
 										type="radio"
-										name="referrerType"
-										value="others"
-										checked={formData.referrerType === 'others'}
+										name="club"
+										value="BEAST"
+										checked={formData.club === 'BEAST'}
 										onChange={handleInputChange}
 										required
 										className="accent-red-600"
