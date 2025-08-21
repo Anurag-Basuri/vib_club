@@ -4,119 +4,109 @@ import { ApiResponse } from '../utils/ApiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
 const sendContact = asyncHandler(async (req, res) => {
-	const { name, email, phone, lpuID, subject, message } = req.body;
+    const { name, email, phone, lpuID, subject, message } = req.body;
 
-	// Validate required fields
-	if (!name || !email || !phone || !lpuID || !subject || !message) {
-		throw new ApiError.badRequest('All fields are required');
-	}
+    // Validate required fields
+    if (!name || !email || !phone || !lpuID || !subject || !message) {
+        throw ApiError.badRequest('All fields are required');
+    }
 
-	// Create a new contact entry
-	const contact = await Contact.create({
-		name,
-		email,
-		phone,
-		lpuID,
-		subject,
-		message,
-	});
+    // Create a new contact entry
+    const contact = await Contact.create({
+        name,
+        email,
+        phone,
+        lpuID,
+        subject,
+        message,
+    });
 
-	// Send success response
-	return res
-		.status(201)
-		.json(
-			new ApiResponse(
-				201,
-				'Contact created successfully',
-				contact
-			)
-		);
+    // Send success response
+    return res
+        .status(201)
+        .json(
+            new ApiResponse(
+                201,
+                contact,
+                'Contact created successfully'
+            )
+        );
 });
 
 const getAllContacts = asyncHandler(async (req, res) => {
-	// const options = {
-	// 	page: parseInt(req.query.page) || 1,
-	// 	limit: parseInt(req.query.limit) || 10,
-	// };
+    // Fetch all contacts
+    const contacts = await Contact.find().sort({ createdAt: -1 });
+    
+    if (!contacts || contacts.length === 0) {
+        throw ApiError.notFound('No contacts found');
+    }
 
-	// Fetch paginated contacts
-	// const contacts = await Contact.getPaginatedContacts(options);
-	const contacts = await Contact.find().sort({ createdAt: -1 });
-	if (!contacts || contacts.length === 0) {
-		throw new ApiError.notFound('No contacts found');
-	}
-
-	// Check if contacts is an object with results
-	if (typeof contacts !== 'object' || !contacts.docs) {
-		throw new ApiError.notFound('No contacts found');
-	}
-
-	// Send success response
-	return res
-		.status(200)
-		.json(
-			new ApiResponse(
-				200,
-				contacts,
-				'Contacts retrieved successfully'
-			)
-		);
+    // Send success response
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                contacts,
+                'Contacts retrieved successfully'
+            )
+        );
 });
 
 const getContactById = asyncHandler(async (req, res) => {
-	const contactId = req.params.id;
+    const contactId = req.params.id;
 
-	// Validate contact ID
-	if (!contactId) {
-		throw new ApiError.badRequest('Contact ID is required');
-	}
+    // Validate contact ID
+    if (!contactId) {
+        throw ApiError.badRequest('Contact ID is required');
+    }
 
-	// Fetch contact by ID
-	const contact = await Contact.findById(contactId);
-	if (!contact) {
-		throw new ApiError.notFound('Contact not found');
-	}
+    // Fetch contact by ID
+    const contact = await Contact.findById(contactId);
+    if (!contact) {
+        throw ApiError.notFound('Contact not found');
+    }
 
-	// Send success response
-	return res
-		.status(200)
-		.json(
-			new ApiResponse(
-				200,
-				contact,
-				'Contact retrieved successfully'
-			)
-		);
+    // Send success response
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                contact,
+                'Contact retrieved successfully'
+            )
+        );
 });
 
 const markContactAsResolved = asyncHandler(async (req, res) => {
-	const contactId = req.params.id;
+    const contactId = req.params.id;
 
-	// Validate contact ID
-	if (!contactId) {
-		throw new ApiError.badRequest('Contact ID is required');
-	}
+    // Validate contact ID
+    if (!contactId) {
+        throw ApiError.badRequest('Contact ID is required');
+    }
 
-	// Update contact status to resolved
-	const contact = await Contact.findByIdAndUpdate(
-		contactId,
-		{ status: 'resolved' },
-		{ new: true }
-	);
-	if (!contact) {
-		throw new ApiError.notFound('Contact not found');
-	}
+    // Update contact status to resolved
+    const contact = await Contact.findByIdAndUpdate(
+        contactId,
+        { status: 'resolved' },
+        { new: true }
+    );
+    if (!contact) {
+        throw ApiError.notFound('Contact not found');
+    }
 
-	// Send success response
-	return res
-		.status(200)
-		.json(
-			new ApiResponse(
-				200,
-				contact,
-				'Contact marked as resolved'
-			)
-		);
+    // Send success response
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                contact,
+                'Contact marked as resolved'
+            )
+        );
 });
 
 export { sendContact, getAllContacts, getContactById, markContactAsResolved };
