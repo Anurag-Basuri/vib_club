@@ -16,7 +16,7 @@ config();
 // Initialize Cashfree payment gateway
 const createOrder = asyncHandler(async (req, res) => {
 	try {
-		const { fullName, email, phone, amount, eventId, lpuId, gender, hosteler, hostel, course, club="" } =
+		const { fullName, email, phone, amount, eventId, lpuId, gender, hosteler, hostel, course, club } =
 			req.body;
 
 		// Validate required fields
@@ -29,6 +29,7 @@ const createOrder = asyncHandler(async (req, res) => {
 		if (!gender) missingFields.push('gender');
 		if (typeof hosteler !== 'boolean') missingFields.push('hosteler');
 		if (!course) missingFields.push('course');
+		if (!club) missingFields.push('club');
 		if (missingFields.length > 0) {
 			throw new ApiError(
 				400,
