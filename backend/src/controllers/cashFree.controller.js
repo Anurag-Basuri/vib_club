@@ -16,10 +16,9 @@ config();
 // Initialize Cashfree payment gateway
 const createOrder = asyncHandler(async (req, res) => {
 	try {
+		console.log('Creating Cashfree order with request body:', req.body);
 		const { fullName, email, phone, amount, eventId, lpuId, gender, hosteler, hostel, course, club } =
 			req.body;
-			console.log('Received club value:', club, 'Type:', typeof club);
-			console.log('Club validation result:', club);
 
 		// Validate required fields
 		const missingFields = [];
