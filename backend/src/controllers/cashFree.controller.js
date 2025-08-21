@@ -18,6 +18,8 @@ const createOrder = asyncHandler(async (req, res) => {
 	try {
 		const { fullName, email, phone, amount, eventId, lpuId, gender, hosteler, hostel, course, club } =
 			req.body;
+			console.log('Received club value:', club, 'Type:', typeof club);
+			console.log('Club validation result:', !club);
 
 		// Validate required fields
 		const missingFields = [];
