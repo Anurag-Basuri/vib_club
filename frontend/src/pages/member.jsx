@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth.js';
 import { 
     useGetCurrentMember,
@@ -11,23 +11,54 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 const MemberProfile = () => {
-    const { user, isAuthenticated, loading: authLoading, logoutMember } = useAuth(); // Removed token since it's not in AuthContext
+    const { user, isAuthenticated, loading: authLoading, logoutMember } = useAuth();
     const navigate = useNavigate();
     const fileInputRef = useRef(null);
 
-    // Hooks for API calls
-    const { getCurrentMember, member: currentUser, loading: userLoading } = useGetCurrentMember();
-    const { updateProfile, member: updatedMember, loading: updateLoading } = useUpdateProfile();
-    const { resetPassword, loading: resetLoading } = useResetPassword();
-    const { sendResetPasswordEmail, loading: emailLoading } = useSendResetPasswordEmail();
-    const { uploadProfilePicture, member: uploadedMember, loading: uploadLoading } = useUploadProfilePicture();
+    // Hooks for API calls with proper error states
+    const { 
+        getCurrentMember, 
+        member: currentUser, 
+        loading: userLoading, 
+        error: userError,
+        reset: resetUserError 
+    } = useGetCurrentMember();
+    
+    const { 
+        updateProfile, 
+        member: updatedMember, 
+        loading: updateLoading, 
+        error: updateError,
+        reset: resetUpdateError 
+    } = useUpdateProfile();
+    
+    const { 
+        resetPassword, 
+        loading: resetLoading, 
+        error: resetError,
+        reset: resetPasswordError 
+    } = useResetPassword();
+    
+    const { 
+        sendResetPasswordEmail, 
+        loading: emailLoading, 
+        error: emailError,
+        reset: resetEmailError 
+    } = useSendResetPasswordEmail();
+    
+    const { 
+        uploadProfilePicture, 
+        member: uploadedMember, 
+        loading: uploadLoading, 
+        error: uploadError,
+        reset: resetUploadError 
+    } = useUploadProfilePicture();
 
-    // Password reset states
+    // Local state
     const [resetEmail, setResetEmail] = useState('');
     const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [LpuId, setLpuId] = useState('');
-
-    // Profile update state
     const [updateProfileData, setUpdateProfileData] = useState({
         fullName: '',
         email: '',
@@ -38,34 +69,106 @@ const MemberProfile = () => {
         bio: '',
     });
 
-    // Show/hide forms
+    // UI state
     const [showResetForm, setShowResetForm] = useState(false);
     const [showPasswordReset, setShowPasswordReset] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [activeTab, setActiveTab] = useState('profile');
     const [statusMessage, setStatusMessage] = useState({ text: '', type: '' });
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-    // Use the current user from hooks or fallback to auth user
+    // Get the most current user data
     const displayUser = currentUser || updatedMember || uploadedMember || user;
 
-    // Redirect if not logged in
+    // Form validation
+    const validateProfileForm = () => {
+        const errors = [];
+        
+        if (!updateProfileData.fullName.trim()) {
+            errors.push('Full name is required');
+        }
+        
+        if (!updateProfileData.email.trim()) {
+            errors.push('Email is required');
+        } else if (!/\S+@\S+\.\S+/.test(updateProfileData.email)) {
+            errors.push('Email format is invalid');
+        }
+        
+        if (updateProfileData.linkedIn && !updateProfileData.linkedIn.startsWith('https://')) {
+            errors.push('LinkedIn URL must start with https://');
+        }
+        
+        if (updateProfileData.github && !updateProfileData.github.startsWith('https://')) {
+            errors.push('GitHub URL must start with https://');
+        }
+        
+        return errors;
+    };
+
+    const validatePasswordForm = () => {
+        const errors = [];
+        
+        if (!LpuId.trim()) {
+            errors.push('LPU ID is required');
+        }
+        
+        if (!newPassword.trim()) {
+            errors.push('New password is required');
+        } else if (newPassword.length < 6) {
+            errors.push('Password must be at least 6 characters long');
+        }
+        
+        if (newPassword !== confirmPassword) {
+            errors.push('Passwords do not match');
+        }
+        
+        return errors;
+    };
+
+    // Show error message helper
+    const showError = useCallback((message) => {
+        setStatusMessage({ text: message, type: 'error' });
+    }, []);
+
+    // Show success message helper
+    const showSuccess = useCallback((message) => {
+        setStatusMessage({ text: message, type: 'success' });
+    }, []);
+
+    // Show info message helper
+    const showInfo = useCallback((message) => {
+        setStatusMessage({ text: message, type: 'info' });
+    }, []);
+
+    // Clear all hook errors
+    const clearAllErrors = useCallback(() => {
+        resetUserError();
+        resetUpdateError();
+        resetPasswordError();
+        resetEmailError();
+        resetUploadError();
+    }, [resetUserError, resetUpdateError, resetPasswordError, resetEmailError, resetUploadError]);
+
+    // Authentication redirect
     useEffect(() => {
         if (!isAuthenticated && !authLoading) {
             navigate('/auth');
         }
     }, [isAuthenticated, authLoading, navigate]);
 
-    // Fetch current user data when component mounts
+    // Fetch current user data
     useEffect(() => {
         if (isAuthenticated) {
-            getCurrentMember(); // No token needed - handled by apiClient interceptor
+            clearAllErrors();
+            getCurrentMember();
         }
-    }, [isAuthenticated, getCurrentMember]);
+    }, [isAuthenticated, getCurrentMember, clearAllErrors]);
 
     // Update form data when user data changes
     useEffect(() => {
         if (displayUser) {
-            setUpdateProfileData({
+            const newData = {
                 fullName: displayUser.fullname || '',
                 email: displayUser.email || '',
                 program: displayUser.program || '',
@@ -73,11 +176,34 @@ const MemberProfile = () => {
                 linkedIn: displayUser.linkedIn || '',
                 github: displayUser.github || '',
                 bio: displayUser.bio || '',
-            });
+            };
+            setUpdateProfileData(newData);
+            setHasUnsavedChanges(false);
         }
     }, [displayUser]);
 
-    // Clear status message after 5 seconds
+    // Handle errors from hooks
+    useEffect(() => {
+        if (userError) showError(userError);
+    }, [userError, showError]);
+
+    useEffect(() => {
+        if (updateError) showError(updateError);
+    }, [updateError, showError]);
+
+    useEffect(() => {
+        if (resetError) showError(resetError);
+    }, [resetError, showError]);
+
+    useEffect(() => {
+        if (emailError) showError(emailError);
+    }, [emailError, showError]);
+
+    useEffect(() => {
+        if (uploadError) showError(uploadError);
+    }, [uploadError, showError]);
+
+    // Auto-clear status messages
     useEffect(() => {
         if (statusMessage.text) {
             const timer = setTimeout(() => {
@@ -87,68 +213,96 @@ const MemberProfile = () => {
         }
     }, [statusMessage]);
 
+    // Track form changes
+    const handleProfileChange = useCallback((e) => {
+        const { name, value } = e.target;
+        setUpdateProfileData((prev) => ({ ...prev, [name]: value }));
+        setHasUnsavedChanges(true);
+        clearAllErrors();
+    }, [clearAllErrors]);
+
     // Send reset password email
     const handleResetPassword = async (e) => {
         e.preventDefault();
+        
+        if (!resetEmail.trim()) {
+            showError('Email is required');
+            return;
+        }
+
         try {
-            setStatusMessage({ text: 'Sending reset email...', type: 'info' });
+            showInfo('Sending reset email...');
             await sendResetPasswordEmail(resetEmail);
-            setStatusMessage({
-                text: 'Password reset email sent! Check your inbox.',
-                type: 'success',
-            });
+            showSuccess('Password reset email sent! Check your inbox.');
             setShowResetForm(false);
             setResetEmail('');
         } catch (error) {
-            setStatusMessage({
-                text: 'Failed to send reset email. Please try again.',
-                type: 'error',
-            });
+            // Error is handled by useEffect
         }
     };
 
     // Reset password
     const handleNewPassword = async (e) => {
         e.preventDefault();
+        
+        const errors = validatePasswordForm();
+        if (errors.length > 0) {
+            showError(errors.join(', '));
+            return;
+        }
+
         try {
-            setStatusMessage({ text: 'Updating password...', type: 'info' });
+            showInfo('Updating password...');
             await resetPassword(LpuId, newPassword);
-            setStatusMessage({ text: 'Password updated successfully!', type: 'success' });
+            showSuccess('Password updated successfully!');
             setShowPasswordReset(false);
             setNewPassword('');
+            setConfirmPassword('');
             setLpuId('');
         } catch (error) {
-            setStatusMessage({
-                text: 'Failed to update password. Please try again.',
-                type: 'error',
-            });
+            // Error is handled by useEffect
         }
     };
 
     // Update profile
     const handleUpdateProfile = async (e) => {
         e.preventDefault();
+        
+        const errors = validateProfileForm();
+        if (errors.length > 0) {
+            showError(errors.join(', '));
+            return;
+        }
+
+        if (!displayUser?._id) {
+            showError('User ID not found. Please refresh the page.');
+            return;
+        }
+
         try {
-            setStatusMessage({ text: 'Updating profile...', type: 'info' });
-            await updateProfile(displayUser._id, updateProfileData); // No token needed
-            setStatusMessage({ text: 'Profile updated successfully!', type: 'success' });
+            showInfo('Updating profile...');
+            await updateProfile(displayUser._id, updateProfileData);
+            showSuccess('Profile updated successfully!');
+            setHasUnsavedChanges(false);
             // Refresh current user data
-            getCurrentMember();
+            await getCurrentMember();
         } catch (error) {
-            setStatusMessage({
-                text: 'Failed to update profile. Please try again.',
-                type: 'error',
-            });
+            // Error is handled by useEffect
         }
     };
 
     // Logout member
     const handleLogout = async () => {
+        if (hasUnsavedChanges) {
+            const confirm = window.confirm('You have unsaved changes. Are you sure you want to logout?');
+            if (!confirm) return;
+        }
+
         try {
             await logoutMember();
             navigate('/auth');
         } catch (error) {
-            setStatusMessage({ text: 'Logout failed. Please try again.', type: 'error' });
+            showError('Logout failed. Please try again.');
         }
     };
 
@@ -157,89 +311,155 @@ const MemberProfile = () => {
         const file = e.target.files[0];
         if (!file) return;
 
+        // Validate file
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+        if (!allowedTypes.includes(file.type)) {
+            showError('Please upload a valid image file (JPEG, PNG, GIF, or WebP)');
+            return;
+        }
+
+        if (file.size > maxSize) {
+            showError('File size must be less than 5MB');
+            return;
+        }
+
+        if (!displayUser?._id) {
+            showError('User ID not found. Please refresh the page.');
+            return;
+        }
+
         try {
-            setStatusMessage({ text: 'Uploading profile picture...', type: 'info' });
+            showInfo('Uploading profile picture...');
             const formData = new FormData();
             formData.append('profilePicture', file);
             
-            await uploadProfilePicture(displayUser._id, formData); // No token needed
-            setStatusMessage({ text: 'Profile picture updated successfully!', type: 'success' });
+            await uploadProfilePicture(displayUser._id, formData);
+            showSuccess('Profile picture updated successfully!');
             // Refresh current user data
-            getCurrentMember();
+            await getCurrentMember();
         } catch (error) {
-            setStatusMessage({ text: 'Failed to upload profile picture.', type: 'error' });
+            // Error is handled by useEffect
         } finally {
             e.target.value = null;
         }
     };
 
-    // Trigger file input click
-    const triggerFileInput = () => {
-        fileInputRef.current?.click();
+    // Reset all forms
+    const resetAllForms = () => {
+        setShowResetForm(false);
+        setShowPasswordReset(false);
+        setResetEmail('');
+        setNewPassword('');
+        setConfirmPassword('');
+        setLpuId('');
+        setShowPassword(false);
+        setShowConfirmPassword(false);
+        clearAllErrors();
     };
 
-    // Handle profile update form changes
-    const handleProfileChange = (e) => {
-        const { name, value } = e.target;
-        setUpdateProfileData((prev) => ({ ...prev, [name]: value }));
+    // Tab change handler
+    const handleTabChange = (tab) => {
+        if (hasUnsavedChanges && tab !== 'edit') {
+            const confirm = window.confirm('You have unsaved changes. Are you sure you want to switch tabs?');
+            if (!confirm) return;
+        }
+        
+        setActiveTab(tab);
+        resetAllForms();
+    };
+
+    // File input trigger
+    const triggerFileInput = () => {
+        fileInputRef.current?.click();
     };
 
     // Status message component
     const StatusMessage = ({ message }) => {
         if (!message.text) return null;
 
-        const bgColor = {
-            success: 'bg-green-900/30 border border-green-700/50',
-            error: 'bg-red-900/30 border border-red-700/50',
-            info: 'bg-blue-900/30 border border-blue-700/50',
-        }[message.type];
+        const config = {
+            success: {
+                bg: 'bg-green-900/30 border border-green-700/50',
+                text: 'text-green-300',
+                icon: '✓'
+            },
+            error: {
+                bg: 'bg-red-900/30 border border-red-700/50',
+                text: 'text-red-300',
+                icon: '✕'
+            },
+            info: {
+                bg: 'bg-blue-900/30 border border-blue-700/50',
+                text: 'text-blue-300',
+                icon: 'ℹ'
+            }
+        };
 
-        const textColor = {
-            success: 'text-green-300',
-            error: 'text-red-300',
-            info: 'text-blue-300',
-        }[message.type];
+        const { bg, text, icon } = config[message.type] || config.info;
 
         return (
             <motion.div
-                className={`${bgColor} ${textColor} p-3 rounded-lg mb-4`}
+                className={`${bg} ${text} p-3 rounded-lg mb-4 flex items-center gap-2`}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
             >
-                {message.text}
+                <span className="font-bold">{icon}</span>
+                <span>{message.text}</span>
+                <button
+                    onClick={() => setStatusMessage({ text: '', type: '' })}
+                    className="ml-auto text-lg hover:opacity-70"
+                >
+                    ×
+                </button>
             </motion.div>
         );
     };
 
-    // Show loading if still fetching user data
-    if (authLoading || userLoading) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] to-[#0f172a] text-white flex items-center justify-center">
-                <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+    // Loading spinner component
+    const LoadingSpinner = () => (
+        <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] to-[#0f172a] text-white flex items-center justify-center">
+            <div className="text-center">
+                <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-blue-300">Loading your profile...</p>
             </div>
-        );
+        </div>
+    );
+
+    // Authentication guard
+    if (authLoading || userLoading) {
+        return <LoadingSpinner />;
     }
 
-    // If not authenticated, show message
     if (!isAuthenticated) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] to-[#0f172a] text-white flex items-center justify-center">
-                <div className="text-center">
-                    <h1 className="text-2xl font-bold mb-4">Please log in to view your profile</h1>
+                <motion.div 
+                    className="text-center"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                >
+                    <h1 className="text-3xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                        Authentication Required
+                    </h1>
+                    <p className="text-blue-300 mb-6">Please log in to view your profile</p>
                     <button 
                         onClick={() => navigate('/auth')}
-                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg transition"
+                        className="px-8 py-3 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 rounded-lg transition-all duration-200 transform hover:scale-105"
                     >
                         Go to Login
                     </button>
-                </div>
+                </motion.div>
             </div>
         );
     }
 
+    // Main render
     return (
         <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] to-[#0f172a] text-white overflow-hidden">
-            {/* Animated background elements */}
+            {/* Animated background */}
             <div className="absolute inset-0 z-0">
                 <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-blue-500/10 blur-3xl animate-pulse" />
                 <div className="absolute top-1/3 right-1/4 w-48 h-48 rounded-full bg-cyan-500/15 blur-3xl animate-pulse" />
@@ -248,19 +468,32 @@ const MemberProfile = () => {
 
             <div className="relative z-10 max-w-4xl mx-auto p-4 pt-6">
                 {/* Header */}
-                <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                <motion.div 
+                    className="flex justify-between items-center mb-6"
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                >
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
                         Member Profile
                     </h1>
-                    <button
-                        onClick={handleLogout}
-                        className="px-4 py-2 rounded-lg bg-red-700/50 hover:bg-red-700/70 backdrop-blur-sm transition"
-                    >
-                        Logout
-                    </button>
-                </div>
+                    <div className="flex gap-3">
+                        {hasUnsavedChanges && (
+                            <span className="px-3 py-1 text-sm bg-yellow-500/20 text-yellow-300 rounded-full">
+                                Unsaved changes
+                            </span>
+                        )}
+                        <button
+                            onClick={handleLogout}
+                            className="px-4 py-2 rounded-lg bg-red-700/50 hover:bg-red-700/70 backdrop-blur-sm transition-all duration-200 hover:scale-105"
+                        >
+                            Logout
+                        </button>
+                    </div>
+                </motion.div>
 
-                <StatusMessage message={statusMessage} />
+                <AnimatePresence>
+                    <StatusMessage message={statusMessage} />
+                </AnimatePresence>
 
                 {/* Profile card */}
                 <motion.div
@@ -269,7 +502,7 @@ const MemberProfile = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
                 >
-                    {/* Profile header with picture */}
+                    {/* Profile header */}
                     <div className="relative p-6 border-b border-blue-500/30">
                         <div className="flex flex-col items-center">
                             <div className="relative group">
@@ -281,9 +514,9 @@ const MemberProfile = () => {
                                             className="w-full h-full object-cover"
                                         />
                                     ) : (
-                                        <div className="bg-blue-900/50 w-full h-full flex items-center justify-center">
-                                            <span className="text-4xl">
-                                                {displayUser?.fullname?.charAt(0) || 'U'}
+                                        <div className="bg-gradient-to-br from-blue-600 to-cyan-500 w-full h-full flex items-center justify-center">
+                                            <span className="text-4xl font-bold">
+                                                {displayUser?.fullname?.charAt(0)?.toUpperCase() || 'U'}
                                             </span>
                                         </div>
                                     )}
@@ -298,19 +531,12 @@ const MemberProfile = () => {
                                 <button
                                     onClick={triggerFileInput}
                                     disabled={uploadLoading}
-                                    className="absolute bottom-2 right-2 w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                                    className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    title="Upload profile picture"
                                 >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="h-5 w-5"
-                                        viewBox="0 0 20 20"
-                                        fill="currentColor"
-                                    >
-                                        <path
-                                            fillRule="evenodd"
-                                            d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z"
-                                            clipRule="evenodd"
-                                        />
+                                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                                     </svg>
                                 </button>
 
@@ -324,12 +550,12 @@ const MemberProfile = () => {
                             </div>
 
                             <div className="mt-4 text-center">
-                                <h2 className="text-xl font-bold">{displayUser?.fullname}</h2>
+                                <h2 className="text-2xl font-bold">{displayUser?.fullname || 'Unknown User'}</h2>
                                 <p className="text-blue-300">
-                                    {displayUser?.designation} • {displayUser?.department}
+                                    {displayUser?.designation || 'Member'} • {displayUser?.department || 'Unknown'}
                                 </p>
                                 <p className="text-blue-400 text-sm mt-1">
-                                    LPU ID: {displayUser?.LpuId}
+                                    LPU ID: {displayUser?.LpuId || 'Not provided'}
                                 </p>
                             </div>
                         </div>
@@ -337,188 +563,200 @@ const MemberProfile = () => {
 
                     {/* Tabs */}
                     <div className="flex border-b border-blue-500/30">
-                        <button
-                            className={`flex-1 py-4 text-center ${activeTab === 'profile' ? 'text-white border-b-2 border-blue-400' : 'text-blue-300'}`}
-                            onClick={() => setActiveTab('profile')}
-                        >
-                            Profile
-                        </button>
-                        <button
-                            className={`flex-1 py-4 text-center ${activeTab === 'security' ? 'text-white border-b-2 border-blue-400' : 'text-blue-300'}`}
-                            onClick={() => setActiveTab('security')}
-                        >
-                            Security
-                        </button>
-                        <button
-                            className={`flex-1 py-4 text-center ${activeTab === 'edit' ? 'text-white border-b-2 border-blue-400' : 'text-blue-300'}`}
-                            onClick={() => setActiveTab('edit')}
-                        >
-                            Edit Profile
-                        </button>
+                        {['profile', 'security', 'edit'].map((tab) => (
+                            <button
+                                key={tab}
+                                className={`flex-1 py-4 text-center capitalize transition-colors ${
+                                    activeTab === tab 
+                                        ? 'text-white border-b-2 border-blue-400 bg-blue-500/10' 
+                                        : 'text-blue-300 hover:text-white hover:bg-blue-500/5'
+                                }`}
+                                onClick={() => handleTabChange(tab)}
+                            >
+                                {tab === 'edit' ? 'Edit Profile' : tab}
+                            </button>
+                        ))}
                     </div>
 
                     {/* Tab Content */}
                     <div className="p-6">
-                        {/* Profile Tab */}
-                        {activeTab === 'profile' && (
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ duration: 0.3 }}
-                            >
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                                    <div className="bg-blue-900/30 p-4 rounded-xl">
-                                        <h3 className="text-blue-300 text-sm mb-1">Email</h3>
-                                        <p>{displayUser?.email || 'Not provided'}</p>
-                                    </div>
-                                    <div className="bg-blue-900/30 p-4 rounded-xl">
-                                        <h3 className="text-blue-300 text-sm mb-1">Program</h3>
-                                        <p>{displayUser?.program || 'Not provided'}</p>
-                                    </div>
-                                    <div className="bg-blue-900/30 p-4 rounded-xl">
-                                        <h3 className="text-blue-300 text-sm mb-1">Year</h3>
-                                        <p>{displayUser?.year || 'Not provided'}</p>
-                                    </div>
-                                    <div className="bg-blue-900/30 p-4 rounded-xl">
-                                        <h3 className="text-blue-300 text-sm mb-1">Joined</h3>
-                                        <p>
-                                            {displayUser?.joinedAt ? new Date(displayUser.joinedAt).toLocaleDateString() : 'Unknown'}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="mb-6">
-                                    <h3 className="text-blue-300 text-sm mb-1">Social Links</h3>
-                                    <div className="flex space-x-4">
-                                        {displayUser?.linkedIn && (
-                                            <a
-                                                href={displayUser.linkedIn}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="p-2 bg-blue-900/50 rounded-lg hover:bg-blue-800 transition"
-                                            >
-                                                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                                                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
-                                                </svg>
-                                            </a>
-                                        )}
-                                        {displayUser?.github && (
-                                            <a
-                                                href={displayUser.github}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="p-2 bg-blue-900/50 rounded-lg hover:bg-blue-800 transition"
-                                            >
-                                                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                                                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-                                                </svg>
-                                            </a>
-                                        )}
-                                        {!displayUser?.linkedIn && !displayUser?.github && (
-                                            <p className="text-blue-400">No social links added</p>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <h3 className="text-blue-300 text-sm mb-1">Bio</h3>
-                                    <p className="bg-blue-900/30 p-4 rounded-xl min-h-[100px]">
-                                        {displayUser?.bio || 'No bio provided'}
-                                    </p>
-                                </div>
-                            </motion.div>
-                        )}
-
-                        {/* Security Tab */}
-                        {activeTab === 'security' && (
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ duration: 0.3 }}
-                            >
-                                {!showPasswordReset ? (
-                                    <div>
-                                        <h3 className="text-xl mb-4">Password Settings</h3>
-
-                                        <button
-                                            onClick={() => setShowPasswordReset(true)}
-                                            className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold mb-4"
-                                        >
-                                            Reset Password
-                                        </button>
-
-                                        <div className="mt-6">
-                                            <h3 className="text-xl mb-4">Account Status</h3>
-                                            <div className="bg-blue-900/30 p-4 rounded-xl">
-                                                <div className="flex justify-between items-center">
-                                                    <span>Status:</span>
-                                                    <span
-                                                        className={`px-2 py-1 rounded-full ${
-                                                            displayUser?.status === 'active'
-                                                                ? 'bg-green-500/20 text-green-400'
-                                                                : displayUser?.status === 'banned'
-                                                                    ? 'bg-red-500/20 text-red-400'
-                                                                    : 'bg-gray-500/20'
-                                                        }`}
-                                                    >
-                                                        {displayUser?.status || 'Unknown'}
-                                                    </span>
-                                                </div>
-
-                                                {displayUser?.restriction?.isRestricted && (
-                                                    <div className="mt-4">
-                                                        <div className="flex justify-between mb-2">
-                                                            <span>Restricted Until:</span>
-                                                            <span>
-                                                                {new Date(displayUser.restriction.time).toLocaleString()}
-                                                            </span>
-                                                        </div>
-                                                        <div>
-                                                            <span>Reason:</span>
-                                                            <p className="mt-1 bg-blue-900/50 p-2 rounded">
-                                                                {displayUser.restriction.reason}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                )}
+                        <AnimatePresence mode="wait">
+                            {/* Profile Tab */}
+                            {activeTab === 'profile' && (
+                                <motion.div
+                                    key="profile"
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: 20 }}
+                                    transition={{ duration: 0.3 }}
+                                >
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                        {{
+                                            email: 'Email',
+                                            program: 'Program',
+                                            year: 'Year',
+                                            joinedAt: 'Joined',
+                                        }}
+                                        {Object.entries({
+                                            email: displayUser?.email,
+                                            program: displayUser?.program,
+                                            year: displayUser?.year ? `${displayUser.year}${displayUser.year === '1' ? 'st' : displayUser.year === '2' ? 'nd' : displayUser.year === '3' ? 'rd' : 'th'} Year` : null,
+                                            joinedAt: displayUser?.joinedAt ? new Date(displayUser.joinedAt).toLocaleDateString() : null
+                                        }).map(([key, value], index) => (
+                                            <div key={index} className="bg-blue-900/30 p-4 rounded-xl">
+                                                <h3 className="text-blue-300 text-sm mb-1">{key}</h3>
+                                                <p className="font-medium">{value || 'Not provided'}</p>
                                             </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Social Links */}
+                                    <div className="mb-6">
+                                        <h3 className="text-blue-300 text-sm mb-3">Social Links</h3>
+                                        <div className="flex space-x-4">
+                                            {displayUser?.linkedIn && (
+                                                <a
+                                                    href={displayUser.linkedIn}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="p-3 bg-blue-900/50 rounded-lg hover:bg-blue-800 transition-all duration-200 hover:scale-110"
+                                                    title="LinkedIn Profile"
+                                                >
+                                                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                                                    </svg>
+                                                </a>
+                                            )}
+                                            {displayUser?.github && (
+                                                <a
+                                                    href={displayUser.github}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="p-3 bg-blue-900/50 rounded-lg hover:bg-blue-800 transition-all duration-200 hover:scale-110"
+                                                    title="GitHub Profile"
+                                                >
+                                                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                                                    </svg>
+                                                </a>
+                                            )}
+                                            {!displayUser?.linkedIn && !displayUser?.github && (
+                                                <p className="text-blue-400 italic">No social links added</p>
+                                            )}
                                         </div>
                                     </div>
-                                ) : (
+
+                                    {/* Bio */}
                                     <div>
-                                        <h3 className="text-xl mb-4">Reset Password</h3>
+                                        <h3 className="text-blue-300 text-sm mb-3">Bio</h3>
+                                        <div className="bg-blue-900/30 p-4 rounded-xl min-h-[100px]">
+                                            <p className="whitespace-pre-wrap">
+                                                {displayUser?.bio || 'No bio provided. Add one by editing your profile!'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
 
-                                        {!showResetForm ? (
+                            {/* Security Tab */}
+                            {activeTab === 'security' && (
+                                <motion.div
+                                    key="security"
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: 20 }}
+                                    transition={{ duration: 0.3 }}
+                                >
+                                    {!showPasswordReset ? (
+                                        <div className="space-y-6">
                                             <div>
-                                                <p className="mb-4">Enter your new password below:</p>
+                                                <h3 className="text-xl mb-4">Password Settings</h3>
+                                                <button
+                                                    onClick={() => setShowPasswordReset(true)}
+                                                    className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold transition-all duration-200 hover:scale-105"
+                                                >
+                                                    Reset Password
+                                                </button>
+                                            </div>
 
-                                                <form onSubmit={handleNewPassword}>
-                                                    <div className="mb-4">
+                                            <div>
+                                                <h3 className="text-xl mb-4">Account Status</h3>
+                                                <div className="bg-blue-900/30 p-4 rounded-xl space-y-4">
+                                                    <div className="flex justify-between items-center">
+                                                        <span>Status:</span>
+                                                        <span
+                                                            className={`px-3 py-1 rounded-full font-medium ${
+                                                                displayUser?.status === 'active'
+                                                                    ? 'bg-green-500/20 text-green-400'
+                                                                    : displayUser?.status === 'banned'
+                                                                        ? 'bg-red-500/20 text-red-400'
+                                                                        : 'bg-gray-500/20 text-gray-400'
+                                                            }`}
+                                                        >
+                                                            {(displayUser?.status || 'Unknown').toUpperCase()}
+                                                        </span>
+                                                    </div>
+
+                                                    {displayUser?.restriction?.isRestricted && (
+                                                        <div className="border-t border-blue-500/20 pt-4">
+                                                            <div className="flex justify-between mb-2">
+                                                                <span>Restricted Until:</span>
+                                                                <span className="text-red-400">
+                                                                    {new Date(displayUser.restriction.time).toLocaleString()}
+                                                                </span>
+                                                            </div>
+                                                            <div>
+                                                                <span>Reason:</span>
+                                                                <p className="mt-1 bg-red-500/20 p-2 rounded">
+                                                                    {displayUser.restriction.reason}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <div className="flex items-center justify-between mb-4">
+                                                <h3 className="text-xl">Reset Password</h3>
+                                                <button
+                                                    onClick={() => setShowPasswordReset(false)}
+                                                    className="text-blue-300 hover:text-white"
+                                                >
+                                                    ← Back
+                                                </button>
+                                            </div>
+
+                                            {!showResetForm ? (
+                                                <form onSubmit={handleNewPassword} className="space-y-4">
+                                                    <div>
                                                         <label className="block text-blue-300 mb-2">LPU ID</label>
                                                         <input
                                                             type="text"
                                                             value={LpuId}
                                                             onChange={(e) => setLpuId(e.target.value)}
                                                             placeholder="Your LPU ID"
-                                                            className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400"
+                                                            className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400 transition-colors"
                                                             required
                                                         />
                                                     </div>
 
-                                                    <div className="mb-4">
+                                                    <div>
                                                         <label className="block text-blue-300 mb-2">New Password</label>
                                                         <div className="relative">
                                                             <input
                                                                 type={showPassword ? 'text' : 'password'}
                                                                 value={newPassword}
                                                                 onChange={(e) => setNewPassword(e.target.value)}
-                                                                placeholder="Enter new password"
-                                                                className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400"
+                                                                placeholder="Enter new password (min 6 characters)"
+                                                                className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400 transition-colors"
                                                                 required
+                                                                minLength={6}
                                                             />
                                                             <button
                                                                 type="button"
-                                                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-300"
+                                                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-300 hover:text-white"
                                                                 onClick={() => setShowPassword(!showPassword)}
                                                             >
                                                                 {showPassword ? '👁️' : '👁️‍🗨️'}
@@ -526,42 +764,64 @@ const MemberProfile = () => {
                                                         </div>
                                                     </div>
 
+                                                    <div>
+                                                        <label className="block text-blue-300 mb-2">Confirm Password</label>
+                                                        <div className="relative">
+                                                            <input
+                                                                type={showConfirmPassword ? 'text' : 'password'}
+                                                                value={confirmPassword}
+                                                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                                                placeholder="Confirm new password"
+                                                                className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400 transition-colors"
+                                                                required
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-300 hover:text-white"
+                                                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                            >
+                                                                {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
                                                     <button
                                                         type="submit"
                                                         disabled={resetLoading}
-                                                        className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold disabled:opacity-50"
+                                                        className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                                                     >
-                                                        {resetLoading ? 'Updating...' : 'Update Password'}
+                                                        {resetLoading ? (
+                                                            <span className="flex items-center justify-center gap-2">
+                                                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                                Updating...
+                                                            </span>
+                                                        ) : (
+                                                            'Update Password'
+                                                        )}
+                                                    </button>
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowResetForm(true)}
+                                                        className="w-full text-blue-300 hover:text-blue-100 mt-4"
+                                                    >
+                                                        Forgot your LPU ID? Reset via email
                                                     </button>
                                                 </form>
+                                            ) : (
+                                                <form onSubmit={handleResetPassword} className="space-y-4">
+                                                    <p className="text-blue-300 mb-4">
+                                                        Enter your email to receive a password reset link:
+                                                    </p>
 
-                                                <button
-                                                    onClick={() => setShowResetForm(true)}
-                                                    className="text-blue-300 hover:text-blue-100 mt-4"
-                                                >
-                                                    Forgot your LPU ID?
-                                                </button>
-
-                                                <button
-                                                    onClick={() => setShowPasswordReset(false)}
-                                                    className="text-blue-300 hover:text-blue-100 block mt-2"
-                                                >
-                                                    Cancel
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <div>
-                                                <p className="mb-4">Enter your email to receive a password reset link:</p>
-
-                                                <form onSubmit={handleResetPassword}>
-                                                    <div className="mb-4">
+                                                    <div>
                                                         <label className="block text-blue-300 mb-2">Email</label>
                                                         <input
                                                             type="email"
                                                             value={resetEmail}
                                                             onChange={(e) => setResetEmail(e.target.value)}
                                                             placeholder="Your registered email"
-                                                            className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400"
+                                                            className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400 transition-colors"
                                                             required
                                                         />
                                                     </div>
@@ -569,135 +829,181 @@ const MemberProfile = () => {
                                                     <button
                                                         type="submit"
                                                         disabled={emailLoading}
-                                                        className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold disabled:opacity-50"
+                                                        className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                                                     >
-                                                        {emailLoading ? 'Sending...' : 'Send Reset Link'}
+                                                        {emailLoading ? (
+                                                            <span className="flex items-center justify-center gap-2">
+                                                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                                Sending...
+                                                            </span>
+                                                        ) : (
+                                                            'Send Reset Link'
+                                                        )}
+                                                    </button>
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowResetForm(false)}
+                                                        className="w-full text-blue-300 hover:text-blue-100 mt-4"
+                                                    >
+                                                        Back to password reset
                                                     </button>
                                                 </form>
+                                            )}
+                                        </div>
+                                    )}
+                                </motion.div>
+                            )}
 
-                                                <button
-                                                    onClick={() => setShowResetForm(false)}
-                                                    className="text-blue-300 hover:text-blue-100 mt-4"
-                                                >
-                                                    Back to password reset
-                                                </button>
+                            {/* Edit Profile Tab */}
+                            {activeTab === 'edit' && (
+                                <motion.div
+                                    key="edit"
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: 20 }}
+                                    transition={{ duration: 0.3 }}
+                                >
+                                    <form onSubmit={handleUpdateProfile} className="space-y-6">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-blue-300 mb-2">
+                                                    Full Name <span className="text-red-400">*</span>
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    name="fullName"
+                                                    value={updateProfileData.fullName}
+                                                    onChange={handleProfileChange}
+                                                    className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400 transition-colors"
+                                                    required
+                                                />
                                             </div>
-                                        )}
-                                    </div>
-                                )}
-                            </motion.div>
-                        )}
 
-                        {/* Edit Profile Tab */}
-                        {activeTab === 'edit' && (
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ duration: 0.3 }}
-                            >
-                                <form onSubmit={handleUpdateProfile}>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                        <div>
-                                            <label className="block text-blue-300 mb-2">Full Name</label>
-                                            <input
-                                                type="text"
-                                                name="fullName"
-                                                value={updateProfileData.fullName}
-                                                onChange={handleProfileChange}
-                                                className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400"
-                                                required
-                                            />
+                                            <div>
+                                                <label className="block text-blue-300 mb-2">
+                                                    Email <span className="text-red-400">*</span>
+                                                </label>
+                                                <input
+                                                    type="email"
+                                                    name="email"
+                                                    value={updateProfileData.email}
+                                                    onChange={handleProfileChange}
+                                                    className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400 transition-colors"
+                                                    required
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-blue-300 mb-2">Program</label>
+                                                <input
+                                                    type="text"
+                                                    name="program"
+                                                    value={updateProfileData.program}
+                                                    onChange={handleProfileChange}
+                                                    placeholder="e.g., Computer Science"
+                                                    className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400 transition-colors"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-blue-300 mb-2">Year</label>
+                                                <select
+                                                    name="year"
+                                                    value={updateProfileData.year}
+                                                    onChange={handleProfileChange}
+                                                    className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400 transition-colors"
+                                                >
+                                                    <option value="">Select Year</option>
+                                                    <option value="1">1st Year</option>
+                                                    <option value="2">2nd Year</option>
+                                                    <option value="3">3rd Year</option>
+                                                    <option value="4">4th Year</option>
+                                                    <option value="5">5th Year</option>
+                                                </select>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-blue-300 mb-2">LinkedIn</label>
+                                                <input
+                                                    type="url"
+                                                    name="linkedIn"
+                                                    value={updateProfileData.linkedIn}
+                                                    onChange={handleProfileChange}
+                                                    placeholder="https://linkedin.com/in/yourname"
+                                                    className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400 transition-colors"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-blue-300 mb-2">GitHub</label>
+                                                <input
+                                                    type="url"
+                                                    name="github"
+                                                    value={updateProfileData.github}
+                                                    onChange={handleProfileChange}
+                                                    placeholder="https://github.com/yourname"
+                                                    className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400 transition-colors"
+                                                />
+                                            </div>
                                         </div>
 
                                         <div>
-                                            <label className="block text-blue-300 mb-2">Email</label>
-                                            <input
-                                                type="email"
-                                                name="email"
-                                                value={updateProfileData.email}
+                                            <label className="block text-blue-300 mb-2">Bio</label>
+                                            <textarea
+                                                name="bio"
+                                                value={updateProfileData.bio}
                                                 onChange={handleProfileChange}
-                                                className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400"
-                                                required
+                                                placeholder="Tell us about yourself..."
+                                                className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400 min-h-[150px] transition-colors resize-none"
+                                                maxLength="500"
                                             />
+                                            <p className="text-right text-blue-400 text-sm mt-1">
+                                                {updateProfileData.bio.length}/500 characters
+                                            </p>
                                         </div>
 
-                                        <div>
-                                            <label className="block text-blue-300 mb-2">Program</label>
-                                            <input
-                                                type="text"
-                                                name="program"
-                                                value={updateProfileData.program}
-                                                onChange={handleProfileChange}
-                                                className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-blue-300 mb-2">Year</label>
-                                            <select
-                                                name="year"
-                                                value={updateProfileData.year}
-                                                onChange={handleProfileChange}
-                                                className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400"
+                                        <div className="flex gap-4">
+                                            <button
+                                                type="submit"
+                                                disabled={updateLoading || !hasUnsavedChanges}
+                                                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                                             >
-                                                <option value="">Select Year</option>
-                                                <option value="1">1st Year</option>
-                                                <option value="2">2nd Year</option>
-                                                <option value="3">3rd Year</option>
-                                                <option value="4">4th Year</option>
-                                            </select>
+                                                {updateLoading ? (
+                                                    <span className="flex items-center justify-center gap-2">
+                                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                        Updating...
+                                                    </span>
+                                                ) : (
+                                                    'Update Profile'
+                                                )}
+                                            </button>
+                                            
+                                            {hasUnsavedChanges && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setUpdateProfileData({
+                                                            fullName: displayUser?.fullname || '',
+                                                            email: displayUser?.email || '',
+                                                            program: displayUser?.program || '',
+                                                            year: displayUser?.year || '',
+                                                            linkedIn: displayUser?.linkedIn || '',
+                                                            github: displayUser?.github || '',
+                                                            bio: displayUser?.bio || '',
+                                                        });
+                                                        setHasUnsavedChanges(false);
+                                                    }}
+                                                    className="px-6 py-3 rounded-xl border border-blue-500/30 text-blue-300 hover:bg-blue-500/10 transition-all duration-200"
+                                                >
+                                                    Reset
+                                                </button>
+                                            )}
                                         </div>
-
-                                        <div>
-                                            <label className="block text-blue-300 mb-2">LinkedIn</label>
-                                            <input
-                                                type="url"
-                                                name="linkedIn"
-                                                value={updateProfileData.linkedIn}
-                                                onChange={handleProfileChange}
-                                                placeholder="https://linkedin.com/in/yourname"
-                                                className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-blue-300 mb-2">GitHub</label>
-                                            <input
-                                                type="url"
-                                                name="github"
-                                                value={updateProfileData.github}
-                                                onChange={handleProfileChange}
-                                                placeholder="https://github.com/yourname"
-                                                className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="mb-4">
-                                        <label className="block text-blue-300 mb-2">Bio</label>
-                                        <textarea
-                                            name="bio"
-                                            value={updateProfileData.bio}
-                                            onChange={handleProfileChange}
-                                            placeholder="Tell us about yourself..."
-                                            className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400 min-h-[150px]"
-                                            maxLength="500"
-                                        ></textarea>
-                                        <p className="text-right text-blue-400 text-sm mt-1">
-                                            {updateProfileData.bio.length}/500 characters
-                                        </p>
-                                    </div>
-
-                                    <button
-                                        type="submit"
-                                        disabled={updateLoading}
-                                        className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold disabled:opacity-50"
-                                    >
-                                        {updateLoading ? 'Updating...' : 'Update Profile'}
-                                    </button>
-                                </form>
-                            </motion.div>
-                        )}
+                                    </form>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
                 </motion.div>
             </div>
