@@ -246,7 +246,6 @@ const checkEmailAvailability = asyncHandler(async (req, res) => {
 
 const ticketForQR = asyncHandler(async (req, res) => {
     const ticketId = req.params.ticketId || req.body.ticketId;
-    console.log('Fetching ticket for QR:', ticketId);
 
     if (!ticketId) {
         throw new ApiError(400, "Ticket ID is required");
@@ -254,7 +253,7 @@ const ticketForQR = asyncHandler(async (req, res) => {
 
     // Try to find by ticketId first, then by _id if not found
     let ticket = await Ticket.findOne({ ticketId });
-    
+
     if (!ticket) {
         console.log('Ticket not found by ticketId, trying _id:', ticketId);
         // If not found by ticketId, try finding by MongoDB _id
@@ -266,11 +265,8 @@ const ticketForQR = asyncHandler(async (req, res) => {
     }
 
     if (!ticket) {
-        console.log('Ticket not found by any method for ID:', ticketId);
         throw new ApiError(404, "Ticket not found");
     }
-
-    console.log('Ticket found:', ticket.ticketId, 'for search ID:', ticketId);
 
     // Remove sensitive fields
     const ticketData = ticket.toObject();

@@ -57,7 +57,6 @@ router.patch(
     '/check/:ticketId/status',
     // authMiddleware.verifyToken,
     validate([
-        param('ticketId').isMongoId().withMessage('Invalid ticket ID'),
         body('isUsed').optional().isBoolean().withMessage('isUsed must be a boolean'),
     ]),
     updateStatusForQR
@@ -66,7 +65,7 @@ router.patch(
 // Get ticket by ID (protected, member or admin)
 router.get(
     '/:ticketId',
-    // authMiddleware.verifyToken,
+    authMiddleware.verifyToken,
     validate([
         param('ticketId').isMongoId().withMessage('Invalid ticket ID')
     ]),
