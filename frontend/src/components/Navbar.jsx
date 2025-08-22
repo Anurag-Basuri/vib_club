@@ -198,6 +198,18 @@ const Navbar = () => {
                     70% { box-shadow: 0 0 0 10px rgba(6, 182, 212, 0); }
                     100% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0); }
                 }
+                @keyframes smokeMove {
+                    0% { background-position: 0% 0%, 100% 100%; }
+                    100% { background-position: 100% 100%, 0% 0%; }
+                }
+                @keyframes smokeMove2 {
+                    0% { background-position: 100% 0%, 0% 100%; }
+                    100% { background-position: 0% 100%, 100% 0%; }
+                }
+                @keyframes backdropFadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
                 .navbar {
                     transition: transform 0.4s ease, background 0.4s, box-shadow 0.4s, backdrop-filter 0.4s;
                 }
@@ -247,15 +259,28 @@ const Navbar = () => {
                     transform: scale(1.05);
                     animation: none;
                 }
-                @keyframes backdropFadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
-                }
                 .backdrop-fade-in {
                     animation: backdropFadeIn 0.3s ease-out forwards;
                 }
                 .mobile-nav-item {
                     touch-action: manipulation;
+                }
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 6px;
+                    height: 6px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: linear-gradient(to bottom, #0891b2, #0d9488);
+                    border-radius: 6px;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: rgba(0, 0, 0, 0.2);
+                    border-radius: 6px;
+                }
+                .custom-scrollbar {
+                    scrollbar-width: thin;
+                    scrollbar-color: #0891b2 rgba(0, 0, 0, 0.2);
                 }
             `}</style>
 
@@ -425,11 +450,11 @@ const Navbar = () => {
 													<span>Dashboard</span>
 												</button>
 												<button
-													onClick={() => navigate('/admin/show')}
+													onClick={() => navigate('/member')}
 													className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-all duration-300 text-white group"
 												>
-													<LayoutDashboard className="h-5 w-5 text-cyan-400 group-hover:scale-110 transition-transform" />
-													<span>Show</span>
+													<User className="h-5 w-5 text-cyan-400 group-hover:scale-110 transition-transform" />
+													<span>Profile</span>
 												</button>
 											</div>
 											<div className="p-3 border-t border-white/10">
@@ -572,26 +597,6 @@ const Navbar = () => {
 					</div>
 				</div>
 			)}
-			{/* Custom scrollbar styling */}
-			<style jsx>{`
-				.custom-scrollbar::-webkit-scrollbar {
-					width: 6px;
-					height: 6px;
-				}
-				.custom-scrollbar::-webkit-scrollbar-thumb {
-					background: linear-gradient(to bottom, #0891b2, #0d9488);
-					border-radius: 6px;
-					border: 1px solid rgba(255, 255, 255, 0.1);
-				}
-				.custom-scrollbar::-webkit-scrollbar-track {
-					background: rgba(0, 0, 0, 0.2);
-					border-radius: 6px;
-				}
-				.custom-scrollbar {
-					scrollbar-width: thin;
-					scrollbar-color: #0891b2 rgba(0, 0, 0, 0.2);
-				}
-			`}</style>
 		</>
 	);
 };
