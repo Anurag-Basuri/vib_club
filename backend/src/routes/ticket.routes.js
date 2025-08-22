@@ -5,7 +5,9 @@ import {
     updateTicketStatus,
     getTicketsByEvent,
     deleteTicket,
-    checkEmailAvailability
+    checkEmailAvailability,
+    ticketForQR,
+    updateStatusForQR
 } from '../controllers/ticket.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { validate } from '../middlewares/validator.middleware.js';
@@ -41,6 +43,24 @@ router.post(
         body('course').notEmpty().withMessage('Course name is required'),
     ]),
     createTicket
+);
+
+// Get ticket by ID (members)
+router.get(
+    '/check/:ticketId',
+    authMiddleware.verifyToken,
+    ticketForQR
+);
+
+// Update ticket status for QR code (members)
+router.patch(
+    '/check/:ticketId/status',
+    authMiddleware.verifyToken,
+    validate([
+        param('ticketId').isMongoId().withMessage('Invalid ticket ID'),
+        body('isUsed').optional().isBoolean().withMessage('isUsed must be a boolean'),
+    ]),
+    updateStatusForQR
 );
 
 // Get ticket by ID (protected, member or admin)
