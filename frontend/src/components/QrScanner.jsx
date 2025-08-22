@@ -206,6 +206,25 @@ const QRScanner = () => {
     setToast({ message: msg, type: 'error' });
   };
 
+  // Utility to extract ticketId robustly from QR code text
+  function extractTicketId(qrText) {
+    if (!qrText) return null;
+    // Try JSON parse
+    try {
+      const parsed = JSON.parse(qrText);
+      if (parsed && typeof parsed.ticketId === 'string' && parsed.ticketId.length > 0) {
+        return parsed.ticketId;
+      }
+    } catch {
+      // Not JSON, fall through
+    }
+    // Fallback: treat as plain ticketId string
+    if (typeof qrText === 'string' && qrText.length > 0) {
+      return qrText;
+    }
+    return null;
+  }
+
   const handleScan = async (result) => {
     if (result?.text && scanning && !loading) {
       setScanning(false);
@@ -214,28 +233,9 @@ const QRScanner = () => {
       setToast({ message: '', type: 'info' });
       setCameraError('');
 
-      let ticketId = result.text.trim();
+      const ticketId = extractTicketId(result.text.trim());
 
-      // Try to parse as JSON and extract ticketId if present
-      if (ticketId.startsWith('{') && ticketId.endsWith('}')) {
-        try {
-          const parsed = JSON.parse(ticketId);
-          if (parsed && parsed.ticketId) {
-            ticketId = parsed.ticketId;
-          } else {
-            setError('QR code does not contain a valid ticket ID.');
-            setToast({ message: 'QR code does not contain a valid ticket ID.', type: 'error' });
-            setLoading(false);
-            return;
-          }
-        } catch {
-          setError('Invalid QR code format.');
-          setToast({ message: 'Invalid QR code format.', type: 'error' });
-          setLoading(false);
-          return;
-        }
-      }
-
+      // Validate ticketId (basic: length or UUID format)
       if (!ticketId || ticketId.length < 8) {
         setError('Invalid or missing ticket ID.');
         setToast({ message: 'Invalid or missing ticket ID.', type: 'error' });
