@@ -246,6 +246,7 @@ const checkEmailAvailability = asyncHandler(async (req, res) => {
 
 const ticketForQR = asyncHandler(async (req, res) => {
     const ticketId = req.params.ticketId || req.body.ticketId;
+    console.log('Fetching ticket for QR:', ticketId);
 
     if (!ticketId) {
         throw new ApiError(400, "Ticket ID is required");
