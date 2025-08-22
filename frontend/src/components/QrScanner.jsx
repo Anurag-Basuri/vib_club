@@ -214,12 +214,44 @@ const QRScanner = () => {
       setToast({ message: '', type: 'info' });
       setCameraError('');
 
+      let ticketId = result.text.trim();
+
+      // Try to parse as JSON and extract ticketId if present
+      if (ticketId.startsWith('{') && ticketId.endsWith('}')) {
+        try {
+          const parsed = JSON.parse(ticketId);
+          if (parsed && parsed.ticketId) {
+            ticketId = parsed.ticketId;
+          } else {
+            setError('QR code does not contain a valid ticket ID.');
+            setToast({ message: 'QR code does not contain a valid ticket ID.', type: 'error' });
+            setLoading(false);
+            return;
+          }
+        } catch {
+          setError('Invalid QR code format.');
+          setToast({ message: 'Invalid QR code format.', type: 'error' });
+          setLoading(false);
+          return;
+        }
+      }
+
+      if (!ticketId || ticketId.length < 8) {
+        setError('Invalid or missing ticket ID.');
+        setToast({ message: 'Invalid or missing ticket ID.', type: 'error' });
+        setLoading(false);
+        return;
+      }
+
       try {
-        const { data } = await apiClient.get(`/api/tickets/check/${result.text.trim()}`);
+        const { data } = await apiClient.get(`/api/tickets/check/${ticketId}`);
         setTicket(data.data);
         setToast({ message: 'Ticket scanned successfully!', type: 'success' });
       } catch (err) {
-        const msg = getErrorMessage(err, navigate);
+        let msg = getErrorMessage(err, navigate);
+        if (err?.code === 'ERR_NETWORK') {
+          msg = 'Network error. Please check your internet connection.';
+        }
         setError(msg);
         setToast({ message: msg, type: 'error' });
         setTicket(null);
