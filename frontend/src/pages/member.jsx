@@ -15,7 +15,7 @@ const MemberProfile = () => {
     const navigate = useNavigate();
     const fileInputRef = useRef(null);
 
-    // Hooks for API calls with proper error states
+    // Hooks for API calls
     const { 
         getCurrentMember, 
         member: currentUser, 
@@ -54,7 +54,11 @@ const MemberProfile = () => {
         reset: resetUploadError 
     } = useUploadProfilePicture();
 
-    // Local state
+    // State for user data - single source of truth
+    const [memberData, setMemberData] = useState(null);
+    const [isDataLoaded, setIsDataLoaded] = useState(false);
+
+    // Form states
     const [resetEmail, setResetEmail] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -78,8 +82,38 @@ const MemberProfile = () => {
     const [statusMessage, setStatusMessage] = useState({ text: '', type: '' });
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-    // Get the most current user data
-    const displayUser = currentUser || updatedMember || uploadedMember || user;
+    // Update member data when any hook returns new data
+    useEffect(() => {
+        let newData = null;
+        
+        // Priority: uploaded > updated > current > auth user
+        if (uploadedMember) {
+            newData = uploadedMember;
+        } else if (updatedMember) {
+            newData = updatedMember;
+        } else if (currentUser) {
+            newData = currentUser;
+        } else if (user) {
+            newData = user;
+        }
+
+        if (newData && JSON.stringify(newData) !== JSON.stringify(memberData)) {
+            setMemberData(newData);
+            setIsDataLoaded(true);
+            
+            // Update form data
+            setUpdateProfileData({
+                fullName: newData.fullname || newData.name || '',
+                email: newData.email || '',
+                program: newData.program || '',
+                year: newData.year || '',
+                linkedIn: newData.linkedIn || '',
+                github: newData.github || '',
+                bio: newData.bio || '',
+            });
+            setHasUnsavedChanges(false);
+        }
+    }, [uploadedMember, updatedMember, currentUser, user, memberData]);
 
     // Form validation
     const validateProfileForm = () => {
@@ -126,81 +160,73 @@ const MemberProfile = () => {
         return errors;
     };
 
-    // Show error message helper
+    // Message helpers
     const showError = useCallback((message) => {
         setStatusMessage({ text: message, type: 'error' });
     }, []);
 
-    // Show success message helper
     const showSuccess = useCallback((message) => {
         setStatusMessage({ text: message, type: 'success' });
     }, []);
 
-    // Show info message helper
     const showInfo = useCallback((message) => {
         setStatusMessage({ text: message, type: 'info' });
     }, []);
 
-    // Clear all hook errors
     const clearAllErrors = useCallback(() => {
-        resetUserError();
-        resetUpdateError();
-        resetPasswordError();
-        resetEmailError();
-        resetUploadError();
+        if (resetUserError) resetUserError();
+        if (resetUpdateError) resetUpdateError();
+        if (resetPasswordError) resetPasswordError();
+        if (resetEmailError) resetEmailError();
+        if (resetUploadError) resetUploadError();
     }, [resetUserError, resetUpdateError, resetPasswordError, resetEmailError, resetUploadError]);
 
-    // Authentication redirect
+    // Authentication and data loading
     useEffect(() => {
         if (!isAuthenticated && !authLoading) {
             navigate('/auth');
+            return;
         }
-    }, [isAuthenticated, authLoading, navigate]);
 
-    // Fetch current user data
-    useEffect(() => {
-        if (isAuthenticated) {
-            clearAllErrors();
+        if (isAuthenticated && !isDataLoaded && !userLoading) {
             getCurrentMember();
         }
-    }, [isAuthenticated, getCurrentMember, clearAllErrors]);
+    }, [isAuthenticated, authLoading, navigate, isDataLoaded, userLoading, getCurrentMember]);
 
-    // Update form data when user data changes
+    // Error handling
     useEffect(() => {
-        if (displayUser) {
-            const newData = {
-                fullName: displayUser.fullname || '',
-                email: displayUser.email || '',
-                program: displayUser.program || '',
-                year: displayUser.year || '',
-                linkedIn: displayUser.linkedIn || '',
-                github: displayUser.github || '',
-                bio: displayUser.bio || '',
-            };
-            setUpdateProfileData(newData);
-            setHasUnsavedChanges(false);
+        if (userError) {
+            showError(`Failed to load profile: ${userError}`);
+            console.error('User error:', userError);
         }
-    }, [displayUser]);
-
-    // Handle errors from hooks
-    useEffect(() => {
-        if (userError) showError(userError);
     }, [userError, showError]);
 
     useEffect(() => {
-        if (updateError) showError(updateError);
+        if (updateError) {
+            showError(`Failed to update profile: ${updateError}`);
+            console.error('Update error:', updateError);
+        }
     }, [updateError, showError]);
 
     useEffect(() => {
-        if (resetError) showError(resetError);
+        if (resetError) {
+            showError(`Failed to reset password: ${resetError}`);
+            console.error('Reset error:', resetError);
+        }
     }, [resetError, showError]);
 
     useEffect(() => {
-        if (emailError) showError(emailError);
+        if (emailError) {
+            showError(`Failed to send email: ${emailError}`);
+            console.error('Email error:', emailError);
+        }
     }, [emailError, showError]);
 
     useEffect(() => {
-        if (uploadError) showError(uploadError);
+        if (uploadError) {
+            showError(`Failed to upload image: ${uploadError}`);
+            console.error('Upload error:', uploadError);
+        }
     }, [uploadError, showError]);
 
     // Auto-clear status messages
@@ -213,7 +239,7 @@ const MemberProfile = () => {
         }
     }, [statusMessage]);
 
-    // Track form changes
+    // Form handlers
     const handleProfileChange = useCallback((e) => {
         const { name, value } = e.target;
         setUpdateProfileData((prev) => ({ ...prev, [name]: value }));
@@ -221,7 +247,6 @@ const MemberProfile = () => {
         clearAllErrors();
     }, [clearAllErrors]);
 
-    // Send reset password email
     const handleResetPassword = async (e) => {
         e.preventDefault();
         
@@ -237,11 +262,10 @@ const MemberProfile = () => {
             setShowResetForm(false);
             setResetEmail('');
         } catch (error) {
-            // Error is handled by useEffect
+            console.error('Reset email error:', error);
         }
     };
 
-    // Reset password
     const handleNewPassword = async (e) => {
         e.preventDefault();
         
@@ -260,11 +284,10 @@ const MemberProfile = () => {
             setConfirmPassword('');
             setLpuId('');
         } catch (error) {
-            // Error is handled by useEffect
+            console.error('Password reset error:', error);
         }
     };
 
-    // Update profile
     const handleUpdateProfile = async (e) => {
         e.preventDefault();
         
@@ -274,24 +297,22 @@ const MemberProfile = () => {
             return;
         }
 
-        if (!displayUser?._id) {
+        if (!memberData?._id && !memberData?.id) {
             showError('User ID not found. Please refresh the page.');
             return;
         }
 
         try {
             showInfo('Updating profile...');
-            await updateProfile(displayUser._id, updateProfileData);
+            const userId = memberData._id || memberData.id;
+            await updateProfile(userId, updateProfileData);
             showSuccess('Profile updated successfully!');
             setHasUnsavedChanges(false);
-            // Refresh current user data
-            await getCurrentMember();
         } catch (error) {
-            // Error is handled by useEffect
+            console.error('Profile update error:', error);
         }
     };
 
-    // Logout member
     const handleLogout = async () => {
         if (hasUnsavedChanges) {
             const confirm = window.confirm('You have unsaved changes. Are you sure you want to logout?');
@@ -303,10 +324,10 @@ const MemberProfile = () => {
             navigate('/auth');
         } catch (error) {
             showError('Logout failed. Please try again.');
+            console.error('Logout error:', error);
         }
     };
 
-    // Upload profile picture
     const handleUploadProfilePicture = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -325,7 +346,7 @@ const MemberProfile = () => {
             return;
         }
 
-        if (!displayUser?._id) {
+        if (!memberData?._id && !memberData?.id) {
             showError('User ID not found. Please refresh the page.');
             return;
         }
@@ -335,18 +356,16 @@ const MemberProfile = () => {
             const formData = new FormData();
             formData.append('profilePicture', file);
             
-            await uploadProfilePicture(displayUser._id, formData);
+            const userId = memberData._id || memberData.id;
+            await uploadProfilePicture(userId, formData);
             showSuccess('Profile picture updated successfully!');
-            // Refresh current user data
-            await getCurrentMember();
         } catch (error) {
-            // Error is handled by useEffect
+            console.error('Upload error:', error);
         } finally {
             e.target.value = null;
         }
     };
 
-    // Reset all forms
     const resetAllForms = () => {
         setShowResetForm(false);
         setShowPasswordReset(false);
@@ -359,7 +378,6 @@ const MemberProfile = () => {
         clearAllErrors();
     };
 
-    // Tab change handler
     const handleTabChange = (tab) => {
         if (hasUnsavedChanges && tab !== 'edit') {
             const confirm = window.confirm('You have unsaved changes. Are you sure you want to switch tabs?');
@@ -370,7 +388,6 @@ const MemberProfile = () => {
         resetAllForms();
     };
 
-    // File input trigger
     const triggerFileInput = () => {
         fileInputRef.current?.click();
     };
@@ -380,21 +397,9 @@ const MemberProfile = () => {
         if (!message.text) return null;
 
         const config = {
-            success: {
-                bg: 'bg-green-900/30 border border-green-700/50',
-                text: 'text-green-300',
-                icon: '✓'
-            },
-            error: {
-                bg: 'bg-red-900/30 border border-red-700/50',
-                text: 'text-red-300',
-                icon: '✕'
-            },
-            info: {
-                bg: 'bg-blue-900/30 border border-blue-700/50',
-                text: 'text-blue-300',
-                icon: 'ℹ'
-            }
+            success: { bg: 'bg-green-900/30 border border-green-700/50', text: 'text-green-300', icon: '✓' },
+            error: { bg: 'bg-red-900/30 border border-red-700/50', text: 'text-red-300', icon: '✕' },
+            info: { bg: 'bg-blue-900/30 border border-blue-700/50', text: 'text-blue-300', icon: 'ℹ' }
         };
 
         const { bg, text, icon } = config[message.type] || config.info;
@@ -418,19 +423,16 @@ const MemberProfile = () => {
         );
     };
 
-    // Loading spinner component
-    const LoadingSpinner = () => (
-        <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] to-[#0f172a] text-white flex items-center justify-center">
-            <div className="text-center">
-                <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p className="text-blue-300">Loading your profile...</p>
+    // Loading states
+    if (authLoading) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] to-[#0f172a] text-white flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-blue-300">Checking authentication...</p>
+                </div>
             </div>
-        </div>
-    );
-
-    // Authentication guard
-    if (authLoading || userLoading) {
-        return <LoadingSpinner />;
+        );
     }
 
     if (!isAuthenticated) {
@@ -455,6 +457,92 @@ const MemberProfile = () => {
             </div>
         );
     }
+
+    if (userLoading || !isDataLoaded) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] to-[#0f172a] text-white flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-blue-300">Loading your profile...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!memberData) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] to-[#0f172a] text-white flex items-center justify-center">
+                <motion.div 
+                    className="text-center"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                >
+                    <h1 className="text-3xl font-bold mb-4 text-red-400">
+                        Profile Not Found
+                    </h1>
+                    <p className="text-blue-300 mb-6">Unable to load your profile data</p>
+                    <div className="flex gap-4 justify-center">
+                        <button 
+                            onClick={() => getCurrentMember()}
+                            disabled={userLoading}
+                            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200"
+                        >
+                            {userLoading ? 'Retrying...' : 'Retry'}
+                        </button>
+                        <button 
+                            onClick={() => navigate('/auth')}
+                            className="px-6 py-3 bg-gray-600 hover:bg-gray-700 rounded-lg transition-all duration-200"
+                        >
+                            Back to Login
+                        </button>
+                    </div>
+                </motion.div>
+            </div>
+        );
+    }
+
+    // Helper function to format user data safely
+    const getUserInfo = (field) => {
+        if (!memberData) return 'Not available';
+        
+        switch (field) {
+            case 'name':
+                return memberData.fullname || memberData.name || 'Unknown User';
+            case 'email':
+                return memberData.email || 'Not provided';
+            case 'program':
+                return memberData.program || 'Not specified';
+            case 'year':
+                if (!memberData.year) return 'Not specified';
+                const year = memberData.year.toString();
+                const suffix = year === '1' ? 'st' : year === '2' ? 'nd' : year === '3' ? 'rd' : 'th';
+                return `${year}${suffix} Year`;
+            case 'joined':
+                return memberData.joinedAt 
+                    ? new Date(memberData.joinedAt).toLocaleDateString() 
+                    : memberData.createdAt 
+                        ? new Date(memberData.createdAt).toLocaleDateString()
+                        : 'Unknown';
+            case 'lpuId':
+                return memberData.LpuId || memberData.lpuId || 'Not provided';
+            case 'designation':
+                return memberData.designation || 'Member';
+            case 'department':
+                return memberData.department || 'General';
+            case 'status':
+                return (memberData.status || 'Unknown').toUpperCase();
+            case 'bio':
+                return memberData.bio || 'No bio provided. Add one by editing your profile!';
+            case 'linkedIn':
+                return memberData.linkedIn;
+            case 'github':
+                return memberData.github;
+            case 'profilePicture':
+                return memberData.profilePicture?.url || memberData.profilePicture;
+            default:
+                return memberData[field] || 'Not available';
+        }
+    };
 
     // Main render
     return (
@@ -507,19 +595,22 @@ const MemberProfile = () => {
                         <div className="flex flex-col items-center">
                             <div className="relative group">
                                 <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-blue-500/50">
-                                    {displayUser?.profilePicture?.url ? (
+                                    {getUserInfo('profilePicture') ? (
                                         <img
-                                            src={displayUser.profilePicture.url}
+                                            src={getUserInfo('profilePicture')}
                                             alt="Profile"
                                             className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                e.target.style.display = 'none';
+                                                e.target.nextSibling.style.display = 'flex';
+                                            }}
                                         />
-                                    ) : (
-                                        <div className="bg-gradient-to-br from-blue-600 to-cyan-500 w-full h-full flex items-center justify-center">
-                                            <span className="text-4xl font-bold">
-                                                {displayUser?.fullname?.charAt(0)?.toUpperCase() || 'U'}
-                                            </span>
-                                        </div>
-                                    )}
+                                    ) : null}
+                                    <div className="bg-gradient-to-br from-blue-600 to-cyan-500 w-full h-full flex items-center justify-center">
+                                        <span className="text-4xl font-bold">
+                                            {getUserInfo('name').charAt(0).toUpperCase()}
+                                        </span>
+                                    </div>
 
                                     {uploadLoading && (
                                         <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
@@ -550,12 +641,12 @@ const MemberProfile = () => {
                             </div>
 
                             <div className="mt-4 text-center">
-                                <h2 className="text-2xl font-bold">{displayUser?.fullname || 'Unknown User'}</h2>
+                                <h2 className="text-2xl font-bold">{getUserInfo('name')}</h2>
                                 <p className="text-blue-300">
-                                    {displayUser?.designation || 'Member'} • {displayUser?.department || 'Unknown'}
+                                    {getUserInfo('designation')} • {getUserInfo('department')}
                                 </p>
                                 <p className="text-blue-400 text-sm mt-1">
-                                    LPU ID: {displayUser?.LpuId || 'Not provided'}
+                                    LPU ID: {getUserInfo('lpuId')}
                                 </p>
                             </div>
                         </div>
@@ -592,14 +683,14 @@ const MemberProfile = () => {
                                 >
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                                         {[
-                                            { label: 'Email', value: displayUser?.email },
-                                            { label: 'Program', value: displayUser?.program },
-                                            { label: 'Year', value: displayUser?.year ? `${displayUser.year}${displayUser.year === '1' ? 'st' : displayUser.year === '2' ? 'nd' : displayUser.year === '3' ? 'rd' : 'th'} Year` : null },
-                                            { label: 'Joined', value: displayUser?.joinedAt ? new Date(displayUser.joinedAt).toLocaleDateString() : null }
+                                            { label: 'Email', value: getUserInfo('email') },
+                                            { label: 'Program', value: getUserInfo('program') },
+                                            { label: 'Year', value: getUserInfo('year') },
+                                            { label: 'Joined', value: getUserInfo('joined') }
                                         ].map(({ label, value }, index) => (
-                                            <div key={index} className="bg-blue-900/30 p-4 rounded-xl">
+                                            <div key={label} className="bg-blue-900/30 p-4 rounded-xl">
                                                 <h3 className="text-blue-300 text-sm mb-1">{label}</h3>
-                                                <p className="font-medium">{value || 'Not provided'}</p>
+                                                <p className="font-medium">{value}</p>
                                             </div>
                                         ))}
                                     </div>
@@ -608,9 +699,9 @@ const MemberProfile = () => {
                                     <div className="mb-6">
                                         <h3 className="text-blue-300 text-sm mb-3">Social Links</h3>
                                         <div className="flex space-x-4">
-                                            {displayUser?.linkedIn && (
+                                            {getUserInfo('linkedIn') && (
                                                 <a
-                                                    href={displayUser.linkedIn}
+                                                    href={getUserInfo('linkedIn')}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="p-3 bg-blue-900/50 rounded-lg hover:bg-blue-800 transition-all duration-200 hover:scale-110"
@@ -621,9 +712,9 @@ const MemberProfile = () => {
                                                     </svg>
                                                 </a>
                                             )}
-                                            {displayUser?.github && (
+                                            {getUserInfo('github') && (
                                                 <a
-                                                    href={displayUser.github}
+                                                    href={getUserInfo('github')}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="p-3 bg-blue-900/50 rounded-lg hover:bg-blue-800 transition-all duration-200 hover:scale-110"
@@ -634,7 +725,7 @@ const MemberProfile = () => {
                                                     </svg>
                                                 </a>
                                             )}
-                                            {!displayUser?.linkedIn && !displayUser?.github && (
+                                            {!getUserInfo('linkedIn') && !getUserInfo('github') && (
                                                 <p className="text-blue-400 italic">No social links added</p>
                                             )}
                                         </div>
@@ -644,9 +735,7 @@ const MemberProfile = () => {
                                     <div>
                                         <h3 className="text-blue-300 text-sm mb-3">Bio</h3>
                                         <div className="bg-blue-900/30 p-4 rounded-xl min-h-[100px]">
-                                            <p className="whitespace-pre-wrap">
-                                                {displayUser?.bio || 'No bio provided. Add one by editing your profile!'}
-                                            </p>
+                                            <p className="whitespace-pre-wrap">{getUserInfo('bio')}</p>
                                         </div>
                                     </div>
                                 </motion.div>
@@ -680,29 +769,29 @@ const MemberProfile = () => {
                                                         <span>Status:</span>
                                                         <span
                                                             className={`px-3 py-1 rounded-full font-medium ${
-                                                                displayUser?.status === 'active'
+                                                                getUserInfo('status') === 'ACTIVE'
                                                                     ? 'bg-green-500/20 text-green-400'
-                                                                    : displayUser?.status === 'banned'
+                                                                    : getUserInfo('status') === 'BANNED'
                                                                         ? 'bg-red-500/20 text-red-400'
                                                                         : 'bg-gray-500/20 text-gray-400'
                                                             }`}
                                                         >
-                                                            {(displayUser?.status || 'Unknown').toUpperCase()}
+                                                            {getUserInfo('status')}
                                                         </span>
                                                     </div>
 
-                                                    {displayUser?.restriction?.isRestricted && (
+                                                    {memberData?.restriction?.isRestricted && (
                                                         <div className="border-t border-blue-500/20 pt-4">
                                                             <div className="flex justify-between mb-2">
                                                                 <span>Restricted Until:</span>
                                                                 <span className="text-red-400">
-                                                                    {new Date(displayUser.restriction.time).toLocaleString()}
+                                                                    {new Date(memberData.restriction.time).toLocaleString()}
                                                                 </span>
                                                             </div>
                                                             <div>
                                                                 <span>Reason:</span>
                                                                 <p className="mt-1 bg-red-500/20 p-2 rounded">
-                                                                    {displayUser.restriction.reason}
+                                                                    {memberData.restriction.reason}
                                                                 </p>
                                                             </div>
                                                         </div>
@@ -978,13 +1067,13 @@ const MemberProfile = () => {
                                                     type="button"
                                                     onClick={() => {
                                                         setUpdateProfileData({
-                                                            fullName: displayUser?.fullname || '',
-                                                            email: displayUser?.email || '',
-                                                            program: displayUser?.program || '',
-                                                            year: displayUser?.year || '',
-                                                            linkedIn: displayUser?.linkedIn || '',
-                                                            github: displayUser?.github || '',
-                                                            bio: displayUser?.bio || '',
+                                                            fullName: getUserInfo('name'),
+                                                            email: getUserInfo('email'),
+                                                            program: memberData?.program || '',
+                                                            year: memberData?.year || '',
+                                                            linkedIn: memberData?.linkedIn || '',
+                                                            github: memberData?.github || '',
+                                                            bio: memberData?.bio || '',
                                                         });
                                                         setHasUnsavedChanges(false);
                                                     }}
