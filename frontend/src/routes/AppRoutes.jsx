@@ -16,6 +16,7 @@ import Refund from '../pages/refund.jsx';
 import CookiePolicy from '../pages/cookie.jsx';
 import PrivacyPolicy from '../pages/privacy.jsx';
 import ShowPage from '../pages/show.jsx';
+import QrScanner from '../components/QrScanner.jsx';
 
 const AppRoutes = () => {
 	return (
@@ -39,10 +40,12 @@ const AppRoutes = () => {
 			{/* Protected routes */}
 			<Route element={<ProtectedRoutes allowedRoles={['member']} />}>
 				<Route path="/member/dashboard" element={<MemberProfile />} />
+				<Route path="/vib/qrscanner" element={<QrScanner />} />
 			</Route>
 			<Route element={<ProtectedRoutes allowedRoles={['admin']} />}>
 				<Route path="/admin/dashboard" element={<AdminDash />} />
 				<Route path="/admin/show" element={<ShowPage />} />
+				<Route path="/vib/qrscanner" element={<QrScanner />} />
 			</Route>
 		</Routes>
 	);
