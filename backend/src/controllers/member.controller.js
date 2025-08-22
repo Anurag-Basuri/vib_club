@@ -8,12 +8,12 @@ import { sendPasswordResetEmail } from '../services/email.service.js';
 const registerMember = asyncHandler(async (req, res) => {
     const { fullname, LpuId, email, password, department, designation } = req.body;
     if (!fullname || !LpuId || !password || !department || !designation) {
-        return res.status(400).json(ApiResponse.badRequest('Full name, LPU ID, password, department, and designation are required'));
+        return res.status(400).json(new ApiResponse(400, null, 'Full name, LPU ID, password, department, and designation are required'));
     }
 
     const existingMember = await Member.findOne({ LpuId });
     if (existingMember) {
-        return res.status(400).json(ApiResponse.conflict('Member with this LPU ID already exists'));
+        return res.status(409).json(new ApiResponse(409, null, 'Member with this LPU ID already exists'));
     }
 
     const member = await Member.create({
@@ -28,42 +28,42 @@ const registerMember = asyncHandler(async (req, res) => {
     const accessToken = member.generateAuthToken();
     const refreshToken = member.generateRefreshToken();
 
-    return res.status(201).json(
-        ApiResponse.created(
-            { member: member.toJSON() },
-            'Member registered successfully',
-            { accessToken, refreshToken }
-        )
-    );
+    return res
+    .status(201)
+    .json(new ApiResponse(201, { 
+        member: member.toJSON(), 
+        accessToken, 
+        refreshToken 
+    }, 'Member registered successfully'));
 });
 
 // Login member
 const loginMember = asyncHandler(async (req, res) => {
     const { LpuId, email, password } = req.body;
     if ((!LpuId && !email) || !password) {
-        return res.status(400).json(ApiResponse.badRequest('LPU ID or email and password are required'));
+        return res.status(400).json(new ApiResponse(400, null, 'LPU ID or email and password are required'));
     }
 
     const query = LpuId ? { LpuId } : { email };
     const member = await Member.findOne(query).select('+password +refreshToken');
     if (!member) {
-        return res.status(404).json(ApiResponse.notFound('Member not found'));
+        return res.status(404).json(new ApiResponse(404, null, 'Member not found'));
     }
 
     // Block login if banned or removed
     if (member.status === 'banned') {
-        return res.status(403).json(ApiResponse.forbidden(
+        return res.status(403).json(new ApiResponse(403, null,
             `Your account is banned. Reason: ${member.restriction?.reason || 'No reason provided'}. Review at: ${member.restriction?.time ? new Date(member.restriction.time).toLocaleString() : 'N/A'}`
         ));
     }
     if (member.status === 'removed') {
-        return res.status(403).json(ApiResponse.forbidden(
+        return res.status(403).json(new ApiResponse(403, null,
             `Your account has been removed. Reason: ${member.restriction?.reason || 'No reason provided'}.`
         ));
     }
 
     if (!await member.comparePassword(password)) {
-        return res.status(401).json(ApiResponse.unauthorized('Incorrect Password'));
+        return res.status(401).json(new ApiResponse(401, null, 'Incorrect Password'));
     }
 
     const accessToken = await member.generateAuthToken();
@@ -71,18 +71,14 @@ const loginMember = asyncHandler(async (req, res) => {
 
     const user = await Member.findById(member._id).select('-password -refreshToken');
     if (!user) {
-        return res.status(404).json(ApiResponse.notFound('User not found'));
+        return res.status(404).json(new ApiResponse(404, null, 'User not found'));
     }
 
-    return res.status(200).json(
-        ApiResponse.success(
-            { member: user.toJSON(),
-              accessToken,
-              refreshToken
-            },
-            'Login successful',
-        )
-    );
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, { member: user.toJSON(), accessToken, refreshToken }, 'Login successful')
+        );
 });
 
 // Ban member (admin only)
@@ -90,15 +86,14 @@ const banMember = asyncHandler(async (req, res) => {
     const { reason, reviewTime } = req.body;
     const member = await Member.findById(req.params.id);
     if (!member) {
-        return res.status(404).json(ApiResponse.notFound('Member not found'));
+        return res.status(404).json(new ApiResponse(404, null, 'Member not found'));
     }
     await member.ban(reason, reviewTime);
-    return res.status(200).json(
-        ApiResponse.success(
-            { member: member.toJSON() },
-            'Member banned successfully'
-        )
-    );
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, { member: member.toJSON() }, 'Member banned successfully')
+        );
 });
 
 // Remove member (admin only)
@@ -106,14 +101,11 @@ const removeMember = asyncHandler(async (req, res) => {
     const { reason, reviewTime } = req.body;
     const member = await Member.findById(req.params.id);
     if (!member) {
-        return res.status(404).json(ApiResponse.notFound('Member not found'));
+        return res.status(404).json(new ApiResponse(404, null, 'Member not found'));
     }
     await member.removeMember(reason, reviewTime);
     return res.status(200).json(
-        ApiResponse.success(
-            { member: member.toJSON() },
-            'Member removed successfully'
-        )
+        new ApiResponse(200, { member: member.toJSON() }, 'Member removed successfully')
     );
 });
 
@@ -121,51 +113,51 @@ const removeMember = asyncHandler(async (req, res) => {
 const unbanMember = asyncHandler(async (req, res) => {
     const member = await Member.findById(req.params.id);
     if (!member) {
-        return res.status(404).json(ApiResponse.notFound('Member not found'));
+        return res.status(404).json(new ApiResponse(404, null, 'Member not found'));
     }
     await member.unban();
-    return res.status(200).json(
-        ApiResponse.success(
-            { member: member.toJSON() },
-            'Member unbanned successfully'
-        )
-    );
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, { member: member.toJSON() }, 'Member unbanned successfully')
+        );
 });
 
 // Logout member
 const logoutMember = asyncHandler(async (req, res) => {
     const member = req.member;
     if (!member) {
-        return res.status(401).json(ApiResponse.unauthorized('Unauthorized access'));
+        return res.status(401).json(new ApiResponse(401, null, 'Unauthorized access'));
     }
 
     member.refreshToken = null;
     await member.save();
 
-    return res.status(200).json(ApiResponse.success(null, 'Logout successful'));
+    return res
+        .status(200)
+        .json(new ApiResponse(200, null, 'Logout successful'));
 });
 
 // Reset password
 const resetPassword = asyncHandler(async (req, res) => {
     const { LpuId, newPassword } = req.body;
     if (!LpuId || !newPassword) {
-        return res.status(400).json(ApiResponse.badRequest('LPU ID and new password are required'));
+        return res.status(400).json(new ApiResponse(400, null, 'LPU ID and new password are required'));
     }
 
     const member = await Member.findOne({ LpuId });
     if (!member) {
-        return res.status(404).json(ApiResponse.notFound('Member not found'));
+        return res.status(404).json(new ApiResponse(404, null, 'Member not found'));
     }
 
     member.password = newPassword;
     await member.save();
 
-    return res.status(200).json(
-        ApiResponse.success(
-            { member: member.toJSON() },
-            'Password reset successfully'
-        )
-    );
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, { member: member.toJSON() }, 'Password reset successfully')
+        );
 });
 
 // Update member profile
@@ -182,7 +174,7 @@ const updateProfile = asyncHandler(async (req, res) => {
 
     const member = await Member.findById(req.params.id);
     if (!member) {
-        return res.status(404).json(ApiResponse.notFound('Member not found'));
+        return res.status(404).json(new ApiResponse(404, null, 'Member not found'));
     }
 
     member.fullName = fullName || member.fullName;
@@ -195,11 +187,9 @@ const updateProfile = asyncHandler(async (req, res) => {
 
     await member.save();
 
-    return res.status(200).json(
-        ApiResponse.success(
-            { member: member.toJSON() },
-            'Profile updated successfully'
-        )
+    return res
+        .status(200).json(
+        new ApiResponse(200, { member: member.toJSON() }, 'Profile updated successfully')
     );
 });
 
@@ -209,7 +199,7 @@ const updateMemberByAdmin = asyncHandler(async (req, res) => {
 
     const member = await Member.findById(req.params.id);
     if (!member) {
-        return res.status(404).json(ApiResponse.notFound('Member not found'));
+        return res.status(404).json(new ApiResponse(404, null, 'Member not found'));
     }
 
     member.department = department || member.department;
@@ -218,24 +208,25 @@ const updateMemberByAdmin = asyncHandler(async (req, res) => {
 
     await member.save();
 
-    return res.status(200).json(
-        ApiResponse.success(
-            { member: member.toJSON() },
-            'Member updated successfully'
-        )
-    );
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, { member: member.toJSON() }, 'Member updated successfully')
+        );
 });
 
 // Upload profile picture
 const uploadProfilePicture = asyncHandler(async (req, res) => {
     const file = req.files;
     if (!file || file.length === 0) {
-        return res.status(400).json(ApiResponse.badRequest('No files uploaded'));
+        return res.status(400).json(new ApiResponse(400, null, 'No files uploaded'));
     }
 
     const member = await Member.findById(req.id);
     if (!member) {
-        return res.status(404).json(ApiResponse.notFound('Member not found'));
+        return res
+            .status(404)
+            .json(new ApiResponse(404, null, 'Member not found'));
     }
 
     // Delete old profile picture from Cloudinary
@@ -251,27 +242,27 @@ const uploadProfilePicture = asyncHandler(async (req, res) => {
     };
     await member.save();
 
-    return res.status(200).json(
-        ApiResponse.success(
-            { member: member.toJSON() },
-            'Profile picture uploaded successfully'
-        )
-    );
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, { member: member.toJSON() }, 'Profile picture uploaded successfully')
+        );
 });
 
 // Get current member
 const getCurrentMember = asyncHandler(async (req, res) => {
     const member = req.member;
     if (!member) {
-        return res.status(401).json(ApiResponse.unauthorized('Unauthorized access'));
+        return res
+            .status(401)
+            .json(new ApiResponse(401, null, 'Unauthorized access'));
     }
 
-    return res.status(200).json(
-        ApiResponse.success(
-            { member: member.toJSON() },
-            'Current member retrieved successfully'
-        )
-    );
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, { member: member.toJSON() }, 'Current member retrieved successfully')
+        );
 });
 
 // get the leaders
@@ -279,27 +270,26 @@ const getLeaders = asyncHandler(async (req, res) => {
     const members = await Member.find({designation: { $in: ['CEO', 'CTO', 'CMO', 'COO'] }})
 
     if (!members || members.length === 0) {
-        return res.status(404).json(ApiResponse.notFound('No leaders found'));
+        return res.status(404).json(new ApiResponse(404, null, 'No leaders found'));
     }
 
-    return res.status(200).json(
-        ApiResponse.success(
-            { members: members.map(member => member.toJSON()) },
-            'Leaders retrieved successfully'
-        )
-    );
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, { members: members.map(member => member.toJSON()) }, 'Leaders retrieved successfully')
+        );
 });
 
 // Send password reset email
 const sendResetPasswordEmail = asyncHandler(async (req, res) => {
     const { email } = req.body;
     if (!email) {
-        return res.status(400).json(ApiResponse.badRequest('Email is required'));
+        return res.status(400).json(new ApiResponse(400, null, 'Email is required'));
     }
 
     const member = await Member.findOne({ email });
     if (!member) {
-        return res.status(404).json(ApiResponse.notFound('Member not found'));
+        return res.status(404).json(new ApiResponse(404, null, 'Member not found'));
     }
 
     // Generate reset token
@@ -309,12 +299,11 @@ const sendResetPasswordEmail = asyncHandler(async (req, res) => {
     // Send the reset email
     await sendPasswordResetEmail(email, resetToken);
 
-    return res.status(200).json(
-        ApiResponse.success(
-            null,
-            'Password reset email sent successfully'
-        )
-    );
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, null, 'Password reset email sent successfully')
+        );
 });
 
 // Get all members
@@ -324,12 +313,11 @@ const getAllMembers = asyncHandler(async (req, res) => {
     const members = await Member.find().select('-password -refreshToken');
     const totalMembers = await Member.countDocuments();
 
-    return res.status(200).json(
-        ApiResponse.success(
-            { members, totalMembers },
-            'Members retrieved successfully'
-        )
-    );
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, { members, totalMembers }, 'Members retrieved successfully')
+        );
 });
 
 export {

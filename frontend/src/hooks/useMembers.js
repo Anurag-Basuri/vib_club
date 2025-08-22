@@ -159,7 +159,7 @@ export const useGetCurrentMember = () => {
 // Update member profile (for logged-in user)
 export const useUpdateProfile = () => {
 	const actionFn = async (id, updateData, token) => {
-		const res = await apiClient.put(`api/members/${id}/profile`, updateData, {
+		const res = await apiClient.put(`api/members/${id}/update`, updateData, {
 			headers: { Authorization: `Bearer ${token}` },
 		});
 		return res.data.data.member;
