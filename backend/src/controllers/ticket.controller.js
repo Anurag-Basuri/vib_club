@@ -281,8 +281,6 @@ const updateStatusForQR = asyncHandler(async (req, res) => {
     const ticketId = req.params.ticketId || req.body.ticketId;
     const { isUsed } = req.body;
 
-    console.log('Updating ticket status for ID:', ticketId, 'isUsed:', isUsed);
-
     if (!ticketId) {
         throw new ApiError(400, "Ticket ID is required");
     }
@@ -294,8 +292,6 @@ const updateStatusForQR = asyncHandler(async (req, res) => {
     let ticket = await Ticket.findOne({ ticketId });
     
     if (!ticket) {
-        console.log('Ticket not found by ticketId, trying _id:', ticketId);
-        // If not found by ticketId, try finding by MongoDB _id
         try {
             ticket = await Ticket.findById(ticketId);
         } catch (error) {
@@ -307,8 +303,6 @@ const updateStatusForQR = asyncHandler(async (req, res) => {
         console.log('Ticket not found by any method for ID:', ticketId);
         throw new ApiError(404, "Ticket not found");
     }
-
-    console.log('Ticket found:', ticket.ticketId, 'Current isUsed:', ticket.isUsed, 'New isUsed:', isUsed);
 
     // Only update if status is actually changing
     if (ticket.isUsed !== isUsed) {
