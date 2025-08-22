@@ -48,14 +48,14 @@ router.post(
 // Get ticket by ID (members)
 router.get(
     '/check/:ticketId',
-    authMiddleware.verifyToken,
+    // authMiddleware.verifyToken,
     ticketForQR
 );
 
 // Update ticket status for QR code (members)
 router.patch(
     '/check/:ticketId/status',
-    authMiddleware.verifyToken,
+    // authMiddleware.verifyToken,
     validate([
         param('ticketId').isMongoId().withMessage('Invalid ticket ID'),
         body('isUsed').optional().isBoolean().withMessage('isUsed must be a boolean'),
