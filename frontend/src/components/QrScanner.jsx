@@ -109,10 +109,24 @@ const TicketDetails = ({ ticket, error, onReset, onMarkUsed, updateLoading }) =>
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <Mail className="w-5 h-5 text-blue-400" />
+          <div>
+            <p className="text-sm text-blue-300">LpuId</p>
+            <p className="font-medium">{ticket.lpuId}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
           <Phone className="w-5 h-5 text-blue-400" />
           <div>
             <p className="text-sm text-blue-300">Phone</p>
             <p className="font-medium">{ticket.phone}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <Phone className="w-5 h-5 text-blue-400" />
+          <div>
+            <p className="text-sm text-blue-300">Hostel</p>
+            <p className="font-medium">{ticket.hostel}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -333,7 +347,6 @@ const QRScanner = () => {
                         ) {
                             handleCameraError(err);
                         }
-                        // Ignore other errors (like "No QR code found") to prevent false camera errors
                     }}
                     constraints={{ facingMode: 'environment', aspectRatio: 1 }}
                     style={{ width: '100%' }}
