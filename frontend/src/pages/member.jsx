@@ -591,20 +591,14 @@ const MemberProfile = () => {
                                     transition={{ duration: 0.3 }}
                                 >
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                                        {{
-                                            email: 'Email',
-                                            program: 'Program',
-                                            year: 'Year',
-                                            joinedAt: 'Joined',
-                                        }}
-                                        {Object.entries({
-                                            email: displayUser?.email,
-                                            program: displayUser?.program,
-                                            year: displayUser?.year ? `${displayUser.year}${displayUser.year === '1' ? 'st' : displayUser.year === '2' ? 'nd' : displayUser.year === '3' ? 'rd' : 'th'} Year` : null,
-                                            joinedAt: displayUser?.joinedAt ? new Date(displayUser.joinedAt).toLocaleDateString() : null
-                                        }).map(([key, value], index) => (
+                                        {[
+                                            { label: 'Email', value: displayUser?.email },
+                                            { label: 'Program', value: displayUser?.program },
+                                            { label: 'Year', value: displayUser?.year ? `${displayUser.year}${displayUser.year === '1' ? 'st' : displayUser.year === '2' ? 'nd' : displayUser.year === '3' ? 'rd' : 'th'} Year` : null },
+                                            { label: 'Joined', value: displayUser?.joinedAt ? new Date(displayUser.joinedAt).toLocaleDateString() : null }
+                                        ].map(({ label, value }, index) => (
                                             <div key={index} className="bg-blue-900/30 p-4 rounded-xl">
-                                                <h3 className="text-blue-300 text-sm mb-1">{key}</h3>
+                                                <h3 className="text-blue-300 text-sm mb-1">{label}</h3>
                                                 <p className="font-medium">{value || 'Not provided'}</p>
                                             </div>
                                         ))}
