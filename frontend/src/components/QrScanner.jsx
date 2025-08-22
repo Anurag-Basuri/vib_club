@@ -288,8 +288,20 @@ const QRScanner = () => {
                 <div className="relative overflow-hidden rounded-xl bg-black">
                   <QrReader
                     onResult={(result, err) => {
-                      if (err) handleCameraError(err);
-                      if (result) handleScan(result);
+                        if (result) {
+                            handleScan(result);
+                        } else if (
+                            err &&
+                            (
+                                err.name === 'NotAllowedError' ||
+                                err.name === 'NotFoundError' ||
+                                err.name === 'NotReadableError' ||
+                                err.name === 'OverconstrainedError'
+                            )
+                        ) {
+                            handleCameraError(err);
+                        }
+                        // Ignore other errors (like "No QR code found") to prevent false camera errors
                     }}
                     constraints={{ facingMode: 'environment', aspectRatio: 1 }}
                     style={{ width: '100%' }}
