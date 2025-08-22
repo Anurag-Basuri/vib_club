@@ -66,7 +66,7 @@ router.patch(
 // Get ticket by ID (protected, member or admin)
 router.get(
     '/:ticketId',
-    authMiddleware.verifyToken,
+    // authMiddleware.verifyToken,
     validate([
         param('ticketId').isMongoId().withMessage('Invalid ticket ID')
     ]),
