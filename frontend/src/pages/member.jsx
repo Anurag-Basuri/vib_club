@@ -23,7 +23,7 @@ const MemberProfile = () => {
         error: userError,
         reset: resetUserError 
     } = useGetCurrentMember();
-    
+
     const { 
         updateProfile, 
         member: updatedMember, 
