@@ -47,6 +47,10 @@ const Navbar = () => {
 	const location = useLocation();
 	const drawerRef = useRef(null);
 
+	// Determine if user is member or admin
+	const isMember = user?.memberID ? true : false;
+	const isAdmin = !isMember && user; // If user exists but no memberID, then admin
+
 	// Sync active link with route
 	useEffect(() => {
 		setActiveLink(pathToNavName(location.pathname));
@@ -143,8 +147,7 @@ const Navbar = () => {
 	const handleLogout = () => {
 		if (user) {
 			try {
-				const member = user.memberID ? true : false;
-				if (member) {
+				if (isMember) {
 					logoutMember();
 				} else {
 					logoutAdmin();
@@ -159,6 +162,22 @@ const Navbar = () => {
 		setIsOpen(false);
 		navigate('/auth');
 	};
+
+	const handleDashboardClick = () => {
+		setIsUserOpen(false);
+		setIsOpen(false);
+		if (isMember) {
+			navigate('/member/dashboard');
+		} else {
+			navigate('/admin/dashboard');
+		}
+	};
+
+	// const handleProfileClick = () => {
+	// 	setIsUserOpen(false);
+	// 	setIsOpen(false);
+	// 	navigate('/member');
+	// };
 
 	const handleAlreadyMember = () => {
 		setIsOpen(false);
@@ -417,7 +436,7 @@ const Navbar = () => {
 											<User className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
 										</div>
 										<span className="hidden sm:block text-white font-medium text-sm">
-											{user?.name || 'User'}
+											{user?.fullname || user?.name || 'User'}
 										</span>
 										<ChevronDown
 											className={`h-4 w-4 text-white transition-transform duration-300 ${isUserOpen ? 'rotate-180' : ''}`}
@@ -433,29 +452,39 @@ const Navbar = () => {
 													</div>
 													<div>
 														<p className="font-semibold text-white">
-															{user?.name || 'User'}
+															{user?.fullname || user?.name || 'User'}
 														</p>
 														<p className="text-sm text-slate-300">
 															{user?.email || 'user@vibranta.edu'}
+														</p>
+														<p className="text-xs text-cyan-400 font-medium">
+															{isMember ? 'Member' : 'Admin'}
 														</p>
 													</div>
 												</div>
 											</div>
 											<div className="py-2">
 												<button
-													onClick={() => navigate('/admin/dashboard')}
+													onClick={handleDashboardClick}
 													className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-all duration-300 text-white group"
 												>
 													<LayoutDashboard className="h-5 w-5 text-cyan-400 group-hover:scale-110 transition-transform" />
-													<span>Dashboard</span>
+													<span>
+														{isMember
+															? 'Member Dashboard'
+															: 'Admin Dashboard'}
+													</span>
 												</button>
-												<button
-													onClick={() => navigate('/member')}
-													className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-all duration-300 text-white group"
-												>
-													<User className="h-5 w-5 text-cyan-400 group-hover:scale-110 transition-transform" />
-													<span>Profile</span>
-												</button>
+												{/* Only show Profile for members */}
+												{/* {isMember && (
+													<button
+														onClick={handleProfileClick}
+														className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-all duration-300 text-white group"
+													>
+														<User className="h-5 w-5 text-cyan-400 group-hover:scale-110 transition-transform" />
+														<span>Profile</span>
+													</button>
+												)} */}
 											</div>
 											<div className="p-3 border-t border-white/10">
 												<button
