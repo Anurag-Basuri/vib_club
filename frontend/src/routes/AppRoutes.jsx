@@ -9,7 +9,7 @@ import MemberProfile from '../pages/member.jsx';
 import Auth from '../pages/auth.jsx';
 import AdminAuth from '../pages/adminAuth.jsx';
 import AdminDash from '../pages/adminDash.jsx';
-import PaymentVerify from '../components/event/paymentVerify.jsx';
+import PaymentVerify from '../components/upcoming_events/paymentVerify.js';
 import Terms from '../pages/terms.jsx';
 import Refund from '../pages/refund.jsx';
 import CookiePolicy from '../pages/cookie.jsx';
