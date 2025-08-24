@@ -9,7 +9,6 @@ import MemberProfile from '../pages/member.jsx';
 import Auth from '../pages/auth.jsx';
 import AdminAuth from '../pages/adminAuth.jsx';
 import AdminDash from '../pages/adminDash.jsx';
-import Current from '../components/event/upcomingEvent.jsx';
 import PaymentVerify from '../components/event/paymentVerify.jsx';
 import Terms from '../pages/terms.jsx';
 import Refund from '../pages/refund.jsx';
@@ -26,7 +25,7 @@ const AppRoutes = () => {
 
 			<Route path="/" element={<Home />} />
 			<Route path="/payment/verify" element={<PaymentVerify />} />
-			<Route path="/event" element={<Current />} />
+			<Route path="/event" element={<Event />} />
 			<Route path="/team" element={<Team />} />
 			<Route path="/social-page" element={<Social />} />
 			<Route path="/contact" element={<Contact />} />
