@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 
 const EventHero = ({ events }) => {
 	const [upcomingEvent, setUpcomingEvent] = useState(null);
@@ -18,12 +19,25 @@ const EventHero = ({ events }) => {
 
 	if (!upcomingEvent) {
 		return (
-			<div className="relative h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-indigo-900">
+			<div className="relative h-screen flex items-center justify-center bg-gradient-to-br from-blue-900/70 via-indigo-900/70 to-purple-900/70 overflow-hidden">
 				<div className="absolute inset-0 bg-black/40"></div>
-				<div className="relative z-10 text-center p-8 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 max-w-2xl">
-					<h1 className="text-4xl md:text-5xl font-bold mb-4">No Upcoming Events</h1>
+				<div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
+				<motion.div
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					className="relative z-10 text-center p-8 rounded-2xl max-w-2xl mx-4"
+					style={{
+						background: 'rgba(255, 255, 255, 0.05)',
+						boxShadow: '0 8px 32px 0 rgba(2, 12, 34, 0.6)',
+						backdropFilter: 'blur(12px)',
+						border: '1px solid rgba(255, 255, 255, 0.1)',
+					}}
+				>
+					<h1 className="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400">
+						No Upcoming Events
+					</h1>
 					<p className="text-xl text-blue-200">Check back later for new events!</p>
-				</div>
+				</motion.div>
 			</div>
 		);
 	}
@@ -44,40 +58,74 @@ const EventHero = ({ events }) => {
 	return (
 		<div className="relative h-screen flex items-center justify-center overflow-hidden">
 			{upcomingEvent.posters && upcomingEvent.posters.length > 0 ? (
-				<img
-					src={upcomingEvent.posters[0].url}
-					alt={upcomingEvent.title}
-					className="absolute inset-0 w-full h-full object-cover"
-				/>
-			) : null}
+				<>
+					<img
+						src={upcomingEvent.posters[0].url}
+						alt={upcomingEvent.title}
+						className="absolute inset-0 w-full h-full object-cover"
+					/>
+					<div className="absolute inset-0 bg-gradient-to-t from-black/90 via-blue-900/50 to-cyan-900/30"></div>
+				</>
+			) : (
+				<div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900"></div>
+			)}
 
-			<div className="absolute inset-0 bg-gradient-to-t from-black/80 via-blue-900/50 to-cyan-900/30"></div>
+			{/* Animated background elements */}
+			<div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
+			<div className="absolute top-1/4 left-1/4 w-72 h-72 bg-blue-500/10 rounded-full filter blur-3xl animate-pulse-slow"></div>
+			<div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/10 rounded-full filter blur-3xl animate-pulse-slow animation-delay-2000"></div>
 
-			<div className="relative z-10 text-center p-8 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 max-w-4xl mx-4">
-				<span className="inline-block px-4 py-1 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full text-black font-bold mb-6">
+			<motion.div
+				initial={{ opacity: 0, y: 30 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{ duration: 0.7 }}
+				className="relative z-10 text-center p-8 rounded-2xl max-w-4xl mx-4"
+				style={{
+					background: 'rgba(255, 255, 255, 0.05)',
+					boxShadow: '0 8px 32px 0 rgba(2, 12, 34, 0.6)',
+					backdropFilter: 'blur(12px)',
+					border: '1px solid rgba(255, 255, 255, 0.1)',
+				}}
+			>
+				<motion.span
+					initial={{ scale: 0 }}
+					animate={{ scale: 1 }}
+					transition={{ type: 'spring', stiffness: 200, damping: 10 }}
+					className="inline-block px-4 py-1 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full text-black font-bold mb-6"
+				>
 					Next Event
-				</span>
+				</motion.span>
 
-				<h1 className="text-4xl md:text-6xl font-bold mb-6">{upcomingEvent.title}</h1>
+				<h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-cyan-300">
+					{upcomingEvent.title}
+				</h1>
 
 				<p className="text-xl text-blue-300 mb-2">{formatDate(eventDate)}</p>
 				<p className="text-lg text-cyan-300 mb-6">{upcomingEvent.venue}</p>
 
-				<p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
+				<p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
 					{upcomingEvent.description.length > 200
 						? `${upcomingEvent.description.substring(0, 200)}...`
 						: upcomingEvent.description}
 				</p>
 
 				<div className="flex flex-col sm:flex-row gap-4 justify-center">
-					<button className="px-8 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg font-bold hover:from-blue-500 hover:to-cyan-500 transition-all">
+					<motion.button
+						whileHover={{ scale: 1.05 }}
+						whileTap={{ scale: 0.95 }}
+						className="px-8 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl font-bold hover:from-blue-500 hover:to-cyan-500 transition-all shadow-lg"
+					>
 						Register Now
-					</button>
-					<button className="px-8 py-3 bg-white/10 border border-white/20 rounded-lg font-bold hover:bg-white/20 transition-all">
+					</motion.button>
+					<motion.button
+						whileHover={{ scale: 1.05 }}
+						whileTap={{ scale: 0.95 }}
+						className="px-8 py-3 bg-white/10 border border-white/20 rounded-xl font-bold hover:bg-white/20 transition-all"
+					>
 						View Details
-					</button>
+					</motion.button>
 				</div>
-			</div>
+			</motion.div>
 		</div>
 	);
 };
