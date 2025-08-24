@@ -1,3 +1,5 @@
+import { motion } from 'framer-motion';
+
 const EventFilter = ({ activeFilter, setActiveFilter }) => {
 	const filters = [
 		{ key: 'all', label: 'All Events', icon: '🎭' },

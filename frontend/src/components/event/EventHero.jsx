@@ -30,7 +30,7 @@ const EventHero = ({ events = [] }) => {
 
     if (!upcomingEvent) {
         return (
-            <div className="relative h-screen flex items-center justify-center bg-gradient-to-br from-blue-900/70 via-indigo-900/70 to-purple-900/70 overflow-hidden"></div>
+            <div className="relative h-screen flex items-center justify-center bg-gradient-to-br from-blue-900/70 via-indigo-900/70 to-purple-900/70 overflow-hidden">
                 <div className="absolute inset-0 bg-black/40"></div>
                 <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
                 <motion.div
@@ -102,7 +102,7 @@ const EventHero = ({ events = [] }) => {
                     Next Event
                 </motion.span>
 
-                <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-cyan-300"></h1>
+                <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-cyan-300">
                     {title}
                 </h1>
 
