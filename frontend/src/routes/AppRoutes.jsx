@@ -9,7 +9,6 @@ import MemberProfile from '../pages/member.jsx';
 import Auth from '../pages/auth.jsx';
 import AdminAuth from '../pages/adminAuth.jsx';
 import AdminDash from '../pages/adminDash.jsx';
-import PaymentVerify from '../components/upcoming_events/paymentVerify.js';
 import Terms from '../pages/terms.jsx';
 import Refund from '../pages/refund.jsx';
 import CookiePolicy from '../pages/cookie.jsx';
@@ -24,7 +23,6 @@ const AppRoutes = () => {
 			<Route path="/admin/auth/*" element={<AdminAuth />} />
 
 			<Route path="/" element={<Home />} />
-			<Route path="/payment/verify" element={<PaymentVerify />} />
 			<Route path="/event" element={<Event />} />
 			<Route path="/team" element={<Team />} />
 			<Route path="/social-page" element={<Social />} />
