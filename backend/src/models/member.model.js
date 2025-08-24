@@ -59,6 +59,27 @@ const memberSchema = new mongoose.Schema({
             message: 'Year must be between 1 and 4'
         }
     },
+    hosteler: {
+        type: Boolean,
+        default: false
+    },
+    hostel: {
+        type: String,
+        enum: [
+            'BH-1',
+            'BH-2',
+            'BH-3',
+            'BH-4',
+            'BH-5',
+            'BH-6',
+            'BH-7',
+            'GH-1',
+            'GH-2',
+            'GH-3',
+            'GH-4',
+            'GH-5'
+        ]
+    },
     password: {
         type: String,
         required: [true, 'Password is required'],
@@ -66,26 +87,36 @@ const memberSchema = new mongoose.Schema({
         maxlength: [128, 'Password cannot exceed 128 characters'],
         select: false,
     },
-    linkedIn: {
-        type: String,
-        validate: {
-            validator: function(v) {
-                if (!v) return true; // Optional field
-                return /^https?:\/\/(www\.)?linkedin\.com\/in\/[a-zA-Z0-9_-]+\/?$/.test(v);
+
+    socialLinks: [
+        {
+            platform: {
+                type: String,
+                enum: [
+                    'LinkedIn',
+                    'GitHub',
+                    'Instagram',
+                    'Twitter',
+                    'Facebook',
+                    'LeetCode',
+                    'Codeforces',
+                    'CodeChef',
+                ],
+                required: [true, 'Platform is required']
             },
-            message: props => `${props.value} is not a valid LinkedIn URL!`
-        },
-    },
-    github: {
-        type: String,
-        validate: {
-            validator: function(v) {
-                if (!v) return true; // Optional field
-                return /^https?:\/\/(www\.)?github\.com\/[a-zA-Z0-9_-]+\/?$/.test(v);
-            },
-            message: props => `${props.value} is not a valid GitHub URL!`
-        },
-    },
+            url: {
+                type: String,
+                required: [true, 'URL is required'],
+                validate: {
+                    validator: function(v) {
+                        return /^https?:\/\/.*$/.test(v);
+                    },
+                    message: 'Invalid URL format'
+                }
+            }
+        }
+    ],
+
     department: {
         type: String,
         required: [true, 'Department is required'],
