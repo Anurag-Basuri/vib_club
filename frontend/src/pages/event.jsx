@@ -5,7 +5,7 @@ import EventFilter from '../components/event/EventFilter.jsx';
 import LoadingSpinner from '../components/event/LoadingSpinner.jsx';
 import { AnimatePresence, motion } from 'framer-motion';
 
-// Decorative background elements
+// Decorative background elements matching home page
 const EventFloatingBackground = () => (
 	<div className="absolute inset-0 overflow-hidden pointer-events-none">
 		<motion.div
@@ -26,10 +26,19 @@ const EventFloatingBackground = () => (
 			transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
 			className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-bl from-purple-500/15 to-pink-500/10 rounded-full blur-2xl"
 		/>
+		<motion.div
+			animate={{
+				x: [0, 20, 0],
+				y: [0, -15, 0],
+				scale: [1, 1.1, 1],
+			}}
+			transition={{ duration: 30, repeat: Infinity, ease: 'easeInOut', delay: 5 }}
+			className="absolute bottom-20 left-20 w-24 h-24 bg-gradient-to-tr from-indigo-500/12 to-blue-500/8 rounded-full blur-2xl"
+		/>
 	</div>
 );
 
-// Hero section with event stats
+// Hero section with event stats - matching home page theme
 const EventHero = ({ events, loading }) => {
 	const upcomingCount = events?.filter((e) => new Date(e.date) > new Date()).length || 0;
 	const ongoingCount = events?.filter((e) => e.status === 'ongoing').length || 0;
@@ -37,9 +46,9 @@ const EventHero = ({ events, loading }) => {
 		events?.filter((e) => new Date(e.date) < new Date() && e.status !== 'ongoing').length || 0;
 
 	return (
-		<div className="relative bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 text-white py-8 sm:py-12 lg:py-16 overflow-hidden">
+		<div className="relative bg-gradient-to-b from-[#0a0e17] to-[#1a1f3a] text-white py-8 sm:py-12 lg:py-16 overflow-hidden">
 			<EventFloatingBackground />
-			<div className="absolute inset-0 bg-grid-pattern opacity-[0.02]" />
+			<div className="absolute inset-0 bg-grid-white/[0.03] bg-[length:20px_20px]" />
 
 			<div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 				{/* Header */}
@@ -49,6 +58,9 @@ const EventHero = ({ events, loading }) => {
 					transition={{ duration: 0.6 }}
 					className="text-center mb-6 sm:mb-8"
 				>
+					<h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-3 sm:mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-200 to-cyan-300">
+						Events
+					</h1>
 					<p className="text-sm sm:text-base lg:text-lg text-blue-200 max-w-2xl mx-auto leading-relaxed px-4">
 						Discover, join, and explore our community events
 					</p>
@@ -312,8 +324,15 @@ const EventPage = () => {
 
 	if (error) {
 		return (
-			<div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 p-4 relative overflow-hidden">
-				<EventFloatingBackground />
+			<div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#0a0e17] to-[#1a1f3a] p-4 relative overflow-hidden">
+				{/* Fixed background elements matching home page */}
+				<div className="fixed inset-0 z-0 overflow-hidden">
+					<div className="absolute inset-0 bg-grid-white/[0.03] bg-[length:20px_20px]" />
+					<div className="absolute top-1/4 left-1/4 w-80 h-80 rounded-full bg-blue-500/10 filter blur-3xl animate-pulse-slow" />
+					<div className="absolute top-1/3 right-1/4 w-64 h-64 rounded-full bg-indigo-500/15 filter blur-3xl animate-pulse-slow" />
+					<div className="absolute bottom-1/4 left-1/3 w-72 h-72 rounded-full bg-purple-500/12 filter blur-3xl animate-pulse-slow" />
+				</div>
+
 				<motion.div
 					initial={{ opacity: 0, y: 20, scale: 0.95 }}
 					animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -349,12 +368,20 @@ const EventPage = () => {
 	}
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 text-white">
-			<EventHero events={events} loading={loading} />
+		<div className="min-h-screen bg-gradient-to-b from-[#0a0e17] to-[#1a1f3a] text-white overflow-x-hidden">
+			{/* Fixed background elements matching home page */}
+			<div className="fixed inset-0 z-0 overflow-hidden">
+				<div className="absolute inset-0 bg-grid-white/[0.03] bg-[length:20px_20px]" />
+				<div className="absolute top-1/4 left-1/4 w-80 h-80 rounded-full bg-blue-500/10 filter blur-3xl animate-pulse-slow" />
+				<div className="absolute top-1/3 right-1/4 w-64 h-64 rounded-full bg-indigo-500/15 filter blur-3xl animate-pulse-slow" />
+				<div className="absolute bottom-1/4 left-1/3 w-72 h-72 rounded-full bg-purple-500/12 filter blur-3xl animate-pulse-slow" />
+			</div>
 
-			<div className="relative">
-				<EventFloatingBackground />
-				<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 relative z-10">
+			{/* Content */}
+			<div className="relative z-10">
+				<EventHero events={events} loading={loading} />
+
+				<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
 					{/* Search and Filter */}
 					<motion.div
 						initial={{ opacity: 0, y: 20 }}
@@ -362,16 +389,16 @@ const EventPage = () => {
 						transition={{ duration: 0.5 }}
 						className="sticky top-2 sm:top-4 lg:top-6 z-30 mb-8 sm:mb-12 lg:mb-16"
 					>
-						<div className="glass-card p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl shadow-xl">
-							<div className="flex flex-col gap-4 sm:gap-6 lg:gap-8">
+						<div className="glass-card p-3 sm:p-4 lg:p-5 rounded-xl sm:rounded-2xl shadow-xl">
+							<div className="flex flex-col gap-3 sm:gap-4">
 								{/* Search Input */}
 								<div className="relative group">
 									<motion.div
 										whileHover={{ scale: 1.01 }}
-										className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none"
+										className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
 									>
 										<svg
-											className="w-4 h-4 sm:w-5 h-5 lg:w-6 h-6 text-blue-400 group-hover:text-cyan-400 transition-colors duration-300"
+											className="w-4 h-4 sm:w-5 h-5 text-blue-400 group-hover:text-cyan-400 transition-colors duration-300"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24"
@@ -389,7 +416,7 @@ const EventPage = () => {
 										placeholder="Search events..."
 										value={searchTerm}
 										onChange={(e) => setSearchTerm(e.target.value)}
-										className="pl-10 sm:pl-12 lg:pl-14 pr-10 sm:pr-12 py-3 sm:py-4 w-full bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-sm sm:text-base lg:text-lg hover:bg-white/10 placeholder-gray-400"
+										className="pl-10 pr-10 py-2.5 sm:py-3 w-full bg-white/5 border border-white/10 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-sm sm:text-base hover:bg-white/10 placeholder-gray-400"
 									/>
 									{searchTerm && (
 										<motion.button
@@ -398,7 +425,7 @@ const EventPage = () => {
 											whileHover={{ scale: 1.1 }}
 											whileTap={{ scale: 0.9 }}
 											onClick={() => setSearchTerm('')}
-											className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-200 w-5 h-5 sm:w-6 h-6 flex items-center justify-center rounded-full hover:bg-white/10 text-sm sm:text-base"
+											className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-200 w-5 h-5 flex items-center justify-center rounded-full hover:bg-white/10 text-sm"
 										>
 											✕
 										</motion.button>
