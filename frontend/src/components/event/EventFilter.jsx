@@ -7,28 +7,24 @@ const EventFilter = ({ activeFilter, setActiveFilter }) => {
             label: 'All', 
             icon: '🎭', 
             color: 'blue',
-            description: 'All events'
         },
         { 
             key: 'upcoming', 
             label: 'Upcoming', 
             icon: '🚀', 
             color: 'cyan',
-            description: 'Future events'
         },
         { 
             key: 'ongoing', 
             label: 'Live', 
             icon: '🔴', 
             color: 'red',
-            description: 'Happening now'
         },
         { 
             key: 'past', 
             label: 'Past', 
             icon: '📚', 
             color: 'purple',
-            description: 'Completed events'
         },
     ];
 
@@ -167,26 +163,6 @@ const EventFilter = ({ activeFilter, setActiveFilter }) => {
                     );
                 })}
             </div>
-
-            {/* Filter Description - appears below buttons */}
-            <AnimatePresence mode="wait">
-                {filters.map((filter) => 
-                    activeFilter === filter.key && (
-                        <motion.div
-                            key={filter.key}
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.3 }}
-                            className="text-center mt-2 sm:mt-3"
-                        >
-                            <p className="text-xs text-gray-400 font-medium">
-                                {filter.description}
-                            </p>
-                        </motion.div>
-                    )
-                )}
-            </AnimatePresence>
         </div>
     );
 };
