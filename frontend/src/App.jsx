@@ -1,11 +1,11 @@
 import './App.css';
-import { BrowserRouter, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { ReactLenis } from 'lenis/react';
 import AppRoutes from './routes/AppRoutes.jsx';
 import Navbar from './components/Navbar.jsx';
 
-function AppContent() {
+function App() {
     const location = useLocation();
 
     // Hide navbar for specific routes
@@ -87,14 +87,6 @@ function AppContent() {
                 <AppRoutes />
             </div>
         </ReactLenis>
-    );
-}
-
-function App() {
-    return (
-        <BrowserRouter>
-            <AppContent />
-        </BrowserRouter>
     );
 }
 
