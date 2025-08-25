@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getToken, removeToken } from '../utils/handleTokens.js';
+import { getToken, removeToken, isTokenValid } from '../utils/handleTokens.js';
 
 // Use centralized environment configuration
 const API_BASE_URL = import.meta.env.VITE_BACKEND_URL;
@@ -28,9 +28,17 @@ const publicClient = axios.create({
 
 apiClient.interceptors.request.use((config) => {
 	const { accessToken } = getToken();
-	if (accessToken) {
+	
+	// Check if token is valid before making request
+	if (accessToken && isTokenValid()) {
 		config.headers['Authorization'] = `Bearer ${accessToken}`;
+	} else if (accessToken && !isTokenValid()) {
+		// Token is expired, remove it and redirect
+		removeToken();
+		window.location.href = '/auth';
+		return Promise.reject(new Error('Token expired'));
 	}
+	
 	return config;
 });
 
@@ -42,12 +50,12 @@ apiClient.interceptors.response.use(
 	(error) => {
 		// Handle errors
 		if (error.response) {
-			const { status, data } = error.response;
+			const { status } = error.response;
 			if (status === 401) {
-				// Token expired or invalid
 				removeToken();
+				window.location.href = '/auth';
 			}
-			return Promise.reject(data);
+			return Promise.reject(error.response.data);
 		}
 		return Promise.reject(error);
 	}
