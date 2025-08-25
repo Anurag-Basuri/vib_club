@@ -138,10 +138,6 @@ const memberSchema = new mongoose.Schema({
         maxlength: [500, 'Bio cannot exceed 500 characters'],
         trim: true
     },
-    joinedAt: {
-        type: Date,
-        default: Date.now,
-    },
     status: {
         type: String,
         enum: ['active', 'banned', 'removed'],

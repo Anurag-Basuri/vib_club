@@ -12,8 +12,6 @@ function App() {
     const hideNavbar =
         location.pathname.startsWith('/auth') ||
         location.pathname.startsWith('/admin/auth') ||
-        location.pathname.startsWith('/admin/dashboard') ||
-        location.pathname.startsWith('/member/dashboard') ||
         location.pathname.startsWith('/terms') ||
         location.pathname.startsWith('/refund') ||
         location.pathname.startsWith('/policy') ||
