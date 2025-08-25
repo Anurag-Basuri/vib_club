@@ -5,422 +5,405 @@ import EventFilter from '../components/event/EventFilter.jsx';
 import LoadingSpinner from '../components/event/LoadingSpinner.jsx';
 import { AnimatePresence, motion } from 'framer-motion';
 
-// Decorative animated background elements
-const GraphicElements = ({ hasEvents = true }) => (
-	<div className="absolute inset-0 overflow-hidden pointer-events-none">
-		<div className="absolute -top-40 -right-20 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl"></div>
-		<div className="absolute top-1/4 -left-20 w-60 h-60 bg-cyan-400/15 rounded-full blur-3xl"></div>
-		<div className="absolute bottom-0 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl"></div>
-		<div className="absolute bottom-20 right-1/3 w-40 h-40 bg-sky-500/15 rounded-full blur-3xl"></div>
-		<motion.div
-			className="absolute top-1/3 left-1/4 w-6 h-6 bg-cyan-400/30 rounded-full"
-			animate={{
-				y: [0, -20, 0],
-				scale: [1, 1.2, 1],
-			}}
-			transition={{
-				duration: 6,
-				repeat: Infinity,
-				ease: 'easeInOut',
-			}}
-		/>
-		<motion.div
-			className="absolute top-2/3 right-1/3 w-4 h-4 bg-blue-400/40 rounded-full"
-			animate={{
-				y: [0, 15, 0],
-				scale: [1, 1.1, 1],
-			}}
-			transition={{
-				duration: 5,
-				repeat: Infinity,
-				ease: 'easeInOut',
-				delay: 1,
-			}}
-		/>
-		{hasEvents && (
-			<motion.div
-				className="absolute top-1/4 right-1/4 w-5 h-5 bg-sky-300/50 rounded-full"
-				animate={{
-					y: [0, -15, 0],
-					scale: [1, 1.3, 1],
-				}}
-				transition={{
-					duration: 7,
-					repeat: Infinity,
-					ease: 'easeInOut',
-					delay: 0.5,
-				}}
-			/>
-		)}
-	</div>
+// Floating decorative elements
+const FloatingElements = () => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    {/* Large background orbs */}
+    <div className="absolute -top-1/2 -right-1/2 w-96 h-96 bg-gradient-to-br from-blue-500/20 to-purple-600/20 rounded-full blur-3xl animate-float-slow" />
+    <div className="absolute -bottom-1/2 -left-1/2 w-80 h-80 bg-gradient-to-br from-cyan-500/20 to-blue-600/20 rounded-full blur-3xl animate-float-slow" style={{ animationDelay: '2s' }} />
+    <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-gradient-to-br from-violet-500/15 to-pink-500/15 rounded-full blur-3xl animate-float-slow" style={{ animationDelay: '4s' }} />
+    
+    {/* Small floating particles */}
+    {[...Array(12)].map((_, i) => (
+      <motion.div
+        key={i}
+        className="absolute w-2 h-2 bg-blue-400/30 rounded-full"
+        style={{
+          left: `${Math.random() * 100}%`,
+          top: `${Math.random() * 100}%`,
+        }}
+        animate={{
+          y: [0, -30, 0],
+          opacity: [0.3, 1, 0.3],
+          scale: [1, 1.5, 1],
+        }}
+        transition={{
+          duration: 4 + Math.random() * 4,
+          repeat: Infinity,
+          delay: Math.random() * 2,
+          ease: 'easeInOut',
+        }}
+      />
+    ))}
+  </div>
 );
 
-// Hero for no events
-const NoEventsHero = () => (
-	<div className="relative h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-sky-900 overflow-hidden">
-		<GraphicElements hasEvents={false} />
-		<div className="absolute inset-0 bg-grid-pattern opacity-[0.03]"></div>
-		<motion.div
-			initial={{ opacity: 0, y: 30 }}
-			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.7 }}
-			className="relative z-10 text-center p-8 rounded-2xl max-w-4xl mx-4 glass-card"
-		>
-			<motion.div
-				initial={{ scale: 0 }}
-				animate={{ scale: 1 }}
-				transition={{ type: 'spring', stiffness: 200, damping: 10 }}
-				className="inline-block p-3 bg-blue-500/20 rounded-full text-blue-300 mb-6"
-			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					className="h-12 w-12"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-					aria-hidden="true"
-				>
-					<path
-						strokeLinecap="round"
-						strokeLinejoin="round"
-						strokeWidth={1.5}
-						d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-					/>
-				</svg>
-			</motion.div>
+// Hero section with dynamic content
+const HeroSection = ({ events, loading }) => {
+  const upcomingCount = events?.filter(e => new Date(e.date) > new Date()).length || 0;
+  const ongoingCount = events?.filter(e => e.status === 'ongoing').length || 0;
 
-			<h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-cyan-300">
-				No Events Scheduled Yet
-			</h1>
+  return (
+    <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 overflow-hidden">
+      <FloatingElements />
+      <div className="absolute inset-0 bg-grid-pattern opacity-[0.02]" />
+      <div className="absolute inset-0 bg-mesh-gradient" />
+      
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1, ease: 'easeOut' }}
+        className="relative z-10 text-center px-6 max-w-6xl mx-auto"
+      >
+        {/* Main title */}
+        <motion.h1
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="text-5xl md:text-7xl lg:text-8xl font-black mb-8 bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-200 to-cyan-300"
+        >
+          VIB CLUB
+        </motion.h1>
+        
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="text-xl md:text-2xl lg:text-3xl font-light mb-12 text-blue-100 max-w-4xl mx-auto leading-relaxed"
+        >
+          Where innovation meets inspiration. Discover events that challenge, 
+          <span className="text-cyan-300 font-medium"> connect</span>, and 
+          <span className="text-blue-300 font-medium"> transform</span> your journey.
+        </motion.div>
 
-			<p className="text-xl text-blue-200 mb-8 max-w-2xl mx-auto leading-relaxed">
-				We're busy planning amazing experiences for you. Check back soon for upcoming
-				events or subscribe to our newsletter to be the first to know!
-			</p>
+        {/* Stats cards */}
+        {!loading && events && events.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-4xl mx-auto"
+          >
+            <div className="glass-card-primary p-6 rounded-2xl text-center hover-lift transition-all duration-300">
+              <div className="text-3xl font-bold text-blue-300 mb-2">{events.length}</div>
+              <div className="text-blue-200">Total Events</div>
+            </div>
+            <div className="glass-card-success p-6 rounded-2xl text-center hover-lift transition-all duration-300">
+              <div className="text-3xl font-bold text-green-300 mb-2">{upcomingCount}</div>
+              <div className="text-green-200">Upcoming</div>
+            </div>
+            <div className="glass-card p-6 rounded-2xl text-center hover-lift transition-all duration-300">
+              <div className="text-3xl font-bold text-orange-300 mb-2">{ongoingCount}</div>
+              <div className="text-orange-200">Live Now</div>
+            </div>
+          </motion.div>
+        )}
 
-			<div className="flex flex-col sm:flex-row gap-4 justify-center">
-				<motion.button
-					whileHover={{ scale: 1.05 }}
-					whileTap={{ scale: 0.95 }}
-					className="px-8 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl font-bold hover:from-blue-500 hover:to-cyan-500 transition-all shadow-lg"
-					type="button"
-					aria-label="Subscribe to Updates"
-				>
-					Subscribe to Updates
-				</motion.button>
-				<motion.button
-					whileHover={{ scale: 1.05 }}
-					whileTap={{ scale: 0.95 }}
-					className="px-8 py-3 bg-white/10 border border-white/20 rounded-xl font-bold hover:bg-white/20 transition-all"
-					type="button"
-					aria-label="Suggest an Event"
-				>
-					Suggest an Event
-				</motion.button>
-			</div>
-		</motion.div>
-	</div>
-);
+        {/* Action buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.8 }}
+          className="flex flex-col sm:flex-row gap-6 justify-center items-center"
+        >
+          <motion.button
+            whileHover={{ scale: 1.05, boxShadow: '0 20px 40px rgba(59, 130, 246, 0.3)' }}
+            whileTap={{ scale: 0.95 }}
+            className="px-10 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-2xl font-bold text-lg shadow-xl hover:from-blue-500 hover:to-cyan-500 transition-all duration-300 animate-pulse-glow"
+          >
+            Explore Events
+          </motion.button>
+          
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="px-10 py-4 glass-card text-white rounded-2xl font-bold text-lg hover-lift transition-all duration-300"
+          >
+            Join Community
+          </motion.button>
+        </motion.div>
 
+        {/* Scroll indicator */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.5 }}
+          className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
+        >
+          <motion.div
+            animate={{ y: [0, 10, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center"
+          >
+            <motion.div
+              animate={{ y: [0, 12, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              className="w-1 h-3 bg-white/50 rounded-full mt-2"
+            />
+          </motion.div>
+        </motion.div>
+      </motion.div>
+    </div>
+  );
+};
+
+// Enhanced section titles
 const sectionTitles = {
-	ongoing: 'Happening Now',
-	upcoming: 'Coming Soon',
-	past: 'Past Events',
+  ongoing: { title: 'Live Events', emoji: '🔴', gradient: 'from-red-400 to-orange-400' },
+  upcoming: { title: 'Coming Soon', emoji: '🚀', gradient: 'from-blue-400 to-cyan-400' },
+  past: { title: 'Past Events', emoji: '📚', gradient: 'from-purple-400 to-pink-400' },
 };
 
 const categorizeEvents = (events) => {
-	const now = new Date();
-	const categorized = { ongoing: [], upcoming: [], past: [] };
+  const now = new Date();
+  const categorized = { ongoing: [], upcoming: [], past: [] };
 
-	events.forEach((event) => {
-		if (event.status === 'cancelled') return;
-		const eventDate = new Date(event.date);
+  events.forEach((event) => {
+    if (event.status === 'cancelled') return;
+    const eventDate = new Date(event.date);
 
-		if (event.status === 'ongoing' || eventDate.toDateString() === now.toDateString()) {
-			categorized.ongoing.push(event);
-		} else if (eventDate > now) {
-			categorized.upcoming.push(event);
-		} else {
-			categorized.past.push(event);
-		}
-	});
+    if (event.status === 'ongoing' || eventDate.toDateString() === now.toDateString()) {
+      categorized.ongoing.push(event);
+    } else if (eventDate > now) {
+      categorized.upcoming.push(event);
+    } else {
+      categorized.past.push(event);
+    }
+  });
 
-	return categorized;
+  return categorized;
 };
 
-const EventSection = ({ title, events, emptyMessage }) => (
-	<section className="mb-16">
-		<motion.h2
-			initial={{ opacity: 0, x: -20 }}
-			animate={{ opacity: 1, x: 0 }}
-			transition={{ duration: 0.5 }}
-			className="text-2xl md:text-3xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400"
-		>
-			{title}
-		</motion.h2>
+const EventSection = ({ sectionKey, events, emptyMessage }) => {
+  const section = sectionTitles[sectionKey];
+  
+  return (
+    <section className="mb-20">
+      <motion.div
+        initial={{ opacity: 0, x: -30 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+        className="flex items-center gap-4 mb-10"
+      >
+        <span className="text-4xl">{section.emoji}</span>
+        <h2 className={`text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r ${section.gradient}`}>
+          {section.title}
+        </h2>
+        <div className="flex-1 h-px bg-gradient-to-r from-white/20 to-transparent" />
+      </motion.div>
 
-		{events.length === 0 ? (
-			<motion.div
-				initial={{ opacity: 0, y: 20 }}
-				animate={{ opacity: 1, y: 0 }}
-				className="rounded-2xl p-8 text-center flex flex-col items-center justify-center min-h-[200px] glass-card"
-			>
-				<div className="text-5xl mb-4">📅</div>
-				<p className="text-gray-400">{emptyMessage}</p>
-			</motion.div>
-		) : (
-			<motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-				<AnimatePresence mode="popLayout">
-					{events.map((event) => (
-						<motion.div
-							key={event._id}
-							layout
-							initial={{ opacity: 0, scale: 0.9, y: 20 }}
-							animate={{ opacity: 1, scale: 1, y: 0 }}
-							exit={{ opacity: 0, scale: 0.9, y: -20 }}
-							transition={{ duration: 0.4, type: 'spring', damping: 12 }}
-							whileHover={{ y: -8, transition: { duration: 0.2 } }}
-						>
-							<EventCard event={event} />
-						</motion.div>
-					))}
-				</AnimatePresence>
-			</motion.div>
-		)}
-	</section>
-);
+      {events.length === 0 ? (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="glass-card p-12 rounded-3xl text-center hover-lift transition-all duration-300"
+        >
+          <div className="text-6xl mb-6 opacity-50">{section.emoji}</div>
+          <p className="text-xl text-gray-300">{emptyMessage}</p>
+        </motion.div>
+      ) : (
+        <motion.div 
+          layout 
+          className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8"
+        >
+          <AnimatePresence mode="popLayout">
+            {events.map((event, index) => (
+              <motion.div
+                key={event._id}
+                layout
+                initial={{ opacity: 0, scale: 0.8, y: 50 }}
+                whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.8, y: -50 }}
+                viewport={{ once: true }}
+                transition={{ 
+                  duration: 0.5, 
+                  delay: index * 0.1,
+                  type: 'spring',
+                  damping: 15
+                }}
+              >
+                <EventCard event={event} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </motion.div>
+      )}
+    </section>
+  );
+};
 
 const EventPage = () => {
-	const { getAllEvents, events, loading, error } = useGetAllEvents();
-	const [activeFilter, setActiveFilter] = useState('all');
-	const [searchQuery, setSearchQuery] = useState('');
+  const { getAllEvents, events, loading, error } = useGetAllEvents();
+  const [activeFilter, setActiveFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showEvents, setShowEvents] = useState(false);
 
-	useEffect(() => {
-		getAllEvents();
-		// eslint-disable-next-line
-	}, []);
+  useEffect(() => {
+    getAllEvents();
+    // eslint-disable-next-line
+  }, []);
 
-	const hasEvents = events && events.length > 0;
-	const categorized = useMemo(() => categorizeEvents(events || []), [events]);
+  // Auto-scroll to events section after loading
+  useEffect(() => {
+    if (events && events.length > 0 && !loading) {
+      const timer = setTimeout(() => setShowEvents(true), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [events, loading]);
 
-	// Filter events by search query and active filter
-	const filteredSections = useMemo(() => {
-		const filterEvents = (eventsArray) => {
-			return eventsArray.filter(
-				(event) =>
-					event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-					event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-					event.venue.toLowerCase().includes(searchQuery.toLowerCase()) ||
-					(event.tags &&
-						event.tags.some((tag) =>
-							tag.toLowerCase().includes(searchQuery.toLowerCase())
-						))
-			);
-		};
+  const categorized = useMemo(() => categorizeEvents(events || []), [events]);
 
-		if (activeFilter === 'all') {
-			return {
-				ongoing: filterEvents(categorized.ongoing),
-				upcoming: filterEvents(categorized.upcoming),
-				past: filterEvents(categorized.past),
-			};
-		}
+  const filteredSections = useMemo(() => {
+    const filterEvents = (eventsArray) => {
+      if (!searchQuery) return eventsArray;
+      return eventsArray.filter(event =>
+        event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        event.venue.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (event.tags && event.tags.some(tag =>
+          tag.toLowerCase().includes(searchQuery.toLowerCase())
+        ))
+      );
+    };
 
-		return { [activeFilter]: filterEvents(categorized[activeFilter] || []) };
-	}, [categorized, activeFilter, searchQuery]);
+    if (activeFilter === 'all') {
+      return {
+        ongoing: filterEvents(categorized.ongoing),
+        upcoming: filterEvents(categorized.upcoming),
+        past: filterEvents(categorized.past),
+      };
+    }
 
-	if (loading) {
-		return (
-			<div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-sky-900">
-				<GraphicElements hasEvents={false} />
-				<LoadingSpinner />
-			</div>
-		);
-	}
+    return { [activeFilter]: filterEvents(categorized[activeFilter] || []) };
+  }, [categorized, activeFilter, searchQuery]);
 
-	if (error) {
-		return (
-			<div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-sky-900 p-4">
-				<GraphicElements hasEvents={false} />
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					className="glass-card-error p-8 text-center max-w-md w-full"
-				>
-					<div className="text-5xl mb-4" aria-hidden="true">😞</div>
-					<h2 className="text-xl font-bold text-red-200 mb-2">Error Loading Events</h2>
-					<p className="text-red-100 mb-6">{error}</p>
-					<button
-						onClick={getAllEvents}
-						className="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl font-medium hover:from-blue-500 hover:to-cyan-500 transition-all shadow-lg"
-						aria-label="Try Again"
-					>
-						Try Again
-					</button>
-				</motion.div>
-			</div>
-		);
-	}
+  const isEmpty = Object.values(filteredSections).reduce((acc, arr) => acc + arr.length, 0) === 0;
+  const hasEvents = events && events.length > 0;
 
-	// Check if all filtered sections are empty
-	const isEmpty = Object.values(filteredSections).reduce((acc, arr) => acc + arr.length, 0) === 0;
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 p-4">
+        <FloatingElements />
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass-card-error p-10 text-center max-w-lg w-full rounded-3xl"
+        >
+          <div className="text-6xl mb-6">⚠️</div>
+          <h2 className="text-2xl font-bold text-red-200 mb-4">Unable to Load Events</h2>
+          <p className="text-red-100 mb-8 leading-relaxed">{error}</p>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={getAllEvents}
+            className="px-8 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl font-medium hover:from-blue-500 hover:to-cyan-500 transition-all duration-300 shadow-lg"
+          >
+            Try Again
+          </motion.button>
+        </motion.div>
+      </div>
+    );
+  }
 
-	return (
-		<div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-sky-900 text-white relative overflow-hidden">
-			<GraphicElements hasEvents={hasEvents} />
+  return (
+    <div className="bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 text-white relative">
+      {/* Hero Section - Always show */}
+      <HeroSection events={events} loading={loading} />
 
-			{/* Conditional rendering of hero section */}
-			{hasEvents ? <EventHero events={events} /> : <NoEventsHero />}
+      {/* Events Section - Show after loading */}
+      {(hasEvents || (!loading && showEvents)) && (
+        <div className="relative">
+          <FloatingElements />
+          <div className="container mx-auto px-6 py-20 relative z-10">
+            
+            {/* Search and Filter Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="sticky top-6 z-30 mb-16"
+            >
+              <div className="glass-card p-8 rounded-3xl">
+                <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
+                  {/* Search */}
+                  <div className="relative w-full lg:w-auto">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Search events, venues, or tags..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-12 pr-4 py-4 w-full lg:w-96 bg-white/5 border border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-lg"
+                    />
+                  </div>
 
-			{/* Only show event listing section if there are events */}
-			{hasEvents && (
-				<div className="container mx-auto px-4 py-12 relative z-10">
-					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.5 }}
-						className="text-center mb-12"
-					>
-						<h1 className="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400">
-							Discover Events
-						</h1>
-						<p className="text-lg text-blue-200 max-w-2xl mx-auto">
-							Explore upcoming, ongoing, and past events. Find something that excites
-							you!
-						</p>
-					</motion.div>
+                  {/* Filter */}
+                  <EventFilter activeFilter={activeFilter} setActiveFilter={setActiveFilter} />
+                </div>
+              </div>
+            </motion.div>
 
-					{/* Search and Filter Bar */}
-					<motion.div
-						initial={{ opacity: 0, y: -10 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.5, delay: 0.2 }}
-						className="sticky top-4 z-20 p-6 mb-10 rounded-2xl glass-card"
-					>
-						<div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-							<div className="relative w-full md:w-auto">
-								<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-									<svg
-										className="w-5 h-5 text-blue-400"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-										xmlns="http://www.w3.org/2000/svg"
-										aria-hidden="true"
-									>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth="2"
-											d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-										></path>
-									</svg>
-								</div>
-								<input
-									type="text"
-									placeholder="Search events by name, venue, or tags..."
-									value={searchQuery}
-									onChange={(e) => setSearchQuery(e.target.value)}
-									className="pl-10 pr-4 py-3 w-full md:w-96 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-									aria-label="Search events"
-								/>
-							</div>
-
-							<EventFilter
-								activeFilter={activeFilter}
-								setActiveFilter={setActiveFilter}
-							/>
-						</div>
-					</motion.div>
-
-					{isEmpty ? (
-						<motion.div
-							initial={{ opacity: 0, scale: 0.95 }}
-							animate={{ opacity: 1, scale: 1 }}
-							className="rounded-2xl p-12 text-center flex flex-col items-center glass-card"
-						>
-							<div className="text-7xl mb-6" aria-hidden="true">🔍</div>
-							<h2 className="text-2xl font-bold mb-2">
-								{searchQuery
-									? `No events found for "${searchQuery}"`
-									: `No ${activeFilter !== 'all' ? sectionTitles[activeFilter] : ''} events found`}
-							</h2>
-							<p className="text-blue-200 mb-6">
-								{searchQuery
-									? 'Try adjusting your search terms or browse all events'
-									: 'Check back later for new events!'}
-							</p>
-							{(searchQuery || activeFilter !== 'all') && (
-								<button
-									onClick={() => {
-										setSearchQuery('');
-										setActiveFilter('all');
-									}}
-									className="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl font-medium hover:from-blue-500 hover:to-cyan-500 transition-all shadow-lg"
-									aria-label="View All Events"
-								>
-									View All Events
-								</button>
-							)}
-						</motion.div>
-					) : (
-						<>
-							{Object.entries(filteredSections).map(
-								([section, eventsArr]) =>
-									eventsArr.length > 0 && (
-										<EventSection
-											key={section}
-											title={sectionTitles[section]}
-											events={eventsArr}
-											emptyMessage={`No ${sectionTitles[section].toLowerCase()} at the moment`}
-										/>
-									)
-							)}
-						</>
-					)}
-				</div>
-			)}
-		</div>
-	);
+            {/* Events or Empty State */}
+            {loading ? (
+              <div className="flex justify-center py-20">
+                <LoadingSpinner />
+              </div>
+            ) : isEmpty ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                className="glass-card p-16 rounded-3xl text-center max-w-2xl mx-auto"
+              >
+                <div className="text-8xl mb-8">🔍</div>
+                <h2 className="text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400">
+                  {searchQuery ? `No results for "${searchQuery}"` : 'No events found'}
+                </h2>
+                <p className="text-xl text-blue-200 mb-8 leading-relaxed">
+                  {searchQuery 
+                    ? 'Try adjusting your search terms or explore all events'
+                    : 'New events are being planned. Check back soon!'}
+                </p>
+                {searchQuery && (
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      setSearchQuery('');
+                      setActiveFilter('all');
+                    }}
+                    className="px-8 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl font-medium hover:from-blue-500 hover:to-cyan-500 transition-all duration-300 shadow-lg"
+                  >
+                    Show All Events
+                  </motion.button>
+                )}
+              </motion.div>
+            ) : (
+              <div>
+                {Object.entries(filteredSections).map(([section, eventsArr]) =>
+                  eventsArr.length > 0 && (
+                    <EventSection
+                      key={section}
+                      sectionKey={section}
+                      events={eventsArr}
+                      emptyMessage={`No ${sectionTitles[section].title.toLowerCase()} at the moment`}
+                    />
+                  )
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default EventPage;
-
-// Add these styles to your global CSS
-const styles = `
-  .glass-card {
-    background: rgba(15, 23, 42, 0.5);
-    box-shadow: 0 8px 32px 0 rgba(2, 12, 34, 0.4);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-  
-  .glass-card-error {
-    background: rgba(239, 68, 68, 0.1);
-    box-shadow: 0 8px 32px 0 rgba(239, 68, 68, 0.2);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-  }
-  
-  .bg-grid-pattern {
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32' fill='none' stroke='rgb(255 255 255 / 0.05)'%3e%3cpath d='M0 .5H31.5V32'/%3e%3c/svg%3e");
-  }
-  
-  @keyframes pulse-slow {
-    0%, 100% { opacity: 0.5; }
-    50% { opacity: 1; }
-  }
-  
-  .animate-pulse-slow {
-    animation: pulse-slow 6s infinite;
-  }
-  
-  .animation-delay-2000 {
-    animation-delay: 2s;
-  }
-`;
-
-// Inject styles
-const styleSheet = document.createElement('style');
-styleSheet.innerText = styles;
-document.head.appendChild(styleSheet);
