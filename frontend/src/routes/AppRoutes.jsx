@@ -28,11 +28,11 @@ const AppRoutes = () => {
             <Route path="/contact" element={<Contact />} />
             <Route path="/show" element={<Show />} />
             <Route path="/socials" element={<Socials />} />
-            <Route path="/cookie" element={<Cookie />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/refund" element={<Refund />} />
-            
+            <Route path="/policy/cookie" element={<Cookie />} />
+            <Route path="/policy/privacy" element={<Privacy />} />
+            <Route path="/policy/terms" element={<Terms />} />
+            <Route path="/policy/refund" element={<Refund />} />
+
             {/* Auth routes - redirect if already authenticated */}
             <Route 
                 path="/auth" 
