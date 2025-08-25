@@ -2,50 +2,83 @@ import { motion } from 'framer-motion';
 
 const EventFilter = ({ activeFilter, setActiveFilter }) => {
     const filters = [
-        { key: 'all', label: 'All', icon: '🎭', gradient: 'from-blue-500 to-purple-600' },
-        { key: 'upcoming', label: 'Upcoming', icon: '🚀', gradient: 'from-blue-500 to-cyan-500' },
-        { key: 'ongoing', label: 'Live', icon: '🔴', gradient: 'from-red-500 to-orange-500' },
-        { key: 'past', label: 'Past', icon: '📚', gradient: 'from-purple-500 to-pink-500' },
+        { key: 'all', label: 'All', icon: '🎭', color: 'blue' },
+        { key: 'upcoming', label: 'Upcoming', icon: '🚀', color: 'cyan' },
+        { key: 'ongoing', label: 'Live', icon: '🔴', color: 'red' },
+        { key: 'past', label: 'Past', icon: '📚', color: 'purple' },
     ];
 
+    const getColorClasses = (color, isActive) => {
+        const colorMap = {
+            blue: {
+                active: 'bg-blue-500/20 text-blue-300 border-blue-400/50',
+                inactive: 'text-gray-400 border-gray-600/30 hover:text-blue-300 hover:border-blue-500/40'
+            },
+            cyan: {
+                active: 'bg-cyan-500/20 text-cyan-300 border-cyan-400/50',
+                inactive: 'text-gray-400 border-gray-600/30 hover:text-cyan-300 hover:border-cyan-500/40'
+            },
+            red: {
+                active: 'bg-red-500/20 text-red-300 border-red-400/50',
+                inactive: 'text-gray-400 border-gray-600/30 hover:text-red-300 hover:border-red-500/40'
+            },
+            purple: {
+                active: 'bg-purple-500/20 text-purple-300 border-purple-400/50',
+                inactive: 'text-gray-400 border-gray-600/30 hover:text-purple-300 hover:border-purple-500/40'
+            }
+        };
+        return colorMap[color][isActive ? 'active' : 'inactive'];
+    };
+
     return (
-        <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
-            {filters.map((filter) => (
-                <motion.button
-                    key={filter.key}
-                    whileHover={{ scale: 1.02, y: -1 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={`px-3 sm:px-4 py-2 rounded-xl transition-all duration-300 flex items-center gap-2 font-medium relative overflow-hidden group text-sm ${
-                        activeFilter === filter.key
-                            ? `bg-gradient-to-r ${filter.gradient} text-white shadow-lg`
-                            : 'glass-card text-gray-300 hover:text-white'
-                    }`}
-                    onClick={() => setActiveFilter(filter.key)}
-                >
-                    {/* Background animation for inactive buttons */}
-                    {activeFilter !== filter.key && (
-                        <motion.div
-                            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                            style={{
-                                background: `linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(6, 182, 212, 0.1))`,
-                            }}
-                        />
-                    )}
+        <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2">
+            {filters.map((filter) => {
+                const isActive = activeFilter === filter.key;
+                return (
+                    <motion.button
+                        key={filter.key}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className={`
+                            px-2.5 sm:px-3 py-1.5 sm:py-2 
+                            rounded-lg sm:rounded-xl 
+                            border backdrop-blur-sm
+                            transition-all duration-300 
+                            flex items-center gap-1.5 sm:gap-2 
+                            font-medium text-xs sm:text-sm
+                            relative overflow-hidden group
+                            ${getColorClasses(filter.color, isActive)}
+                        `}
+                        onClick={() => setActiveFilter(filter.key)}
+                    >
+                        {/* Subtle hover background */}
+                        {!isActive && (
+                            <motion.div
+                                className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                initial={false}
+                            />
+                        )}
 
-                    <span className="text-sm sm:text-base relative z-10">{filter.icon}</span>
-                    <span className="relative z-10 font-semibold hidden sm:inline">{filter.label}</span>
+                        {/* Icon */}
+                        <span className="text-xs sm:text-sm relative z-10">{filter.icon}</span>
+                        
+                        {/* Label - hidden on mobile for space */}
+                        <span className="relative z-10 font-semibold hidden sm:inline whitespace-nowrap">
+                            {filter.label}
+                        </span>
 
-                    {/* Active indicator */}
-                    {activeFilter === filter.key && (
-                        <motion.div
-                            layoutId="activeFilter"
-                            className="absolute inset-0 border border-white/30 rounded-xl"
-                            initial={false}
-                            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                        />
-                    )}
-                </motion.button>
-            ))}
+                        {/* Active indicator with layout animation */}
+                        {isActive && (
+                            <motion.div
+                                layoutId="filterIndicator"
+                                className="absolute inset-0 bg-white/10 rounded-lg sm:rounded-xl"
+                                initial={false}
+                                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                            />
+                        )}
+                    </motion.button>
+                );
+            })}
         </div>
     );
 };
