@@ -127,3 +127,33 @@ export const useGetAllEvents = () => {
 
 	return { getAllEvents, events, loading, error, reset };
 };
+
+
+// Get Event By ID (public)
+export const useGetEventById = () => {
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState(null);
+	const [event, setEvent] = useState(null);
+
+	const getEventById = useCallback(async (id) => {
+		setLoading(true);
+		setError(null);
+		try {
+			const res = await publicClient.get(`api/events/by-id/${id}`);
+			setEvent(res.data.data);
+			return res.data.data;
+		} catch (err) {
+			setError(parseError(err));
+			throw err;
+		} finally {
+			setLoading(false);
+		}
+	}, []);
+
+	const reset = () => {
+		setEvent(null);
+		setError(null);
+	};
+
+	return { getEventById, event, loading, error, reset };
+};
