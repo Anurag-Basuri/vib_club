@@ -2,1096 +2,1437 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth.js';
 import { 
-    useGetCurrentMember,
-    useUpdateProfile,
-    useResetPassword,
-    useSendResetPasswordEmail,
-    useUploadProfilePicture
+  useGetCurrentMember, 
+  useUpdateProfile, 
+  useUploadProfilePicture 
 } from '../hooks/useMembers.js';
-import { useNavigate } from 'react-router-dom';
+import { 
+  FiEdit2, 
+  FiSave, 
+  FiCamera, 
+  FiUser, 
+  FiMail, 
+  FiBook, 
+  FiHome, 
+  FiLink, 
+  FiAward,
+  FiX,
+  FiPlus,
+  FiLogOut,
+  FiSettings,
+  FiShield,
+  FiCalendar,
+  FiMapPin,
+  FiUpload,
+  FiRefreshCw,
+  FiEye,
+  FiExternalLink,
+  FiAlertCircle
+} from 'react-icons/fi';
+import toast from 'react-hot-toast';
 
+// Constants
+const DEPARTMENTS = [
+  'HR', 'Technical', 'Marketing', 'Management', 'Content Writing',
+  'Event Management', 'Media', 'Design', 'Coordinator', 'PR'
+];
+
+const DESIGNATIONS = [
+  'member', 'Head', 'CEO', 'CTO', 'CFO', 'CMO', 'COO'
+];
+
+const HOSTELS = [
+  'BH-1', 'BH-2', 'BH-3', 'BH-4', 'BH-5', 'BH-6', 'BH-7',
+  'GH-1', 'GH-2', 'GH-3', 'GH-4', 'GH-5'
+];
+
+const SOCIAL_PLATFORMS = [
+  'LinkedIn', 'GitHub', 'Instagram', 'Twitter', 'Facebook', 
+  'LeetCode', 'Codeforces', 'CodeChef', 'YouTube', 'Medium'
+];
+
+const MAX_BIO_LENGTH = 500;
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+
+// Enhanced floating background
+const MemberFloatingBackground = React.memo(() => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <motion.div
+      animate={{
+        x: [0, 30, 0],
+        y: [0, -20, 0],
+        rotate: [0, 180, 360],
+      }}
+      transition={{ duration: 25, repeat: Infinity, ease: 'easeInOut' }}
+      className="absolute -top-20 -left-20 w-40 h-40 bg-gradient-to-br from-blue-500/15 to-cyan-500/10 rounded-full blur-2xl"
+    />
+    <motion.div
+      animate={{
+        x: [0, -25, 0],
+        y: [0, 15, 0],
+        scale: [1, 1.2, 1],
+      }}
+      transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
+      className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-bl from-purple-500/15 to-pink-500/10 rounded-full blur-2xl"
+    />
+    <motion.div
+      animate={{
+        x: [0, 20, 0],
+        y: [0, -30, 0],
+        scale: [1, 0.8, 1],
+      }}
+      transition={{ duration: 30, repeat: Infinity, ease: 'easeInOut', delay: 6 }}
+      className="absolute bottom-20 right-20 w-24 h-24 bg-gradient-to-br from-purple-500/10 to-pink-500/5 rounded-full blur-xl"
+    />
+  </div>
+));
+
+MemberFloatingBackground.displayName = 'MemberFloatingBackground';
+
+// Enhanced stats card component
+const StatCard = React.memo(({ icon: Icon, label, value, color = 'blue', onClick }) => {
+  const colorClasses = {
+    blue: 'from-blue-500/20 to-cyan-500/10 border-blue-400/20 text-blue-300',
+    green: 'from-green-500/20 to-emerald-500/10 border-green-400/20 text-green-300',
+    purple: 'from-purple-500/20 to-pink-500/10 border-purple-400/20 text-purple-300',
+    orange: 'from-orange-500/20 to-yellow-500/10 border-orange-400/20 text-orange-300'
+  };
+
+  return (
+    <motion.div
+      whileHover={{ scale: 1.02, y: -2 }}
+      whileTap={{ scale: 0.98 }}
+      onClick={onClick}
+      className={`glass-card p-4 sm:p-6 rounded-xl sm:rounded-2xl text-center group cursor-pointer relative overflow-hidden bg-gradient-to-br ${colorClasses[color]} border`}
+    >
+      <motion.div
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+        style={{
+          background: `linear-gradient(135deg, rgba(255,255,255,0.1), transparent)`
+        }}
+      />
+      <div className="relative z-10">
+        <motion.div
+          whileHover={{ scale: 1.1, rotate: 5 }}
+          className="mb-3"
+        >
+          <Icon className="w-6 h-6 sm:w-8 h-8 mx-auto" />
+        </motion.div>
+        <div className="text-xl sm:text-2xl font-bold mb-1">{value}</div>
+        <div className="text-xs sm:text-sm opacity-80">{label}</div>
+      </div>
+    </motion.div>
+  );
+});
+
+StatCard.displayName = 'StatCard';
+
+// Enhanced loading screen
+const LoadingScreen = React.memo(() => (
+  <div className="min-h-screen bg-gradient-to-b from-[#0a0e17] to-[#1a1f3a] flex items-center justify-center relative overflow-hidden">
+    <MemberFloatingBackground />
+    <div className="text-center relative z-10">
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+        className="w-16 h-16 border-4 border-blue-500/30 border-t-blue-500 rounded-full mx-auto mb-6"
+      />
+      <motion.h2
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-xl font-semibold text-white mb-2"
+      >
+        Loading Profile
+      </motion.h2>
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
+        className="text-blue-200"
+      >
+        Please wait while we fetch your information...
+      </motion.p>
+    </div>
+  </div>
+));
+
+LoadingScreen.displayName = 'LoadingScreen';
+
+// Enhanced error screen
+const ErrorScreen = React.memo(({ error, onRetry }) => (
+  <div className="min-h-screen bg-gradient-to-b from-[#0a0e17] to-[#1a1f3a] flex items-center justify-center p-4 relative overflow-hidden">
+    <MemberFloatingBackground />
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="glass-card-error p-8 sm:p-12 text-center max-w-md w-full rounded-3xl relative z-10 border border-red-400/20"
+    >
+      <motion.div
+        animate={{ rotate: [0, 10, -10, 0] }}
+        transition={{ duration: 3, repeat: Infinity }}
+        className="text-6xl mb-6"
+      >
+        ⚠️
+      </motion.div>
+      <h2 className="text-2xl font-bold text-red-200 mb-4">Profile Error</h2>
+      <p className="text-red-100 mb-6 leading-relaxed">{error}</p>
+      <motion.button
+        whileHover={{ scale: 1.05, y: -2 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={onRetry}
+        className="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl font-medium hover:from-blue-500 hover:to-cyan-500 transition-all duration-300 shadow-xl flex items-center space-x-2 mx-auto"
+      >
+        <FiRefreshCw className="w-4 h-4" />
+        <span>Try Again</span>
+      </motion.button>
+    </motion.div>
+  </div>
+));
+
+ErrorScreen.displayName = 'ErrorScreen';
+
+// Input validation utilities
+const validateForm = (formData) => {
+  const errors = [];
+  
+  if (!formData.fullname?.trim()) {
+    errors.push('Full name is required');
+  }
+  
+  if (formData.fullname?.trim().length < 2) {
+    errors.push('Full name must be at least 2 characters');
+  }
+  
+  if (formData.bio && formData.bio.length > MAX_BIO_LENGTH) {
+    errors.push(`Bio must be less than ${MAX_BIO_LENGTH} characters`);
+  }
+  
+  return errors;
+};
+
+const validateImageFile = (file) => {
+  if (!file) return { isValid: false, error: 'No file selected' };
+  
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    return { 
+      isValid: false, 
+      error: 'Please select a valid image (JPEG, PNG, JPG, WebP)' 
+    };
+  }
+  
+  if (file.size > MAX_FILE_SIZE) {
+    return { 
+      isValid: false, 
+      error: 'Image size must be less than 5MB' 
+    };
+  }
+  
+  return { isValid: true };
+};
+
+// Main component
 const MemberProfile = () => {
-    const { user, isAuthenticated, loading: authLoading, logoutMember } = useAuth();
-    const navigate = useNavigate();
-    const fileInputRef = useRef(null);
+  const { user, logoutMember } = useAuth();
+  const { getCurrentMember, member, loading, error } = useGetCurrentMember();
+  const { updateProfile, loading: updating } = useUpdateProfile();
+  const { uploadProfilePicture, loading: uploading } = useUploadProfilePicture();
+  
+  // State management
+  const [isEditing, setIsEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState('profile');
+  const [formData, setFormData] = useState({
+    fullname: '',
+    program: '',
+    year: 1,
+    hosteler: false,
+    hostel: '',
+    department: '',
+    designation: '',
+    bio: ''
+  });
+  const [socialLinks, setSocialLinks] = useState([]);
+  const [profileImage, setProfileImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  
+  const fileInputRef = useRef(null);
 
-    // Hooks for API calls
-    const { 
-        getCurrentMember, 
-        member: currentUser, 
-        loading: userLoading, 
-        error: userError,
-        reset: resetUserError 
-    } = useGetCurrentMember();
-
-    const { 
-        updateProfile, 
-        member: updatedMember, 
-        loading: updateLoading, 
-        error: updateError,
-        reset: resetUpdateError 
-    } = useUpdateProfile();
+  // Initialize form data
+  const initializeFormData = useCallback((memberData) => {
+    if (!memberData) return;
     
-    const { 
-        resetPassword, 
-        loading: resetLoading, 
-        error: resetError,
-        reset: resetPasswordError 
-    } = useResetPassword();
+    setFormData({
+      fullname: memberData.fullname || '',
+      program: memberData.program || '',
+      year: memberData.year || 1,
+      hosteler: memberData.hosteler || false,
+      hostel: memberData.hostel || '',
+      department: memberData.department || '',
+      designation: memberData.designation || '',
+      bio: memberData.bio || ''
+    });
     
-    const { 
-        sendResetPasswordEmail, 
-        loading: emailLoading, 
-        error: emailError,
-        reset: resetEmailError 
-    } = useSendResetPasswordEmail();
+    setSocialLinks(memberData.socialLinks ? [...memberData.socialLinks] : []);
+    setHasUnsavedChanges(false);
+  }, []);
+
+  // Fetch member data on mount
+  useEffect(() => {
+    if (user?.memberID) {
+      getCurrentMember();
+    }
+  }, [user?.memberID, getCurrentMember]);
+
+  // Update form data when member data loads
+  useEffect(() => {
+    initializeFormData(member);
+  }, [member, initializeFormData]);
+
+  // Handle input changes with unsaved changes tracking
+  const handleInputChange = useCallback((e) => {
+    const { name, value, type, checked } = e.target;
+    const newValue = type === 'checkbox' ? checked : value;
     
-    const { 
-        uploadProfilePicture, 
-        member: uploadedMember, 
-        loading: uploadLoading, 
-        error: uploadError,
-        reset: resetUploadError 
-    } = useUploadProfilePicture();
+    setFormData(prev => ({
+      ...prev,
+      [name]: newValue
+    }));
+    
+    setHasUnsavedChanges(true);
+  }, []);
 
-    // State for user data - single source of truth
-    const [memberData, setMemberData] = useState(null);
-    const [isDataLoaded, setIsDataLoaded] = useState(false);
+  // Handle social links
+  const handleSocialLinkChange = useCallback((index, field, value) => {
+    const updatedLinks = [...socialLinks];
+    updatedLinks[index][field] = value;
+    setSocialLinks(updatedLinks);
+    setHasUnsavedChanges(true);
+  }, [socialLinks]);
 
-    // Form states
-    const [resetEmail, setResetEmail] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    const [LpuId, setLpuId] = useState('');
-    const [updateProfileData, setUpdateProfileData] = useState({
-        fullName: '',
-        email: '',
-        program: '',
-        year: '',
-        linkedIn: '',
-        github: '',
-        bio: '',
+  const addSocialLink = useCallback(() => {
+    setSocialLinks(prev => [...prev, { platform: '', url: '' }]);
+    setHasUnsavedChanges(true);
+    toast.success('Social link field added!', { icon: '➕' });
+  }, []);
+
+  const removeSocialLink = useCallback((index) => {
+    setSocialLinks(prev => prev.filter((_, i) => i !== index));
+    setHasUnsavedChanges(true);
+    toast.success('Social link removed!', { icon: '🗑️' });
+  }, []);
+
+  // Handle profile image
+  const handleImageSelect = useCallback((e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validation = validateImageFile(file);
+    if (!validation.isValid) {
+      toast.error(validation.error, { icon: '❌' });
+      return;
+    }
+
+    setProfileImage(file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => setImagePreview(e.target.result);
+    reader.onerror = () => toast.error('Failed to read image file');
+    reader.readAsDataURL(file);
+
+    toast.success('Image selected! Click Save to upload.', { icon: '📸' });
+  }, []);
+
+  const handleImageUpload = useCallback(async () => {
+    if (!profileImage || !member?._id) return;
+    
+    const uploadPromise = new Promise(async (resolve, reject) => {
+      try {
+        const formDataToSend = new FormData();
+        formDataToSend.append('profilePicture', profileImage);
+        
+        await uploadProfilePicture(member._id, formDataToSend);
+        setProfileImage(null);
+        setImagePreview(null);
+        await getCurrentMember();
+        resolve();
+      } catch (error) {
+        reject(error);
+      }
     });
 
-    // UI state
-    const [showResetForm, setShowResetForm] = useState(false);
-    const [showPasswordReset, setShowPasswordReset] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [activeTab, setActiveTab] = useState('profile');
-    const [statusMessage, setStatusMessage] = useState({ text: '', type: '' });
-    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    toast.promise(uploadPromise, {
+      loading: 'Uploading profile picture...',
+      success: 'Profile picture updated successfully! 🎉',
+      error: (err) => `Failed to upload: ${err.message || 'Unknown error'}`,
+    });
+  }, [profileImage, member?._id, uploadProfilePicture, getCurrentMember]);
 
-    // Update member data when any hook returns new data
-    useEffect(() => {
-        let newData = null;
-        
-        // Priority: uploaded > updated > current > auth user
-        if (uploadedMember) {
-            newData = uploadedMember;
-        } else if (updatedMember) {
-            newData = updatedMember;
-        } else if (currentUser) {
-            newData = currentUser;
-        } else if (user) {
-            newData = user;
-        }
+  const cancelImageUpload = useCallback(() => {
+    setProfileImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    toast('Image upload cancelled', { icon: '❌' });
+  }, []);
 
-        if (newData && JSON.stringify(newData) !== JSON.stringify(memberData)) {
-            setMemberData(newData);
-            setIsDataLoaded(true);
-            
-            // Update form data
-            setUpdateProfileData({
-                fullName: newData.fullname || newData.name || '',
-                email: newData.email || '',
-                program: newData.program || '',
-                year: newData.year || '',
-                linkedIn: newData.linkedIn || '',
-                github: newData.github || '',
-                bio: newData.bio || '',
-            });
-            setHasUnsavedChanges(false);
-        }
-    }, [uploadedMember, updatedMember, currentUser, user, memberData]);
+  // Handle profile update
+  const handleProfileUpdate = useCallback(async (e) => {
+    e.preventDefault();
+    if (!member?._id) return;
 
-    // Form validation
-    const validateProfileForm = () => {
-        const errors = [];
-        
-        if (!updateProfileData.fullName.trim()) {
-            errors.push('Full name is required');
-        }
-        
-        if (!updateProfileData.email.trim()) {
-            errors.push('Email is required');
-        } else if (!/\S+@\S+\.\S+/.test(updateProfileData.email)) {
-            errors.push('Email format is invalid');
-        }
-        
-        if (updateProfileData.linkedIn && !updateProfileData.linkedIn.startsWith('https://')) {
-            errors.push('LinkedIn URL must start with https://');
-        }
-        
-        if (updateProfileData.github && !updateProfileData.github.startsWith('https://')) {
-            errors.push('GitHub URL must start with https://');
-        }
-        
-        return errors;
-    };
-
-    const validatePasswordForm = () => {
-        const errors = [];
-        
-        if (!LpuId.trim()) {
-            errors.push('LPU ID is required');
-        }
-        
-        if (!newPassword.trim()) {
-            errors.push('New password is required');
-        } else if (newPassword.length < 6) {
-            errors.push('Password must be at least 6 characters long');
-        }
-        
-        if (newPassword !== confirmPassword) {
-            errors.push('Passwords do not match');
-        }
-        
-        return errors;
-    };
-
-    // Message helpers
-    const showError = useCallback((message) => {
-        setStatusMessage({ text: message, type: 'error' });
-    }, []);
-
-    const showSuccess = useCallback((message) => {
-        setStatusMessage({ text: message, type: 'success' });
-    }, []);
-
-    const showInfo = useCallback((message) => {
-        setStatusMessage({ text: message, type: 'info' });
-    }, []);
-
-    const clearAllErrors = useCallback(() => {
-        if (resetUserError) resetUserError();
-        if (resetUpdateError) resetUpdateError();
-        if (resetPasswordError) resetPasswordError();
-        if (resetEmailError) resetEmailError();
-        if (resetUploadError) resetUploadError();
-    }, [resetUserError, resetUpdateError, resetPasswordError, resetEmailError, resetUploadError]);
-
-    // Authentication and data loading
-    useEffect(() => {
-        if (!isAuthenticated && !authLoading) {
-            navigate('/auth');
-            return;
-        }
-
-        if (isAuthenticated && !isDataLoaded && !userLoading) {
-            getCurrentMember();
-        }
-    }, [isAuthenticated, authLoading, navigate, isDataLoaded, userLoading, getCurrentMember]);
-
-    // Error handling
-    useEffect(() => {
-        if (userError) {
-            showError(`Failed to load profile: ${userError}`);
-            console.error('User error:', userError);
-        }
-    }, [userError, showError]);
-
-    useEffect(() => {
-        if (updateError) {
-            showError(`Failed to update profile: ${updateError}`);
-            console.error('Update error:', updateError);
-        }
-    }, [updateError, showError]);
-
-    useEffect(() => {
-        if (resetError) {
-            showError(`Failed to reset password: ${resetError}`);
-            console.error('Reset error:', resetError);
-        }
-    }, [resetError, showError]);
-
-    useEffect(() => {
-        if (emailError) {
-            showError(`Failed to send email: ${emailError}`);
-            console.error('Email error:', emailError);
-        }
-    }, [emailError, showError]);
-
-    useEffect(() => {
-        if (uploadError) {
-            showError(`Failed to upload image: ${uploadError}`);
-            console.error('Upload error:', uploadError);
-        }
-    }, [uploadError, showError]);
-
-    // Auto-clear status messages
-    useEffect(() => {
-        if (statusMessage.text) {
-            const timer = setTimeout(() => {
-                setStatusMessage({ text: '', type: '' });
-            }, 5000);
-            return () => clearTimeout(timer);
-        }
-    }, [statusMessage]);
-
-    // Form handlers
-    const handleProfileChange = useCallback((e) => {
-        const { name, value } = e.target;
-        setUpdateProfileData((prev) => ({ ...prev, [name]: value }));
-        setHasUnsavedChanges(true);
-        clearAllErrors();
-    }, [clearAllErrors]);
-
-    const handleResetPassword = async (e) => {
-        e.preventDefault();
-        
-        if (!resetEmail.trim()) {
-            showError('Email is required');
-            return;
-        }
-
-        try {
-            showInfo('Sending reset email...');
-            await sendResetPasswordEmail(resetEmail);
-            showSuccess('Password reset email sent! Check your inbox.');
-            setShowResetForm(false);
-            setResetEmail('');
-        } catch (error) {
-            console.error('Reset email error:', error);
-        }
-    };
-
-    const handleNewPassword = async (e) => {
-        e.preventDefault();
-        
-        const errors = validatePasswordForm();
-        if (errors.length > 0) {
-            showError(errors.join(', '));
-            return;
-        }
-
-        try {
-            showInfo('Updating password...');
-            await resetPassword(LpuId, newPassword);
-            showSuccess('Password updated successfully!');
-            setShowPasswordReset(false);
-            setNewPassword('');
-            setConfirmPassword('');
-            setLpuId('');
-        } catch (error) {
-            console.error('Password reset error:', error);
-        }
-    };
-
-    const handleUpdateProfile = async (e) => {
-        e.preventDefault();
-        
-        const errors = validateProfileForm();
-        if (errors.length > 0) {
-            showError(errors.join(', '));
-            return;
-        }
-
-        if (!memberData?._id && !memberData?.id) {
-            showError('User ID not found. Please refresh the page.');
-            return;
-        }
-
-        try {
-            showInfo('Updating profile...');
-            const userId = memberData._id || memberData.id;
-            await updateProfile(userId, updateProfileData);
-            showSuccess('Profile updated successfully!');
-            setHasUnsavedChanges(false);
-        } catch (error) {
-            console.error('Profile update error:', error);
-        }
-    };
-
-    const handleLogout = async () => {
-        if (hasUnsavedChanges) {
-            const confirm = window.confirm('You have unsaved changes. Are you sure you want to logout?');
-            if (!confirm) return;
-        }
-
-        try {
-            await logoutMember();
-            navigate('/auth');
-        } catch (error) {
-            showError('Logout failed. Please try again.');
-            console.error('Logout error:', error);
-        }
-    };
-
-    const handleUploadProfilePicture = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        // Validate file
-        const maxSize = 5 * 1024 * 1024; // 5MB
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-
-        if (!allowedTypes.includes(file.type)) {
-            showError('Please upload a valid image file (JPEG, PNG, GIF, or WebP)');
-            return;
-        }
-
-        if (file.size > maxSize) {
-            showError('File size must be less than 5MB');
-            return;
-        }
-
-        if (!memberData?._id && !memberData?.id) {
-            showError('User ID not found. Please refresh the page.');
-            return;
-        }
-
-        try {
-            showInfo('Uploading profile picture...');
-            const formData = new FormData();
-            formData.append('profilePicture', file);
-            
-            const userId = memberData._id || memberData.id;
-            await uploadProfilePicture(userId, formData);
-            showSuccess('Profile picture updated successfully!');
-        } catch (error) {
-            console.error('Upload error:', error);
-        } finally {
-            e.target.value = null;
-        }
-    };
-
-    const resetAllForms = () => {
-        setShowResetForm(false);
-        setShowPasswordReset(false);
-        setResetEmail('');
-        setNewPassword('');
-        setConfirmPassword('');
-        setLpuId('');
-        setShowPassword(false);
-        setShowConfirmPassword(false);
-        clearAllErrors();
-    };
-
-    const handleTabChange = (tab) => {
-        if (hasUnsavedChanges && tab !== 'edit') {
-            const confirm = window.confirm('You have unsaved changes. Are you sure you want to switch tabs?');
-            if (!confirm) return;
-        }
-        
-        setActiveTab(tab);
-        resetAllForms();
-    };
-
-    const triggerFileInput = () => {
-        fileInputRef.current?.click();
-    };
-
-    // Status message component
-    const StatusMessage = ({ message }) => {
-        if (!message.text) return null;
-
-        const config = {
-            success: { bg: 'bg-green-900/30 border border-green-700/50', text: 'text-green-300', icon: '✓' },
-            error: { bg: 'bg-red-900/30 border border-red-700/50', text: 'text-red-300', icon: '✕' },
-            info: { bg: 'bg-blue-900/30 border border-blue-700/50', text: 'text-blue-300', icon: 'ℹ' }
-        };
-
-        const { bg, text, icon } = config[message.type] || config.info;
-
-        return (
-            <motion.div
-                className={`${bg} ${text} p-3 rounded-lg mb-4 flex items-center gap-2`}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-            >
-                <span className="font-bold">{icon}</span>
-                <span>{message.text}</span>
-                <button
-                    onClick={() => setStatusMessage({ text: '', type: '' })}
-                    className="ml-auto text-lg hover:opacity-70"
-                >
-                    ×
-                </button>
-            </motion.div>
-        );
-    };
-
-    // Loading states
-    if (authLoading) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] to-[#0f172a] text-white flex items-center justify-center">
-                <div className="text-center">
-                    <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-blue-300">Checking authentication...</p>
-                </div>
-            </div>
-        );
+    // Validate form
+    const validationErrors = validateForm(formData);
+    if (validationErrors.length > 0) {
+      validationErrors.forEach(error => toast.error(error, { icon: '❌' }));
+      return;
     }
 
-    if (!isAuthenticated) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] to-[#0f172a] text-white flex items-center justify-center">
-                <motion.div 
-                    className="text-center"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                >
-                    <h1 className="text-3xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                        Authentication Required
-                    </h1>
-                    <p className="text-blue-300 mb-6">Please log in to view your profile</p>
-                    <button 
-                        onClick={() => navigate('/auth')}
-                        className="px-8 py-3 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 rounded-lg transition-all duration-200 transform hover:scale-105"
-                    >
-                        Go to Login
-                    </button>
-                </motion.div>
-            </div>
-        );
-    }
-
-    if (userLoading || !isDataLoaded) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] to-[#0f172a] text-white flex items-center justify-center">
-                <div className="text-center">
-                    <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-blue-300">Loading your profile...</p>
-                </div>
-            </div>
-        );
-    }
-
-    if (!memberData) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] to-[#0f172a] text-white flex items-center justify-center">
-                <motion.div 
-                    className="text-center"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                >
-                    <h1 className="text-3xl font-bold mb-4 text-red-400">
-                        Profile Not Found
-                    </h1>
-                    <p className="text-blue-300 mb-6">Unable to load your profile data</p>
-                    <div className="flex gap-4 justify-center">
-                        <button 
-                            onClick={() => getCurrentMember()}
-                            disabled={userLoading}
-                            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200"
-                        >
-                            {userLoading ? 'Retrying...' : 'Retry'}
-                        </button>
-                        <button 
-                            onClick={() => navigate('/auth')}
-                            className="px-6 py-3 bg-gray-600 hover:bg-gray-700 rounded-lg transition-all duration-200"
-                        >
-                            Back to Login
-                        </button>
-                    </div>
-                </motion.div>
-            </div>
-        );
-    }
-
-    // Helper function to format user data safely
-    const getUserInfo = (field) => {
-        if (!memberData) return 'Not available';
-        
-        switch (field) {
-            case 'name':
-                return memberData.fullname || memberData.name || 'Unknown User';
-            case 'email':
-                return memberData.email || 'Not provided';
-            case 'program':
-                return memberData.program || 'Not specified';
-            case 'year':
-                if (!memberData.year) return 'Not specified';
-                const year = memberData.year.toString();
-                const suffix = year === '1' ? 'st' : year === '2' ? 'nd' : year === '3' ? 'rd' : 'th';
-                return `${year}${suffix} Year`;
-            case 'joined':
-                return memberData.joinedAt 
-                    ? new Date(memberData.joinedAt).toLocaleDateString() 
-                    : memberData.createdAt 
-                        ? new Date(memberData.createdAt).toLocaleDateString()
-                        : 'Unknown';
-            case 'lpuId':
-                return memberData.LpuId || memberData.lpuId || 'Not provided';
-            case 'designation':
-                return memberData.designation || 'Member';
-            case 'department':
-                return memberData.department || 'General';
-            case 'status':
-                return (memberData.status || 'Unknown').toUpperCase();
-            case 'bio':
-                return memberData.bio || 'No bio provided. Add one by editing your profile!';
-            case 'linkedIn':
-                return memberData.linkedIn;
-            case 'github':
-                return memberData.github;
-            case 'profilePicture':
-                return memberData.profilePicture?.url || memberData.profilePicture;
-            default:
-                return memberData[field] || 'Not available';
-        }
-    };
-
-    // Main render
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] to-[#0f172a] text-white overflow-hidden">
-            {/* Animated background */}
-            <div className="absolute inset-0 z-0">
-                <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-blue-500/10 blur-3xl animate-pulse" />
-                <div className="absolute top-1/3 right-1/4 w-48 h-48 rounded-full bg-cyan-500/15 blur-3xl animate-pulse" />
-                <div className="absolute bottom-1/4 left-1/3 w-56 h-56 rounded-full bg-indigo-500/12 blur-3xl animate-pulse" />
-            </div>
-
-            <div className="relative z-10 max-w-4xl mx-auto p-4 pt-6">
-                {/* Header */}
-                <motion.div 
-                    className="flex justify-between items-center mb-6"
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                >
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                        Member Profile
-                    </h1>
-                    <div className="flex gap-3">
-                        {hasUnsavedChanges && (
-                            <span className="px-3 py-1 text-sm bg-yellow-500/20 text-yellow-300 rounded-full">
-                                Unsaved changes
-                            </span>
-                        )}
-                        <button
-                            onClick={handleLogout}
-                            className="px-4 py-2 rounded-lg bg-red-700/50 hover:bg-red-700/70 backdrop-blur-sm transition-all duration-200 hover:scale-105"
-                        >
-                            Logout
-                        </button>
-                    </div>
-                </motion.div>
-
-                <AnimatePresence>
-                    <StatusMessage message={statusMessage} />
-                </AnimatePresence>
-
-                {/* Profile card */}
-                <motion.div
-                    className="bg-blue-900/20 backdrop-blur-lg rounded-2xl border border-blue-500/30 shadow-2xl shadow-blue-500/20 overflow-hidden"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                >
-                    {/* Profile header */}
-                    <div className="relative p-6 border-b border-blue-500/30">
-                        <div className="flex flex-col items-center">
-                            <div className="relative group">
-                                <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-blue-500/50">
-                                    {getUserInfo('profilePicture') ? (
-                                        <img
-                                            src={getUserInfo('profilePicture')}
-                                            alt="Profile"
-                                            className="w-full h-full object-cover"
-                                            onError={(e) => {
-                                                e.target.style.display = 'none';
-                                                e.target.nextSibling.style.display = 'flex';
-                                            }}
-                                        />
-                                    ) : null}
-                                    <div className="bg-gradient-to-br from-blue-600 to-cyan-500 w-full h-full flex items-center justify-center">
-                                        <span className="text-4xl font-bold">
-                                            {getUserInfo('name').charAt(0).toUpperCase()}
-                                        </span>
-                                    </div>
-
-                                    {uploadLoading && (
-                                        <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
-                                            <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <button
-                                    onClick={triggerFileInput}
-                                    disabled={uploadLoading}
-                                    className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    title="Upload profile picture"
-                                >
-                                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
-                                </button>
-
-                                <input
-                                    type="file"
-                                    ref={fileInputRef}
-                                    onChange={handleUploadProfilePicture}
-                                    accept="image/*"
-                                    className="hidden"
-                                />
-                            </div>
-
-                            <div className="mt-4 text-center">
-                                <h2 className="text-2xl font-bold">{getUserInfo('name')}</h2>
-                                <p className="text-blue-300">
-                                    {getUserInfo('designation')} • {getUserInfo('department')}
-                                </p>
-                                <p className="text-blue-400 text-sm mt-1">
-                                    LPU ID: {getUserInfo('lpuId')}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Tabs */}
-                    <div className="flex border-b border-blue-500/30">
-                        {['profile', 'security', 'edit'].map((tab) => (
-                            <button
-                                key={tab}
-                                className={`flex-1 py-4 text-center capitalize transition-colors ${
-                                    activeTab === tab 
-                                        ? 'text-white border-b-2 border-blue-400 bg-blue-500/10' 
-                                        : 'text-blue-300 hover:text-white hover:bg-blue-500/5'
-                                }`}
-                                onClick={() => handleTabChange(tab)}
-                            >
-                                {tab === 'edit' ? 'Edit Profile' : tab}
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* Tab Content */}
-                    <div className="p-6">
-                        <AnimatePresence mode="wait">
-                            {/* Profile Tab */}
-                            {activeTab === 'profile' && (
-                                <motion.div
-                                    key="profile"
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: 20 }}
-                                    transition={{ duration: 0.3 }}
-                                >
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                                        {[
-                                            { label: 'Email', value: getUserInfo('email') },
-                                            { label: 'Program', value: getUserInfo('program') },
-                                            { label: 'Year', value: getUserInfo('year') },
-                                            { label: 'Joined', value: getUserInfo('joined') }
-                                        ].map(({ label, value }, index) => (
-                                            <div key={label} className="bg-blue-900/30 p-4 rounded-xl">
-                                                <h3 className="text-blue-300 text-sm mb-1">{label}</h3>
-                                                <p className="font-medium">{value}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    {/* Social Links */}
-                                    <div className="mb-6">
-                                        <h3 className="text-blue-300 text-sm mb-3">Social Links</h3>
-                                        <div className="flex space-x-4">
-                                            {getUserInfo('linkedIn') && (
-                                                <a
-                                                    href={getUserInfo('linkedIn')}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="p-3 bg-blue-900/50 rounded-lg hover:bg-blue-800 transition-all duration-200 hover:scale-110"
-                                                    title="LinkedIn Profile"
-                                                >
-                                                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                                                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                                                    </svg>
-                                                </a>
-                                            )}
-                                            {getUserInfo('github') && (
-                                                <a
-                                                    href={getUserInfo('github')}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="p-3 bg-blue-900/50 rounded-lg hover:bg-blue-800 transition-all duration-200 hover:scale-110"
-                                                    title="GitHub Profile"
-                                                >
-                                                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                                                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                                                    </svg>
-                                                </a>
-                                            )}
-                                            {!getUserInfo('linkedIn') && !getUserInfo('github') && (
-                                                <p className="text-blue-400 italic">No social links added</p>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Bio */}
-                                    <div>
-                                        <h3 className="text-blue-300 text-sm mb-3">Bio</h3>
-                                        <div className="bg-blue-900/30 p-4 rounded-xl min-h-[100px]">
-                                            <p className="whitespace-pre-wrap">{getUserInfo('bio')}</p>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            )}
-
-                            {/* Security Tab */}
-                            {activeTab === 'security' && (
-                                <motion.div
-                                    key="security"
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: 20 }}
-                                    transition={{ duration: 0.3 }}
-                                >
-                                    {!showPasswordReset ? (
-                                        <div className="space-y-6">
-                                            <div>
-                                                <h3 className="text-xl mb-4">Password Settings</h3>
-                                                <button
-                                                    onClick={() => setShowPasswordReset(true)}
-                                                    className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold transition-all duration-200 hover:scale-105"
-                                                >
-                                                    Reset Password
-                                                </button>
-                                            </div>
-
-                                            <div>
-                                                <h3 className="text-xl mb-4">Account Status</h3>
-                                                <div className="bg-blue-900/30 p-4 rounded-xl space-y-4">
-                                                    <div className="flex justify-between items-center">
-                                                        <span>Status:</span>
-                                                        <span
-                                                            className={`px-3 py-1 rounded-full font-medium ${
-                                                                getUserInfo('status') === 'ACTIVE'
-                                                                    ? 'bg-green-500/20 text-green-400'
-                                                                    : getUserInfo('status') === 'BANNED'
-                                                                        ? 'bg-red-500/20 text-red-400'
-                                                                        : 'bg-gray-500/20 text-gray-400'
-                                                            }`}
-                                                        >
-                                                            {getUserInfo('status')}
-                                                        </span>
-                                                    </div>
-
-                                                    {memberData?.restriction?.isRestricted && (
-                                                        <div className="border-t border-blue-500/20 pt-4">
-                                                            <div className="flex justify-between mb-2">
-                                                                <span>Restricted Until:</span>
-                                                                <span className="text-red-400">
-                                                                    {new Date(memberData.restriction.time).toLocaleString()}
-                                                                </span>
-                                                            </div>
-                                                            <div>
-                                                                <span>Reason:</span>
-                                                                <p className="mt-1 bg-red-500/20 p-2 rounded">
-                                                                    {memberData.restriction.reason}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div>
-                                            <div className="flex items-center justify-between mb-4">
-                                                <h3 className="text-xl">Reset Password</h3>
-                                                <button
-                                                    onClick={() => setShowPasswordReset(false)}
-                                                    className="text-blue-300 hover:text-white"
-                                                >
-                                                    ← Back
-                                                </button>
-                                            </div>
-
-                                            {!showResetForm ? (
-                                                <form onSubmit={handleNewPassword} className="space-y-4">
-                                                    <div>
-                                                        <label className="block text-blue-300 mb-2">LPU ID</label>
-                                                        <input
-                                                            type="text"
-                                                            value={LpuId}
-                                                            onChange={(e) => setLpuId(e.target.value)}
-                                                            placeholder="Your LPU ID"
-                                                            className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400 transition-colors"
-                                                            required
-                                                        />
-                                                    </div>
-
-                                                    <div>
-                                                        <label className="block text-blue-300 mb-2">New Password</label>
-                                                        <div className="relative">
-                                                            <input
-                                                                type={showPassword ? 'text' : 'password'}
-                                                                value={newPassword}
-                                                                onChange={(e) => setNewPassword(e.target.value)}
-                                                                placeholder="Enter new password (min 6 characters)"
-                                                                className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400 transition-colors"
-                                                                required
-                                                                minLength={6}
-                                                            />
-                                                            <button
-                                                                type="button"
-                                                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-300 hover:text-white"
-                                                                onClick={() => setShowPassword(!showPassword)}
-                                                            >
-                                                                {showPassword ? '👁️' : '👁️‍🗨️'}
-                                                            </button>
-                                                        </div>
-                                                    </div>
-
-                                                    <div>
-                                                        <label className="block text-blue-300 mb-2">Confirm Password</label>
-                                                        <div className="relative">
-                                                            <input
-                                                                type={showConfirmPassword ? 'text' : 'password'}
-                                                                value={confirmPassword}
-                                                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                                                placeholder="Confirm new password"
-                                                                className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400 transition-colors"
-                                                                required
-                                                            />
-                                                            <button
-                                                                type="button"
-                                                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-300 hover:text-white"
-                                                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                                            >
-                                                                {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
-                                                            </button>
-                                                        </div>
-                                                    </div>
-
-                                                    <button
-                                                        type="submit"
-                                                        disabled={resetLoading}
-                                                        className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                                                    >
-                                                        {resetLoading ? (
-                                                            <span className="flex items-center justify-center gap-2">
-                                                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                                                Updating...
-                                                            </span>
-                                                        ) : (
-                                                            'Update Password'
-                                                        )}
-                                                    </button>
-
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setShowResetForm(true)}
-                                                        className="w-full text-blue-300 hover:text-blue-100 mt-4"
-                                                    >
-                                                        Forgot your LPU ID? Reset via email
-                                                    </button>
-                                                </form>
-                                            ) : (
-                                                <form onSubmit={handleResetPassword} className="space-y-4">
-                                                    <p className="text-blue-300 mb-4">
-                                                        Enter your email to receive a password reset link:
-                                                    </p>
-
-                                                    <div>
-                                                        <label className="block text-blue-300 mb-2">Email</label>
-                                                        <input
-                                                            type="email"
-                                                            value={resetEmail}
-                                                            onChange={(e) => setResetEmail(e.target.value)}
-                                                            placeholder="Your registered email"
-                                                            className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400 transition-colors"
-                                                            required
-                                                        />
-                                                    </div>
-
-                                                    <button
-                                                        type="submit"
-                                                        disabled={emailLoading}
-                                                        className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                                                    >
-                                                        {emailLoading ? (
-                                                            <span className="flex items-center justify-center gap-2">
-                                                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                                                Sending...
-                                                            </span>
-                                                        ) : (
-                                                            'Send Reset Link'
-                                                        )}
-                                                    </button>
-
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setShowResetForm(false)}
-                                                        className="w-full text-blue-300 hover:text-blue-100 mt-4"
-                                                    >
-                                                        Back to password reset
-                                                    </button>
-                                                </form>
-                                            )}
-                                        </div>
-                                    )}
-                                </motion.div>
-                            )}
-
-                            {/* Edit Profile Tab */}
-                            {activeTab === 'edit' && (
-                                <motion.div
-                                    key="edit"
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: 20 }}
-                                    transition={{ duration: 0.3 }}
-                                >
-                                    <form onSubmit={handleUpdateProfile} className="space-y-6">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="block text-blue-300 mb-2">
-                                                    Full Name <span className="text-red-400">*</span>
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    name="fullName"
-                                                    value={updateProfileData.fullName}
-                                                    onChange={handleProfileChange}
-                                                    className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400 transition-colors"
-                                                    required
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-blue-300 mb-2">
-                                                    Email <span className="text-red-400">*</span>
-                                                </label>
-                                                <input
-                                                    type="email"
-                                                    name="email"
-                                                    value={updateProfileData.email}
-                                                    onChange={handleProfileChange}
-                                                    className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400 transition-colors"
-                                                    required
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-blue-300 mb-2">Program</label>
-                                                <input
-                                                    type="text"
-                                                    name="program"
-                                                    value={updateProfileData.program}
-                                                    onChange={handleProfileChange}
-                                                    placeholder="e.g., Computer Science"
-                                                    className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400 transition-colors"
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-blue-300 mb-2">Year</label>
-                                                <select
-                                                    name="year"
-                                                    value={updateProfileData.year}
-                                                    onChange={handleProfileChange}
-                                                    className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400 transition-colors"
-                                                >
-                                                    <option value="">Select Year</option>
-                                                    <option value="1">1st Year</option>
-                                                    <option value="2">2nd Year</option>
-                                                    <option value="3">3rd Year</option>
-                                                    <option value="4">4th Year</option>
-                                                    <option value="5">5th Year</option>
-                                                </select>
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-blue-300 mb-2">LinkedIn</label>
-                                                <input
-                                                    type="url"
-                                                    name="linkedIn"
-                                                    value={updateProfileData.linkedIn}
-                                                    onChange={handleProfileChange}
-                                                    placeholder="https://linkedin.com/in/yourname"
-                                                    className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400 transition-colors"
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-blue-300 mb-2">GitHub</label>
-                                                <input
-                                                    type="url"
-                                                    name="github"
-                                                    value={updateProfileData.github}
-                                                    onChange={handleProfileChange}
-                                                    placeholder="https://github.com/yourname"
-                                                    className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400 transition-colors"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-blue-300 mb-2">Bio</label>
-                                            <textarea
-                                                name="bio"
-                                                value={updateProfileData.bio}
-                                                onChange={handleProfileChange}
-                                                placeholder="Tell us about yourself..."
-                                                className="w-full px-4 py-3 rounded-xl border border-blue-500/30 bg-blue-900/20 text-white focus:outline-none focus:border-blue-400 min-h-[150px] transition-colors resize-none"
-                                                maxLength="500"
-                                            />
-                                            <p className="text-right text-blue-400 text-sm mt-1">
-                                                {updateProfileData.bio.length}/500 characters
-                                            </p>
-                                        </div>
-
-                                        <div className="flex gap-4">
-                                            <button
-                                                type="submit"
-                                                disabled={updateLoading || !hasUnsavedChanges}
-                                                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                                            >
-                                                {updateLoading ? (
-                                                    <span className="flex items-center justify-center gap-2">
-                                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                                        Updating...
-                                                    </span>
-                                                ) : (
-                                                    'Update Profile'
-                                                )}
-                                            </button>
-                                            
-                                            {hasUnsavedChanges && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setUpdateProfileData({
-                                                            fullName: getUserInfo('name'),
-                                                            email: getUserInfo('email'),
-                                                            program: memberData?.program || '',
-                                                            year: memberData?.year || '',
-                                                            linkedIn: memberData?.linkedIn || '',
-                                                            github: memberData?.github || '',
-                                                            bio: memberData?.bio || '',
-                                                        });
-                                                        setHasUnsavedChanges(false);
-                                                    }}
-                                                    className="px-6 py-3 rounded-xl border border-blue-500/30 text-blue-300 hover:bg-blue-500/10 transition-all duration-200"
-                                                >
-                                                    Reset
-                                                </button>
-                                            )}
-                                        </div>
-                                    </form>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
-                </motion.div>
-            </div>
-        </div>
+    // Validate social links
+    const invalidSocialLinks = socialLinks.filter(link => 
+      (link.platform && !link.url) || (!link.platform && link.url)
     );
+    
+    if (invalidSocialLinks.length > 0) {
+      toast.error('Please complete all social link fields or remove empty ones', { icon: '❌' });
+      return;
+    }
+
+    // Filter out empty social links
+    const validSocialLinks = socialLinks.filter(link => link.platform && link.url);
+
+    const updatePromise = new Promise(async (resolve, reject) => {
+      try {
+        designation: member.designation || '',
+        bio: member.bio || ''
+      });
+      
+      setSocialLinks(member.socialLinks ? [...member.socialLinks] : []);
+    }
+  }, [member]);
+
+  // Handle input changes
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  // Handle social links
+  const handleSocialLinkChange = (index, field, value) => {
+    const updatedLinks = [...socialLinks];
+    updatedLinks[index][field] = value;
+    setSocialLinks(updatedLinks);
+  };
+
+  const addSocialLink = () => {
+    setSocialLinks([...socialLinks, { platform: '', url: '' }]);
+    toast.success('Social link field added!');
+  };
+
+  const removeSocialLink = (index) => {
+    setSocialLinks(socialLinks.filter((_, i) => i !== index));
+    toast.success('Social link removed!');
+  };
+
+  // Handle profile image
+  const handleImageSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.match('image/(jpeg|png|jpg|webp)')) {
+      toast.error('Please select a valid image (JPEG, PNG, JPG, WebP)');
+      return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size must be less than 5MB');
+      return;
+    }
+
+    setProfileImage(file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => setImagePreview(e.target.result);
+    reader.readAsDataURL(file);
+
+    toast.success('Image selected! Click Save to upload.');
+  };
+
+  const handleImageUpload = async () => {
+    if (!profileImage || !member?._id) return;
+    
+    const uploadPromise = new Promise(async (resolve, reject) => {
+      try {
+        const formDataToSend = new FormData();
+        formDataToSend.append('profilePicture', profileImage);
+        
+        await uploadProfilePicture(member._id, formDataToSend);
+        setProfileImage(null);
+        setImagePreview(null);
+        await getCurrentMember(); // Refresh member data
+        resolve();
+      } catch (error) {
+        reject(error);
+      }
+    });
+
+    toast.promise(uploadPromise, {
+      loading: 'Uploading profile picture...',
+      success: 'Profile picture updated successfully! 🎉',
+      error: 'Failed to upload profile picture 😞',
+    });
+  };
+
+  const removeProfileImage = async () => {
+    if (!member?._id) return;
+    
+    const removePromise = new Promise(async (resolve, reject) => {
+      try {
+        // This would require a backend endpoint to remove the profile picture
+        // For now, we'll simulate it by updating the profile with null profilePicture
+        await updateProfile(member._id, { profilePicture: null });
+        setImagePreview(null);
+        await getCurrentMember(); // Refresh member data
+        resolve();
+      } catch (error) {
+        reject(error);
+      }
+    });
+
+    toast.promise(removePromise, {
+      loading: 'Removing profile picture...',
+      success: 'Profile picture removed successfully!',
+      error: 'Failed to remove profile picture',
+    });
+  };
+
+  const cancelImageUpload = () => {
+    setProfileImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    toast('Image upload cancelled');
+  };
+
+  // Handle profile update
+  const handleProfileUpdate = async (e) => {
+    e.preventDefault();
+    if (!member?._id) return;
+
+    // Validate required fields
+    if (!formData.fullname?.trim()) {
+      toast.error('Full name is required!');
+      return;
+    }
+
+    const updatePromise = new Promise(async (resolve, reject) => {
+      try {
+        await updateProfile(member._id, { ...formData, socialLinks });
+        setIsEditing(false);
+        setActiveTab('profile');
+        await getCurrentMember(); // Refresh member data
+        resolve();
+      } catch (error) {
+        reject(error);
+      }
+    });
+
+    toast.promise(updatePromise, {
+      loading: 'Updating profile...',
+      success: 'Profile updated successfully! ✨',
+      error: (err) => `Failed to update profile: ${err.message || 'Unknown error'}`,
+    });
+  };
+
+  // Handle logout
+  const handleLogout = async () => {
+    const logoutPromise = new Promise(async (resolve, reject) => {
+      try {
+        await logoutMember();
+        resolve();
+      } catch (error) {
+        reject(error);
+      }
+    });
+
+    toast.promise(logoutPromise, {
+      loading: 'Signing out...',
+      success: 'Logged out successfully! 👋',
+      error: 'Logout failed. Please try again.',
+    });
+  };
+
+  // Handle password change
+  const handlePasswordChange = async (currentPassword, newPassword) => {
+    // This would require a backend endpoint to change password
+    // For now, we'll simulate the process
+    const changePromise = new Promise((resolve) => {
+      setTimeout(() => {
+        resolve();
+      }, 1500);
+    });
+
+    toast.promise(changePromise, {
+      loading: 'Changing password...',
+      success: 'Password changed successfully!',
+      error: 'Failed to change password',
+    });
+  };
+
+  // Handle cancel edit
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setActiveTab('profile');
+    
+    // Reset form data to original member data
+    if (member) {
+      setFormData({
+        fullname: member.fullname || '',
+        program: member.program || '',
+        year: member.year || 1,
+        hosteler: member.hosteler || false,
+        hostel: member.hostel || '',
+        department: member.department || '',
+        designation: member.designation || '',
+        bio: member.bio || ''
+      });
+      setSocialLinks(member.socialLinks ? [...member.socialLinks] : []);
+    }
+
+    toast('Changes cancelled');
+  };
+
+  // Show loading state
+  if (loading) return <LoadingScreen />;
+
+  // Show error state
+  if (error) return <ErrorScreen error={error} onRetry={getCurrentMember} onLogout={() => setShowLogoutConfirm(true)} />;
+
+  // Show error if no member data
+  if (!member) {
+    return <ErrorScreen error="Member data not found" onRetry={getCurrentMember} onLogout={() => setShowLogoutConfirm(true)} />;
+  }
+
+  const tabs = [
+    { id: 'profile', label: 'Profile', icon: FiUser },
+    { id: 'social', label: 'Social Links', icon: FiLink },
+    { id: 'settings', label: 'Settings', icon: FiSettings }
+  ];
+
+  const socialPlatforms = [
+    'LinkedIn', 'GitHub', 'Instagram', 'Twitter', 'Facebook', 
+    'LeetCode', 'Codeforces', 'CodeChef'
+  ];
+
+  const departments = [
+    'HR', 'Technical', 'Marketing', 'Management', 'Content Writing',
+    'Event Management', 'Media', 'Design', 'Coordinator', 'PR'
+  ];
+
+  const designations = [
+    'member', 'Head', 'CEO', 'CTO', 'CFO', 'CMO', 'COO'
+  ];
+
+  const hostels = [
+    'BH-1', 'BH-2', 'BH-3', 'BH-4', 'BH-5', 'BH-6', 'BH-7',
+    'GH-1', 'GH-2', 'GH-3', 'GH-4', 'GH-5'
+  ];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-[#0a0e17] to-[#1a1f3a] text-white relative overflow-hidden">
+      {/* Fixed background */}
+      <div className="fixed inset-0 z-0 overflow-hidden">
+        <div className="absolute inset-0 bg-grid-white/[0.03] bg-[length:20px_20px]" />
+        <MemberFloatingBackground />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-8 sm:mb-12"
+        >
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-200 to-cyan-300">
+            Member Dashboard
+          </h1>
+          <p className="text-blue-200 text-lg max-w-2xl mx-auto leading-relaxed">
+            Manage your profile, settings, and club information
+          </p>
+        </motion.div>
+
+        {/* Stats Cards */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12"
+        >
+          <StatCard 
+            icon={FiUser} 
+            label="Member Since" 
+            value={new Date(member.joinedAt).getFullYear()} 
+            color="blue" 
+          />
+          <StatCard 
+            icon={FiAward} 
+            label="Designation" 
+            value={member.designation || 'Member'} 
+            color="purple" 
+          />
+          <StatCard 
+            icon={FiShield} 
+            label="Status" 
+            value={member.status === 'active' ? 'Active' : member.status} 
+            color={member.status === 'active' ? 'green' : 'orange'} 
+          />
+          <StatCard 
+            icon={FiMapPin} 
+            label="Department" 
+            value={member.department} 
+            color="orange" 
+            onClick={() => {
+              setActiveTab('profile');
+              setIsEditing(true);
+            }}
+          />
+        </motion.div>
+
+        {/* Main Profile Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="glass-card rounded-3xl overflow-hidden border border-white/10 shadow-2xl"
+        >
+          {/* Profile Header */}
+          <div className="relative h-32 sm:h-40 bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent" />
+            
+            {/* Profile Picture */}
+            <div className="absolute -bottom-12 sm:-bottom-16 left-6 sm:left-8">
+              <div className="relative group">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white/20 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm overflow-hidden shadow-2xl"
+                >
+                  {imagePreview || member.profilePicture?.url ? (
+                    <img 
+                      src={imagePreview || member.profilePicture.url} 
+                      alt={member.fullname} 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center">
+                      <FiUser className="text-2xl sm:text-3xl text-white/60" />
+                    </div>
+                  )}
+                </motion.div>
+                
+                {/* Camera Button */}
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute bottom-0 right-0 bg-blue-500 hover:bg-blue-600 text-white p-2 sm:p-3 rounded-full shadow-lg transition-colors duration-300 border-2 border-white/20"
+                  title="Change profile picture"
+                >
+                  <FiCamera className="w-3 h-3 sm:w-4 sm:h-4" />
+                </motion.button>
+                
+                {/* Remove Picture Button (only show if there's an image) */}
+                {(imagePreview || member.profilePicture?.url) && (
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={removeProfileImage}
+                    className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white p-1 sm:p-2 rounded-full shadow-lg transition-colors duration-300 border border-white/20"
+                    title="Remove profile picture"
+                  >
+                    <FiTrash2 className="w-3 h-3 sm:w-3 sm:h-3" />
+                  </motion.button>
+                )}
+                
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                  className="hidden"
+                />
+              </div>
+              
+              {/* Image Upload Actions */}
+              <AnimatePresence>
+                {profileImage && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute -bottom-20 left-0 right-0 flex justify-center mt-2"
+                  >
+                    <div className="glass-card p-2 rounded-xl flex items-center space-x-2 border border-white/10">
+                      <span className="text-xs text-white/80">New image selected</span>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={handleImageUpload}
+                        disabled={uploading}
+                        className="bg-green-500 hover:bg-green-600 text-white text-xs py-1 px-2 rounded-lg disabled:opacity-50 transition-colors duration-300 flex items-center space-x-1"
+                      >
+                        {uploading ? (
+                          <>
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                              className="w-3 h-3 border border-white border-t-transparent rounded-full"
+                            />
+                            <span>Uploading...</span>
+                          </>
+                        ) : (
+                          <>
+                            <FiUpload className="w-3 h-3" />
+                            <span>Save</span>
+                          </>
+                        )}
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={cancelImageUpload}
+                        className="bg-red-500 hover:bg-red-600 text-white text-xs py-1 px-2 rounded-lg transition-colors duration-300"
+                      >
+                        Cancel
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Header Actions */}
+            <div className="absolute top-4 right-4 flex space-x-2">
+              {!isEditing ? (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    setIsEditing(true);
+                    toast('Edit mode enabled');
+                  }}
+                  className="glass-card px-3 py-2 rounded-xl flex items-center space-x-2 text-white hover:bg-white/10 transition-all duration-300 border border-white/10"
+                >
+                  <FiEdit2 className="w-4 h-4" />
+                  <span className="text-sm hidden sm:inline">Edit</span>
+                </motion.button>
+              ) : (
+                <div className="flex space-x-2">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleProfileUpdate}
+                    disabled={updating}
+                    className="glass-card-success px-3 py-2 rounded-xl flex items-center space-x-2 text-green-300 hover:bg-green-500/20 transition-all duration-300 border border-green-400/20 disabled:opacity-50"
+                  >
+                    {updating ? (
+                      <>
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          className="w-4 h-4 border border-green-300 border-t-transparent rounded-full"
+                        />
+                        <span className="text-sm hidden sm:inline">Saving...</span>
+                      </>
+                    ) : (
+                      <>
+                        <FiSave className="w-4 h-4" />
+                        <span className="text-sm hidden sm:inline">Save</span>
+                      </>
+                    )}
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleCancelEdit}
+                    className="glass-card px-3 py-2 rounded-xl flex items-center space-x-2 text-white hover:bg-white/10 transition-all duration-300 border border-white/10"
+                  >
+                    <FiX className="w-4 h-4" />
+                    <span className="text-sm hidden sm:inline">Cancel</span>
+                  </motion.button>
+                </div>
+              )}
+              
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowLogoutConfirm(true)}
+                className="glass-card-error px-3 py-2 rounded-xl flex items-center space-x-2 text-red-300 hover:bg-red-500/20 transition-all duration-300 border border-red-400/20"
+              >
+                <FiLogOut className="w-4 h-4" />
+                <span className="text-sm hidden sm:inline">Logout</span>
+              </motion.button>
+            </div>
+          </div>
+
+          {/* Profile Content */}
+          <div className="pt-16 sm:pt-20 pb-6 sm:pb-8 px-6 sm:px-8">
+            {/* Member Info */}
+            <div className="mb-6 sm:mb-8">
+              <motion.h2
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="text-2xl sm:text-3xl font-bold text-white mb-2"
+              >
+                {member.fullname}
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1 }}
+                className="text-blue-300 text-lg"
+              >
+                {member.designation} • {member.department}
+              </motion.p>
+              <motion.p
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+                className="text-cyan-300 text-sm mt-1"
+              >
+                LPU ID: {member.LpuId}
+              </motion.p>
+            </div>
+
+            {/* Status Badge */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3 }}
+              className="mb-6 sm:mb-8"
+            >
+              <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold border ${
+                member.status === 'active' 
+                  ? 'bg-green-500/20 text-green-300 border-green-400/30' 
+                  : member.status === 'banned'
+                  ? 'bg-red-500/20 text-red-300 border-red-400/30'
+                  : 'bg-gray-500/20 text-gray-300 border-gray-400/30'
+              }`}>
+                {member.status === 'active' ? '✅ Active Member' : 
+                 member.status === 'banned' ? '🚫 Banned' : 
+                 '⏸️ Inactive'}
+              </span>
+              
+              {member.restriction?.isRestricted && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-3 glass-card-error p-3 rounded-xl border border-red-400/20"
+                >
+                  <p className="text-red-300 text-sm font-medium">
+                    ⚠️ Account Restricted
+                  </p>
+                  <p className="text-red-200 text-xs mt-1">
+                    Reason: {member.restriction.reason}
+                  </p>
+                  <p className="text-red-200 text-xs">
+                    Until: {new Date(member.restriction.time).toLocaleDateString()}
+                  </p>
+                </motion.div>
+              )}
+            </motion.div>
+
+            {/* Tabs */}
+            {isEditing && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex border-b border-white/10 mb-6 sm:mb-8 overflow-x-auto"
+              >
+                {tabs.map((tab) => {
+                  const Icon = tab.icon;
+                  return (
+                    <motion.button
+                      key={tab.id}
+                      whileHover={{ y: -2 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex items-center space-x-2 py-3 px-4 font-medium whitespace-nowrap transition-all duration-300 ${
+                        activeTab === tab.id
+                          ? 'border-b-2 border-blue-500 text-blue-300'
+                          : 'text-gray-400 hover:text-white'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                      <span>{tab.label}</span>
+                    </motion.button>
+                  );
+                })}
+              </motion.div>
+            )}
+
+            {/* Tab Content */}
+            <AnimatePresence mode="wait">
+              {/* Profile Tab */}
+              {(!isEditing || activeTab === 'profile') && (
+                <motion.div
+                  key="profile"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-6"
+                >
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Personal Information */}
+                    <motion.div
+                      whileHover={{ y: -2 }}
+                      className="glass-card p-6 rounded-2xl border border-white/5"
+                    >
+                      <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                        <FiUser className="w-5 h-5 mr-2 text-blue-400" />
+                        Personal Information
+                      </h3>
+                      
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Full Name *
+                          </label>
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              name="fullname"
+                              value={formData.fullname}
+                              onChange={handleInputChange}
+                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white placeholder-gray-400 transition-all duration-300"
+                              required
+                            />
+                          ) : (
+                            <p className="text-white bg-white/5 px-4 py-3 rounded-xl">
+                              {member.fullname}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Email
+                          </label>
+                          <p className="text-white bg-white/5 px-4 py-3 rounded-xl flex items-center">
+                            <FiMail className="w-4 h-4 mr-2 text-blue-400" />
+                            {member.email}
+                          </p>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Program
+                          </label>
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              name="program"
+                              value={formData.program}
+                              onChange={handleInputChange}
+                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white placeholder-gray-400 transition-all duration-300"
+                              placeholder="e.g., Computer Science Engineering"
+                            />
+                          ) : (
+                            <p className="text-white bg-white/5 px-4 py-3 rounded-xl flex items-center">
+                              <FiBook className="w-4 h-4 mr-2 text-blue-400" />
+                              {member.program || 'Not specified'}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Year
+                          </label>
+                          {isEditing ? (
+                            <select
+                              name="year"
+                              value={formData.year}
+                              onChange={handleInputChange}
+                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white transition-all duration-300"
+                            >
+                              {[1, 2, 3, 4].map(year => (
+                                <option key={year} value={year} className="bg-gray-800">
+                                  {year}{year === 1 ? 'st' : year === 2 ? 'nd' : year === 3 ? 'rd' : 'th'} Year
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <p className="text-white bg-white/5 px-4 py-3 rounded-xl flex items-center">
+                              <FiCalendar className="w-4 h-4 mr-2 text-blue-400" />
+                              {member.year ? `${member.year}${member.year === 1 ? 'st' : member.year === 2 ? 'nd' : member.year === 3 ? 'rd' : 'th'} Year` : 'Not specified'}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+
+                    {/* Club Information */}
+                    <motion.div
+                      whileHover={{ y: -2 }}
+                      className="glass-card p-6 rounded-2xl border border-white/5"
+                    >
+                      <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                        <FiAward className="w-5 h-5 mr-2 text-purple-400" />
+                        Club Information
+                      </h3>
+                      
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Department
+                          </label>
+                          {isEditing ? (
+                            <select
+                              name="department"
+                              value={formData.department}
+                              onChange={handleInputChange}
+                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white transition-all duration-300"
+                            >
+                              {departments.map(dept => (
+                                <option key={dept} value={dept} className="bg-gray-800">
+                                  {dept}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <p className="text-white bg-white/5 px-4 py-3 rounded-xl">
+                              {member.department}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Designation
+                          </label>
+                          {isEditing ? (
+                            <select
+                              name="designation"
+                              value={formData.designation}
+                              onChange={handleInputChange}
+                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white transition-all duration-300"
+                            >
+                              {designations.map(designation => (
+                                <option key={designation} value={designation} className="bg-gray-800">
+                                  {designation.charAt(0).toUpperCase() + designation.slice(1)}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <p className="text-white bg-white/5 px-4 py-3 rounded-xl">
+                              {member.designation}
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Hosteler
+                          </label>
+                          {isEditing ? (
+                            <div className="flex items-center">
+                              <input
+                                type="checkbox"
+                                name="hosteler"
+                                checked={formData.hosteler}
+                                onChange={handleInputChange}
+                                className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded bg-white/5"
+                              />
+                              <span className="ml-3 text-white">Resides in hostel</span>
+                            </div>
+                          ) : (
+                            <p className="text-white bg-white/5 px-4 py-3 rounded-xl flex items-center">
+                              <FiHome className="w-4 h-4 mr-2 text-blue-400" />
+                              {member.hosteler ? 'Yes' : 'No'}
+                            </p>
+                          )}
+                        </div>
+
+                        {(formData.hosteler || member.hosteler) && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                              Hostel
+                            </label>
+                            {isEditing ? (
+                              <select
+                                name="hostel"
+                                value={formData.hostel}
+                                onChange={handleInputChange}
+                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white transition-all duration-300"
+                              >
+                                <option value="" className="bg-gray-800">Select Hostel</option>
+                                {hostels.map(hostel => (
+                                  <option key={hostel} value={hostel} className="bg-gray-800">
+                                    {hostel}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              <p className="text-white bg-white/5 px-4 py-3 rounded-xl">
+                                {member.hostel || 'Not specified'}
+                              </p>
+                            )}
+                          </div>
+                        )}
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Member Since
+                          </label>
+                          <p className="text-white bg-white/5 px-4 py-3 rounded-xl flex items-center">
+                            <FiCalendar className="w-4 h-4 mr-2 text-blue-400" />
+                            {new Date(member.joinedAt).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </div>
+
+                  {/* Bio Section */}
+                  <motion.div
+                    whileHover={{ y: -2 }}
+                    className="glass-card p-6 rounded-2xl border border-white/5"
+                  >
+                    <h3 className="text-lg font-semibold text-white mb-4">Bio</h3>
+                    {isEditing ? (
+                      <textarea
+                        name="bio"
+                        value={formData.bio}
+                        onChange={handleInputChange}
+                        rows="4"
+                        maxLength="500"
+                        className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white placeholder-gray-400 transition-all duration-300 resize-none"
+                        placeholder="Tell us about yourself..."
+                      />
+                    ) : (
+                      <p className="text-gray-300 leading-relaxed">
+                        {member.bio || 'No bio provided yet.'}
+                      </p>
+                    )}
+                    {isEditing && (
+                      <p className="text-xs text-gray-400 mt-2">
+                        {formData.bio?.length || 0}/500 characters
+                      </p>
+                    )}
+                  </motion.div>
+                </motion.div>
+              )}
+
+              {/* Social Links Tab */}
+              {isEditing && activeTab === 'social' && (
+                <motion.div
+                  key="social"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-6"
+                >
+                  <motion.div
+                    whileHover={{ y: -2 }}
+                    className="glass-card p-6 rounded-2xl border border-white/5"
+                  >
+                    <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                      <FiLink className="w-5 h-5 mr-2 text-cyan-400" />
+                      Social Links
+                    </h3>
+                    
+                    <div className="space-y-4">
+                      <AnimatePresence>
+                        {socialLinks.map((link, index) => (
+                          <motion.div
+                            key={index}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 glass-card rounded-xl border border-white/5"
+                          >
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Platform
+                              </label>
+                              <select
+                                value={link.platform}
+                                onChange={(e) => handleSocialLinkChange(index, 'platform', e.target.value)}
+                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white transition-all duration-300"
+                              >
+                                <option value="" className="bg-gray-800">Select Platform</option>
+                                {socialPlatforms.map(platform => (
+                                  <option key={platform} value={platform} className="bg-gray-800">
+                                    {platform}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                URL
+                              </label>
+                              <div className="flex space-x-2">
+                                <input
+                                  type="url"
+                                  value={link.url}
+                                  onChange={(e) => handleSocialLinkChange(index, 'url', e.target.value)}
+                                  className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white placeholder-gray-400 transition-all duration-300"
+                                  placeholder="https://..."
+                                />
+                                <motion.button
+                                  whileHover={{ scale: 1.05 }}
+                                  whileTap={{ scale: 0.95 }}
+                                  onClick={() => removeSocialLink(index)}
+                                  className="bg-red-500/20 text-red-300 hover:bg-red-500/30 p-3 rounded-xl transition-colors duration-300 border border-red-400/20"
+                                  title="Remove this social link"
+                                >
+                                  <FiX className="w-4 h-4" />
+                                </motion.button>
+                              </div>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                      
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={addSocialLink}
+                        className="w-full py-3 border-2 border-dashed border-white/20 hover:border-blue-400/40 text-blue-300 hover:text-blue-200 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2"
+                      >
+                        <FiPlus className="w-4 h-4" />
+                        <span>Add Social Link</span>
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+
+              {/* Settings Tab */}
+              {isEditing && activeTab === 'settings' && (
+                <motion.div
+                  key="settings"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-6"
+                >
+                  <motion.div
+                    whileHover={{ y: -2 }}
+                    className="glass-card p-6 rounded-2xl border border-white/5"
+                  >
+                    <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                      <FiSettings className="w-5 h-5 mr-2 text-gray-400" />
+                      Account Settings
+                    </h3>
+                    
+                    <div className="space-y-4">
+                      <div className="p-4 glass-card-primary rounded-xl border border-blue-400/20">
+                        <h4 className="font-medium text-blue-300 mb-2">Password Reset</h4>
+                        <p className="text-blue-200 text-sm mb-4">
+                          Change your password to keep your account secure.
+                        </p>
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setShowPasswordModal(true)}
+                          className="px-4 py-2 bg-blue-500/20 text-blue-300 rounded-lg hover:bg-blue-500/30 transition-colors duration-300 border border-blue-400/20 flex items-center space-x-2"
+                        >
+                          <FiSettings className="w-4 h-4" />
+                          <span>Change Password</span>
+                        </motion.button>
+                      </div>
+                      
+                      <div className="p-4 glass-card-error rounded-xl border border-red-400/20">
+                        <h4 className="font-medium text-red-300 mb-2">Account Actions</h4>
+                        <p className="text-red-200 text-sm mb-4">
+                          Need to deactivate your account or have concerns? Contact the administrators.
+                        </p>
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => toast('Feature coming soon! 🚀')}
+                          className="px-4 py-2 bg-red-500/20 text-red-300 rounded-lg hover:bg-red-500/30 transition-colors duration-300 border border-red-400/20"
+                        >
+                          Contact Admin
+                        </motion.button>
+                      </div>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Display Social Links (when not editing) */}
+            {!isEditing && member.socialLinks && member.socialLinks.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="glass-card p-6 rounded-2xl border border-white/5"
+              >
+                <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+                  <FiLink className="w-5 h-5 mr-2 text-cyan-400" />
+                  Social Links
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  {member.socialLinks.map((link, index) => (
+                    <motion.a
+                      key={index}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      whileHover={{ scale: 1.05, y: -2 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="glass-card-primary p-3 rounded-xl text-center border border-blue-400/20 hover:border-blue-300/40 transition-all duration-300"
+                      onClick={() => toast(`Opening ${link.platform}...`, { icon: '🔗' })}
+                    >
+                      <div className="text-blue-300 font-medium text-sm">
+                        {link.platform}
+                      </div>
+                    </motion.a>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Confirmation Dialog for Logout */}
+      <ConfirmationDialog
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={handleLogout}
+        title="Confirm Logout"
+        message="Are you sure you want to logout?"
+        confirmText="Logout"
+        cancelText="Cancel"
+      />
+
+      {/* Password Change Modal */}
+      <PasswordChangeModal
+        isOpen={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
+        onChangePassword={handlePasswordChange}
+      />
+    </div>
+  );
 };
 
 export default MemberProfile;
