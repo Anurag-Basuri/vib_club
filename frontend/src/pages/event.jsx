@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useGetAllEvents } from '../hooks/useEvents.js';
 import EventCard from '../components/event/EventCard.jsx';
-import EventHero from '../components/event/EventHero.jsx';
 import EventFilter from '../components/event/EventFilter.jsx';
 import LoadingSpinner from '../components/event/LoadingSpinner.jsx';
 import { AnimatePresence, motion } from 'framer-motion';
