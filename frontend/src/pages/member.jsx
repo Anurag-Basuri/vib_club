@@ -35,25 +35,46 @@ import toast from 'react-hot-toast';
 const ConfirmationDialog = ({ open, title, message, onConfirm, onCancel }) => {
 	if (!open) return null;
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-			<div className="bg-white rounded-xl p-6 shadow-xl max-w-sm w-full">
-				<h3 className="text-lg font-bold mb-2">{title}</h3>
-				<p className="mb-4">{message}</p>
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+			<motion.div
+				initial={{ opacity: 0, scale: 0.95, y: 30 }}
+				animate={{ opacity: 1, scale: 1, y: 0 }}
+				exit={{ opacity: 0, scale: 0.95, y: 30 }}
+				className="glass-card p-6 sm:p-8 rounded-2xl shadow-2xl max-w-sm w-full border border-blue-400/20 relative"
+			>
+				<div className="flex items-center mb-4">
+					<div className="bg-blue-500/20 text-blue-400 rounded-full p-2 mr-3">
+						<FiAlertCircle className="w-6 h-6" />
+					</div>
+					<h3 className="text-lg font-bold text-blue-200">{title}</h3>
+				</div>
+				<p className="mb-6 text-blue-100">{message}</p>
 				<div className="flex justify-end space-x-2">
-					<button
+					<motion.button
+						whileHover={{ scale: 1.05 }}
+						whileTap={{ scale: 0.95 }}
 						onClick={onCancel}
-						className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-800"
+						className="px-4 py-2 rounded-lg bg-gray-700/60 hover:bg-gray-600 text-gray-200 border border-gray-500/30 transition-all duration-200"
 					>
 						Cancel
-					</button>
-					<button
+					</motion.button>
+					<motion.button
+						whileHover={{ scale: 1.05 }}
+						whileTap={{ scale: 0.95 }}
 						onClick={onConfirm}
-						className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white"
+						className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow border border-blue-400/30 transition-all duration-200"
 					>
 						Confirm
-					</button>
+					</motion.button>
 				</div>
-			</div>
+				<button
+					onClick={onCancel}
+					className="absolute top-3 right-3 text-gray-400 hover:text-red-400 transition"
+					aria-label="Close dialog"
+				>
+					<FiX className="w-5 h-5" />
+				</button>
+			</motion.div>
 		</div>
 	);
 };
@@ -360,7 +381,7 @@ const PasswordChangeModal = ({ isOpen, onClose, onChangePassword }) => {
 
 // Main component
 const MemberProfile = () => {
-	const { user, logout: logoutMember } = useAuth();
+	const { user, logoutMember:logout } = useAuth();
 	const { getCurrentMember, member, loading, error } = useGetCurrentMember();
 	const { updateProfile, loading: updating } = useUpdateProfile();
 	const { uploadProfilePicture, loading: uploading } = useUploadProfilePicture();
@@ -383,7 +404,6 @@ const MemberProfile = () => {
 	const [imagePreview, setImagePreview] = useState(null);
 	const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 	const [showPasswordModal, setShowPasswordModal] = useState(false);
-	const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 	const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
 	const fileInputRef = useRef(null);
@@ -577,17 +597,9 @@ const MemberProfile = () => {
 			);
 			if (!confirmed) return;
 		}
-
-		const logoutPromise = new Promise((resolve, reject) => {
-			logoutMember().then(resolve).catch(reject);
-		});
-
-		toast.promise(logoutPromise, {
-			loading: 'Signing out...',
-			success: 'Logged out successfully! 👋',
-			error: 'Logout failed. Please try again.',
-		});
-	}, [hasUnsavedChanges, logoutMember]);
+		logout();
+		toast.success('Logged out successfully! 👋');
+	}, [hasUnsavedChanges, logout]);
 
 	// Handle cancel edit
 	const handleCancelEdit = useCallback(() => {
