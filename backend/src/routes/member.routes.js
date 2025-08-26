@@ -68,7 +68,7 @@ router.post(
     '/reset-password',
     validate([
         body('LpuId').notEmpty().withMessage('LPU ID is required'),
-        body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters')
+        body('newPassword').isLength({ min: 8 }).withMessage('New password must be at least 8 characters')
     ]),
     resetPassword
 );

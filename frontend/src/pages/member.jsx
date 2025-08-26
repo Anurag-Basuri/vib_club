@@ -5,6 +5,7 @@ import {
 	useGetCurrentMember,
 	useUpdateProfile,
 	useUploadProfilePicture,
+	useResetPassword,
 } from '../hooks/useMembers.js';
 import {
 	FiEdit2,
@@ -284,8 +285,8 @@ const validateImageFile = (file) => {
 	return { isValid: true };
 };
 
-// Add this above MemberProfile (or in a separate file and import it)
-const PasswordChangeModal = ({ isOpen, onClose, onChangePassword }) => {
+// Password Change Modal
+const PasswordChangeModal = ({ isOpen, onClose, onChangePassword, loading }) => {
 	const [oldPassword, setOldPassword] = useState('');
 	const [newPassword, setNewPassword] = useState('');
 	const [confirmPassword, setConfirmPassword] = useState('');
@@ -362,16 +363,16 @@ const PasswordChangeModal = ({ isOpen, onClose, onChangePassword }) => {
 						type="button"
 						onClick={onClose}
 						className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-800"
-						disabled={submitting}
+						disabled={submitting || loading}
 					>
 						Cancel
 					</button>
 					<button
 						type="submit"
 						className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white"
-						disabled={submitting}
+						disabled={submitting || loading}
 					>
-						{submitting ? 'Changing...' : 'Change'}
+						{submitting || loading ? 'Changing...' : 'Change'}
 					</button>
 				</div>
 			</form>
@@ -385,6 +386,7 @@ const MemberProfile = () => {
 	const { getCurrentMember, member, loading, error } = useGetCurrentMember();
 	const { updateProfile, loading: updating } = useUpdateProfile();
 	const { uploadProfilePicture, loading: uploading } = useUploadProfilePicture();
+	const { resetPassword, loading: resettingPassword } = useResetPassword();
 
 	// State management
 	const [isEditing, setIsEditing] = useState(false);
@@ -635,10 +637,20 @@ const MemberProfile = () => {
 		return () => window.removeEventListener('beforeunload', handleBeforeUnload);
 	}, [hasUnsavedChanges]);
 
-	// Handle password change (stub implementation)
+	// Handle password change
 	const handlePasswordChange = async (oldPassword, newPassword) => {
-		// TODO: Implement password change logic or integrate with backend
-		toast('Password change feature coming soon!', { icon: '🔒' });
+		// Optionally, you can verify oldPassword on the frontend before sending
+		if (!member?.LpuId) {
+			toast.error('LPU ID not found. Cannot reset password.');
+			return;
+		}
+		try {
+			await resetPassword(member.LpuId, newPassword);
+			toast.success('Password reset successfully!');
+		} catch (err) {
+			console.error("Failed to reset password:", err);
+			toast.error('Failed to reset password.');
+		}
 	};
 
 	// Show loading state
@@ -1544,6 +1556,7 @@ const MemberProfile = () => {
 				isOpen={showPasswordModal}
 				onClose={() => setShowPasswordModal(false)}
 				onChangePassword={handlePasswordChange}
+				loading={resettingPassword}
 			/>
 		</div>
 	);
