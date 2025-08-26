@@ -58,22 +58,6 @@ const ConfirmationDialog = ({ open, title, message, onConfirm, onCancel }) => {
 	);
 };
 
-// Constants
-const DEPARTMENTS = [
-	'HR',
-	'Technical',
-	'Marketing',
-	'Management',
-	'Content Writing',
-	'Event Management',
-	'Media',
-	'Design',
-	'Coordinator',
-	'PR',
-];
-
-const DESIGNATIONS = ['member', 'Head', 'CEO', 'CTO', 'CFO', 'CMO', 'COO'];
-
 const HOSTELS = [
 	'BH-1',
 	'BH-2',
@@ -279,6 +263,101 @@ const validateImageFile = (file) => {
 	return { isValid: true };
 };
 
+// Add this above MemberProfile (or in a separate file and import it)
+const PasswordChangeModal = ({ isOpen, onClose, onChangePassword }) => {
+	const [oldPassword, setOldPassword] = useState('');
+	const [newPassword, setNewPassword] = useState('');
+	const [confirmPassword, setConfirmPassword] = useState('');
+	const [submitting, setSubmitting] = useState(false);
+
+	const handleSubmit = async (e) => {
+		e.preventDefault();
+		if (!oldPassword || !newPassword || !confirmPassword) {
+			toast.error('All fields are required');
+			return;
+		}
+		if (newPassword !== confirmPassword) {
+			toast.error('Passwords do not match');
+			return;
+		}
+		setSubmitting(true);
+		try {
+			await onChangePassword(oldPassword, newPassword);
+			onClose();
+			setOldPassword('');
+			setNewPassword('');
+			setConfirmPassword('');
+		} finally {
+			setSubmitting(false);
+		}
+	};
+
+	if (!isOpen) return null;
+	return (
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+			<form
+				onSubmit={handleSubmit}
+				className="bg-white rounded-xl p-6 shadow-xl max-w-sm w-full"
+			>
+				<h3 className="text-lg font-bold mb-2 text-gray-900">Change Password</h3>
+				<div className="mb-3">
+					<label className="block text-sm font-medium text-gray-700 mb-1">
+						Old Password
+					</label>
+					<input
+						type="password"
+						className="w-full px-3 py-2 border rounded"
+						value={oldPassword}
+						onChange={(e) => setOldPassword(e.target.value)}
+						autoComplete="current-password"
+					/>
+				</div>
+				<div className="mb-3">
+					<label className="block text-sm font-medium text-gray-700 mb-1">
+						New Password
+					</label>
+					<input
+						type="password"
+						className="w-full px-3 py-2 border rounded"
+						value={newPassword}
+						onChange={(e) => setNewPassword(e.target.value)}
+						autoComplete="new-password"
+					/>
+				</div>
+				<div className="mb-4">
+					<label className="block text-sm font-medium text-gray-700 mb-1">
+						Confirm New Password
+					</label>
+					<input
+						type="password"
+						className="w-full px-3 py-2 border rounded"
+						value={confirmPassword}
+						onChange={(e) => setConfirmPassword(e.target.value)}
+						autoComplete="new-password"
+					/>
+				</div>
+				<div className="flex justify-end space-x-2">
+					<button
+						type="button"
+						onClick={onClose}
+						className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-800"
+						disabled={submitting}
+					>
+						Cancel
+					</button>
+					<button
+						type="submit"
+						className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white"
+						disabled={submitting}
+					>
+						{submitting ? 'Changing...' : 'Change'}
+					</button>
+				</div>
+			</form>
+		</div>
+	);
+};
+
 // Main component
 const MemberProfile = () => {
 	const { user, logoutMember } = useAuth();
@@ -333,7 +412,8 @@ const MemberProfile = () => {
 		if (user?.memberID) {
 			getCurrentMember();
 		}
-	}, [user?.memberID, getCurrentMember]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [user?.memberID]);
 
 	// Update form data when member data loads
 	useEffect(() => {
@@ -1022,6 +1102,17 @@ const MemberProfile = () => {
 													)}
 												</div>
 
+												{/* LPU ID (read-only) */}
+												<div>
+													<label className="block text-sm font-medium text-gray-300 mb-2">
+														LPU ID
+													</label>
+													<p className="text-white bg-white/5 px-4 py-3 rounded-xl flex items-center">
+														{member.LpuId}
+													</p>
+												</div>
+
+												{/* Email (read-only) */}
 												<div>
 													<label className="block text-sm font-medium text-gray-300 mb-2">
 														Email
@@ -1450,13 +1541,11 @@ const MemberProfile = () => {
 
 			{/* Confirmation Dialog for Logout */}
 			<ConfirmationDialog
-				isOpen={showLogoutDialog}
-				onClose={() => setShowLogoutDialog(false)}
+				open={showLogoutDialog}
+				onCancel={() => setShowLogoutDialog(false)}
 				onConfirm={handleLogout}
 				title="Confirm Logout"
 				message="Are you sure you want to logout?"
-				confirmText="Logout"
-				cancelText="Cancel"
 			/>
 
 			{/* Password Change Modal */}
