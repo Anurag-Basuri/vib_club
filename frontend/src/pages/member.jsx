@@ -360,7 +360,7 @@ const PasswordChangeModal = ({ isOpen, onClose, onChangePassword }) => {
 
 // Main component
 const MemberProfile = () => {
-	const { user, logoutMember } = useAuth();
+	const { user, logout: logoutMember } = useAuth();
 	const { getCurrentMember, member, loading, error } = useGetCurrentMember();
 	const { updateProfile, loading: updating } = useUpdateProfile();
 	const { uploadProfilePicture, loading: uploading } = useUploadProfilePicture();
@@ -678,28 +678,7 @@ const MemberProfile = () => {
 
 	return (
 		<div className="min-h-screen bg-gradient-to-b from-[#0a0e17] to-[#1a1f3a] text-white relative overflow-hidden">
-			{/* Fixed background */}
-			<div className="fixed inset-0 z-0 overflow-hidden">
-				<div className="absolute inset-0 bg-grid-white/[0.03] bg-[length:20px_20px]" />
-				<MemberFloatingBackground />
-			</div>
-
-			{/* Content */}
 			<div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-				{/* Header */}
-				<motion.div
-					initial={{ opacity: 0, y: 30 }}
-					animate={{ opacity: 1, y: 0 }}
-					className="text-center mb-8 sm:mb-12"
-				>
-					<h1 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-200 to-cyan-300">
-						Member Dashboard
-					</h1>
-					<p className="text-blue-200 text-lg max-w-2xl mx-auto leading-relaxed">
-						Manage your profile, settings, and club information
-					</p>
-				</motion.div>
-
 				{/* Unsaved Changes Warning */}
 				{hasUnsavedChanges && (
 					<motion.div

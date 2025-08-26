@@ -95,7 +95,7 @@ export const useGetCurrentMember = () => {
 // Update member profile (for logged-in user)
 export const useUpdateProfile = () => {
     const actionFn = async (id, updateData) => {
-        const res = await apiClient.put(`api/members/${id}/profile`, updateData);
+        const res = await apiClient.put(`api/members/${id}/update`, updateData);
         return res.data.data.member;
     };
     const {
