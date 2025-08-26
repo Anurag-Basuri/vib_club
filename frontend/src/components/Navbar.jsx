@@ -17,6 +17,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
 import logo from '../assets/logo.png';
 
+// Navigation sections config
 const navSections = [
     {
         items: [
@@ -27,11 +28,11 @@ const navSections = [
     },
 ];
 
+// Map path to nav name
 const pathToNavName = (pathname) => {
     if (pathname === '/') return 'Home';
     if (pathname.startsWith('/event')) return 'Events';
     if (pathname.startsWith('/contact')) return 'Contact';
-    if (pathname.startsWith('/vib/qrscanner')) return 'QR Scanner';
     return 'Home';
 };
 
@@ -50,8 +51,8 @@ const Navbar = () => {
     const drawerRef = useRef(null);
 
     // Determine if user is member or admin
-    const isMember = user?.memberID ? true : false;
-    const isAdmin = !isMember && user; // If user exists but no memberID, then admin
+    const isMember = Boolean(user?.memberID);
+    const isAdmin = Boolean(user && !user.memberID);
 
     // Sync active link with route
     useEffect(() => {
@@ -128,12 +129,12 @@ const Navbar = () => {
         };
     }, [isOpen]);
 
+    // Navigation handlers
     const handleLinkClick = (name) => {
         setActiveLink(name);
         setIsOpen(false);
         setIsUserOpen(false);
 
-        // Handle special cases
         if (name === 'QR Scanner') {
             navigate('/vib/qrscanner');
             return;
@@ -430,29 +431,6 @@ const Navbar = () => {
                                     </button>
                                 ))
                             )}
-
-                            {/* QR Scanner Button for authenticated users */}
-                            {isAuthenticated && (
-                                <button
-                                    onClick={() => handleLinkClick('QR Scanner')}
-                                    className={`nav-link flex items-center gap-2 px-3 xl:px-4 py-2.5 rounded-xl font-medium text-sm xl:text-base transition-all duration-300 ${
-                                        activeLink === 'QR Scanner'
-                                            ? 'active text-white'
-                                            : 'text-slate-200 hover:text-white'
-                                    }`}
-                                >
-                                    <QrCode
-                                        size={18}
-                                        className={`transition-all duration-300 ${
-                                            activeLink === 'QR Scanner' ? 'text-cyan-400' : ''
-                                        }`}
-                                    />
-                                    <span className="whitespace-nowrap">QR Scanner</span>
-                                    {activeLink === 'QR Scanner' && (
-                                        <div className="w-1 h-1 bg-cyan-400 rounded-full ml-1 animate-pulse" />
-                                    )}
-                                </button>
-                            )}
                         </div>
 
                         {/* Right Side Actions */}
@@ -460,14 +438,14 @@ const Navbar = () => {
                             {isAuthenticated ? (
                                 <div className="relative" ref={userRef}>
                                     <button
-                                        onClick={() => setIsUserOpen(!isUserOpen)}
+                                        onClick={() => setIsUserOpen((v) => !v)}
                                         className="flex items-center gap-2 sm:gap-3 glass-effect px-2 sm:px-4 py-2 rounded-full hover:bg-white/10 transition-all duration-300 group"
                                     >
                                         <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center shadow-lg">
                                             <User className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                                         </div>
                                         <span className="hidden sm:block text-white font-medium text-sm">
-                                            {user?.fullname || user?.name || 'User'}
+                                            {isMember ? 'Member' : 'Admin'}
                                         </span>
                                         <ChevronDown
                                             className={`h-4 w-4 text-white transition-transform duration-300 ${isUserOpen ? 'rotate-180' : ''}`}
@@ -476,24 +454,6 @@ const Navbar = () => {
                                     {/* User Dropdown */}
                                     {isUserOpen && (
                                         <div className="absolute right-0 mt-3 w-64 sm:w-72 rounded-2xl bg-slate-900/90 backdrop-blur-lg border border-white/20 shadow-2xl overflow-hidden z-50">
-                                            <div className="p-4 border-b border-white/10 bg-gradient-to-r from-cyan-500/10 to-purple-500/10">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center shadow-lg">
-                                                        <User className="h-6 w-6 text-white" />
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-semibold text-white">
-                                                            {user?.fullname || user?.name || 'User'}
-                                                        </p>
-                                                        <p className="text-sm text-slate-300">
-                                                            {user?.email || 'user@vibranta.edu'}
-                                                        </p>
-                                                        <p className="text-xs text-cyan-400 font-medium">
-                                                            {isMember ? 'Member' : 'Admin'}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
                                             <div className="py-2">
                                                 <button
                                                     onClick={handleDashboardClick}
@@ -506,7 +466,15 @@ const Navbar = () => {
                                                             : 'Admin Dashboard'}
                                                     </span>
                                                 </button>
-                                                
+                                                <button
+                                                    onClick={() => {
+                                                        navigate('/show')
+                                                    }}
+                                                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-all duration-300 text-white group"
+                                                >
+                                                    <LayoutDashboard className="h-5 w-5 text-cyan-400 group-hover:scale-110 transition-transform" />
+                                                    <span>Show</span>
+                                                </button>
                                                 <button
                                                     onClick={handleQRScannerClick}
                                                     className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-all duration-300 text-white group"
@@ -527,23 +495,7 @@ const Navbar = () => {
                                         </div>
                                     )}
                                 </div>
-                            ) : (
-                                <div className="hidden sm:flex items-center gap-2">
-                                    <button
-                                        className="px-3 lg:px-4 py-2 rounded-xl font-medium text-sm lg:text-base text-slate-200 border border-slate-600/50 hover:border-slate-500 hover:bg-slate-800/50 transition-all duration-300"
-                                        onClick={handleAlreadyMember}
-                                    >
-                                        Already a member
-                                    </button>
-                                    <button
-                                        onClick={handleJoinClub}
-                                        className="px-3 lg:px-4 py-2 rounded-xl font-medium text-sm lg:text-base bg-gradient-to-r from-cyan-500 to-purple-600 text-white hover:from-cyan-600 hover:to-purple-700 transition-all duration-300 shadow-lg"
-                                    >
-                                        Join Club
-                                    </button>
-                                </div>
-                            )}
-                            {/* Mobile Menu Button */}
+                            ) : null}
                             <button
                                 ref={menuButtonRef}
                                 className="lg:hidden p-3 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
@@ -627,38 +579,6 @@ const Navbar = () => {
                                                         </span>
                                                     </button>
                                                 ))}
-
-                                                {/* QR Scanner for authenticated users */}
-                                                {isAuthenticated && (
-                                                    <button
-                                                        onClick={() => handleLinkClick('QR Scanner')}
-                                                        className={`mobile-nav-item w-full flex items-center gap-4 p-4 rounded-xl text-left transition-all duration-300 ${
-                                                            activeLink === 'QR Scanner'
-                                                                ? 'active text-white'
-                                                                : 'text-slate-300 hover:text-white'
-                                                        }`}
-                                                    >
-                                                        <div
-                                                            className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 ${
-                                                                activeLink === 'QR Scanner'
-                                                                    ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/30'
-                                                                    : 'bg-white/5 border border-white/10'
-                                                            }`}
-                                                        >
-                                                            <QrCode
-                                                                size={20}
-                                                                className={
-                                                                    activeLink === 'QR Scanner'
-                                                                        ? 'text-cyan-400'
-                                                                        : ''
-                                                                }
-                                                            />
-                                                        </div>
-                                                        <span className="font-medium">
-                                                            QR Scanner
-                                                        </span>
-                                                    </button>
-                                                )}
                                             </ul>
                                         </div>
                                     ))}
