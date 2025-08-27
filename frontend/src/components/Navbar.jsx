@@ -310,6 +310,12 @@ const Navbar = () => {
                     scrollbar-width: thin;
                     scrollbar-color: #0891b2 rgba(0, 0, 0, 0.2);
                 }
+                @media (max-width: 1024px) {
+                    .navbar {
+                        padding-left: 0 !important;
+                        padding-right: 0 !important;
+                    }
+                }
             `}</style>
 
             <div data-navbar>
@@ -328,14 +334,14 @@ const Navbar = () => {
                         pointerEvents: showNavbar ? 'auto' : 'none',
                     }}
                 >
-                    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between h-full">
-                        {/* Brand with animated background */}
+                    <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 flex items-center justify-between h-full w-full">
+                        {/* Brand */}
                         <button
                             onClick={handleLogoClick}
-                            className="flex items-center gap-3 sm:gap-4 flex-shrink-0 relative select-none"
+                            className="flex items-center gap-2 sm:gap-3 flex-shrink-0 relative select-none"
                         >
                             <div
-                                className="logo-container w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shadow-lg border border-blue-900/40 bg-[#0a1120]/90 relative overflow-hidden"
+                                className="logo-container w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 rounded-2xl flex items-center justify-center shadow-lg border border-blue-900/40 bg-[#0a1120]/90 relative overflow-hidden"
                                 style={{
                                     boxShadow: '0 4px 24px 0 #0ea5e9cc, 0 1.5px 8px 0 #1e293b',
                                 }}
@@ -367,16 +373,6 @@ const Navbar = () => {
                                             zIndex: 2,
                                         }}
                                     />
-                                    <style>{`
-                                        @keyframes smokeMove {
-                                            0% { background-position: 0% 0%, 100% 100%; }
-                                            100% { background-position: 100% 100%, 0% 0%; }
-                                        }
-                                        @keyframes smokeMove2 {
-                                            0% { background-position: 100% 0%, 0% 100%; }
-                                            100% { background-position: 0% 100%, 100% 0%; }
-                                        }
-                                    `}</style>
                                 </div>
                                 <img
                                     src={logo}
@@ -395,7 +391,7 @@ const Navbar = () => {
                                 />
                             </div>
                             <h1
-                                className="text-white font-extrabold text-xl sm:text-2xl lg:text-3xl bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-wide text-shadow navbar-brand"
+                                className="text-white font-extrabold text-lg sm:text-xl md:text-2xl lg:text-3xl bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-wide text-shadow navbar-brand"
                                 style={{
                                     letterSpacing: '0.04em',
                                     textShadow: '0 2px 12px #1e293b',
@@ -412,7 +408,7 @@ const Navbar = () => {
                                     <button
                                         key={item.name}
                                         onClick={() => handleLinkClick(item.name)}
-                                        className={`nav-link flex items-center gap-2 px-3 xl:px-4 py-2.5 rounded-xl font-medium text-sm xl:text-base transition-all duration-300 ${
+                                        className={`nav-link flex items-center gap-2 px-2 md:px-3 xl:px-4 py-2.5 rounded-xl font-medium text-sm xl:text-base transition-all duration-300 ${
                                             activeLink === item.name
                                                 ? 'active text-white'
                                                 : 'text-slate-200 hover:text-white'
@@ -434,17 +430,17 @@ const Navbar = () => {
                         </div>
 
                         {/* Right Side Actions */}
-                        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                        <div className="flex items-center gap-1 sm:gap-2 md:gap-3 flex-shrink-0">
                             {isAuthenticated ? (
                                 <div className="relative" ref={userRef}>
                                     <button
                                         onClick={() => setIsUserOpen((v) => !v)}
-                                        className="flex items-center gap-2 sm:gap-3 glass-effect px-2 sm:px-4 py-2 rounded-full hover:bg-white/10 transition-all duration-300 group"
+                                        className="flex items-center gap-2 sm:gap-3 glass-effect px-2 sm:px-3 md:px-4 py-2 rounded-full hover:bg-white/10 transition-all duration-300 group"
                                     >
                                         <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center shadow-lg">
                                             <User className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                                         </div>
-                                        <span className="hidden sm:block text-white font-medium text-sm">
+                                        <span className="hidden sm:block text-white font-medium text-xs sm:text-sm">
                                             {isMember ? 'Member' : 'Admin'}
                                         </span>
                                         <ChevronDown
@@ -453,7 +449,7 @@ const Navbar = () => {
                                     </button>
                                     {/* User Dropdown */}
                                     {isUserOpen && (
-                                        <div className="absolute right-0 mt-3 w-64 sm:w-72 rounded-2xl bg-slate-900/90 backdrop-blur-lg border border-white/20 shadow-2xl overflow-hidden z-50">
+                                        <div className="absolute right-0 mt-3 w-56 sm:w-64 md:w-72 rounded-2xl bg-slate-900/90 backdrop-blur-lg border border-white/20 shadow-2xl overflow-hidden z-50">
                                             <div className="py-2">
                                                 <button
                                                     onClick={handleDashboardClick}
@@ -465,15 +461,6 @@ const Navbar = () => {
                                                             ? 'Member Dashboard'
                                                             : 'Admin Dashboard'}
                                                     </span>
-                                                </button>
-                                                <button
-                                                    onClick={() => {
-                                                        navigate('/show')
-                                                    }}
-                                                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-all duration-300 text-white group"
-                                                >
-                                                    <LayoutDashboard className="h-5 w-5 text-cyan-400 group-hover:scale-110 transition-transform" />
-                                                    <span>Show</span>
                                                 </button>
                                                 <button
                                                     onClick={handleQRScannerClick}
@@ -495,10 +482,27 @@ const Navbar = () => {
                                         </div>
                                     )}
                                 </div>
-                            ) : null}
+                            ) : (
+                                <div className="hidden sm:flex gap-1 sm:gap-2 items-center">
+                                    <button
+                                        onClick={handleAlreadyMember}
+                                        className="flex items-center justify-center gap-2 px-3 py-2 border border-cyan-600/50 rounded-xl text-cyan-200 font-semibold bg-transparent hover:bg-cyan-800/40 hover:text-white transition-all duration-300 shadow-none text-xs sm:text-sm"
+                                    >
+                                        <LogIn className="h-4 w-4" />
+                                        <span>Already a member</span>
+                                    </button>
+                                    <button
+                                        onClick={handleJoinClub}
+                                        className="flex items-center justify-center gap-2 px-3 py-2 border border-cyan-600/50 rounded-xl text-cyan-200 font-semibold bg-transparent hover:bg-cyan-800/40 hover:text-white transition-all duration-300 shadow-none text-xs sm:text-sm"
+                                    >
+                                        <UserPlus className="h-4 w-4" />
+                                        <span>Join Club</span>
+                                    </button>
+                                </div>
+                            )}
                             <button
                                 ref={menuButtonRef}
-                                className="lg:hidden p-3 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                                className="lg:hidden p-2 sm:p-3 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                                 onClick={() => setIsOpen(true)}
                                 aria-label="Open menu"
                                 style={{ zIndex: 60 }}
@@ -521,7 +525,7 @@ const Navbar = () => {
                     {/* Drawer */}
                     <div
                         ref={drawerRef}
-                        className="fixed top-0 left-0 h-[100dvh] w-80 max-w-[85%] bg-cyan-900/95 backdrop-blur-lg border-r border-white/20 shadow-2xl overflow-hidden z-[100] drawer-open"
+                        className="fixed top-0 left-0 h-[100dvh] w-72 max-w-[90vw] bg-cyan-900/95 backdrop-blur-lg border-r border-white/20 shadow-2xl overflow-hidden z-[100] drawer-open"
                     >
                         <div className="h-full flex flex-col">
                             {/* Header */}
@@ -530,7 +534,7 @@ const Navbar = () => {
                                     <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center text-white shadow-lg">
                                         <LayoutDashboard size={22} />
                                     </div>
-                                    <h1 className="text-white font-bold text-xl bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                                    <h1 className="text-white font-bold text-lg sm:text-xl bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
                                         Vibranta
                                     </h1>
                                 </div>
@@ -543,7 +547,7 @@ const Navbar = () => {
                                 </button>
                             </div>
                             {/* Navigation */}
-                            <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
+                            <div className="flex-1 overflow-y-auto p-3 sm:p-6 custom-scrollbar">
                                 <div className="space-y-6">
                                     {navSections.map((section, idx) => (
                                         <div key={section.title || idx}>
@@ -552,14 +556,14 @@ const Navbar = () => {
                                                     <button
                                                         key={item.name}
                                                         onClick={() => handleLinkClick(item.name)}
-                                                        className={`mobile-nav-item w-full flex items-center gap-4 p-4 rounded-xl text-left transition-all duration-300 ${
+                                                        className={`mobile-nav-item w-full flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl text-left transition-all duration-300 ${
                                                             activeLink === item.name
                                                                 ? 'active text-white'
                                                                 : 'text-slate-300 hover:text-white'
                                                         }`}
                                                     >
                                                         <div
-                                                            className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 ${
+                                                            className={`w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center transition-all duration-300 ${
                                                                 activeLink === item.name
                                                                     ? 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/30'
                                                                     : 'bg-white/5 border border-white/10'
@@ -586,17 +590,17 @@ const Navbar = () => {
                             </div>
                             {/* Auth Section for Mobile */}
                             {!isAuthenticated && (
-                                <div className="p-4 sm:p-6 border-t border-white/10 space-y-3">
+                                <div className="p-4 sm:p-6 border-t border-white/10 space-y-3 bg-gradient-to-r from-cyan-900/40 to-purple-900/40">
                                     <button
                                         onClick={handleAlreadyMember}
-                                        className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-slate-600/50 rounded-xl text-white font-medium hover:bg-slate-800/50 transition-all duration-300"
+                                        className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-cyan-600/50 rounded-xl text-cyan-200 font-semibold bg-[#0a1120]/80 hover:bg-cyan-800/40 hover:text-white transition-all duration-300 shadow text-sm"
                                     >
                                         <LogIn className="h-4 w-4" />
                                         <span>Already a member</span>
                                     </button>
                                     <button
                                         onClick={handleJoinClub}
-                                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-cyan-500 to-purple-600 text-white rounded-xl font-medium hover:from-cyan-600 hover:to-purple-700 transition-all duration-300"
+                                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-cyan-500 to-purple-600 text-white rounded-xl font-semibold hover:from-cyan-600 hover:to-purple-700 transition-all duration-300 shadow text-sm"
                                     >
                                         <UserPlus className="h-4 w-4" />
                                         <span>Join Club</span>
