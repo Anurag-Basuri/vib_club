@@ -26,63 +26,83 @@ const AppRoutes = () => {
             <Route path="/event" element={<Event />} />
             <Route path="/team" element={<Team />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/show" element={<Show />} />
             <Route path="/socials" element={<Socials />} />
             <Route path="/policy/cookie" element={<Cookie />} />
             <Route path="/policy/privacy" element={<Privacy />} />
             <Route path="/policy/terms" element={<Terms />} />
             <Route path="/policy/refund" element={<Refund />} />
 
-            {/* Auth routes - redirect if already authenticated */}
-            <Route 
-                path="/auth" 
+            {/* Auth routes */}
+            <Route
+                path="/auth"
                 element={
                     <PublicRoute>
                         <AuthPage />
                     </PublicRoute>
-                } 
+                }
             />
-            <Route 
-                path="/admin/auth" 
+            <Route
+                path="/admin/auth"
                 element={
                     <PublicRoute>
                         <AdminAuth />
                     </PublicRoute>
-                } 
+                }
             />
 
-            {/* Protected member routes */}
-            <Route 
-                path="/member/dashboard" 
+            {/* Member protected routes */}
+            <Route
+                path="/member/dashboard"
                 element={
-                    <ProtectedRoute requireAuth={true}>
+                    <ProtectedRoute requireAuth>
                         <MemberDashboard />
                     </ProtectedRoute>
-                } 
+                }
             />
 
-            {/* Protected admin routes */}
-            <Route 
-                path="/admin/dashboard" 
+            {/* Admin protected routes */}
+            <Route
+                path="/admin/dashboard"
                 element={
-                    <ProtectedRoute requireAuth={true} adminOnly={true}>
+                    <ProtectedRoute requireAuth adminOnly>
                         <AdminDash />
                     </ProtectedRoute>
-                } 
+                }
             />
 
-            {/* QR Scanner - accessible to both authenticated users */}
-            <Route 
-                path="/vib/qrscanner" 
+            {/* Shared protected routes */}
+            <Route
+                path="/vib/qrscanner"
                 element={
-                    <ProtectedRoute requireAuth={true}>
+                    <ProtectedRoute requireAuth>
                         <QrScanner />
                     </ProtectedRoute>
-                } 
+                }
+            />
+            <Route
+                path="/show"
+                element={
+                    <ProtectedRoute requireAuth>
+                        <Show />
+                    </ProtectedRoute>
+                }
             />
 
-            {/* Catch all route */}
-            <Route path="*" element={<div>404 - Page Not Found</div>} />
+            {/* 404 fallback */}
+            <Route path="*" element={
+                <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '80vh',
+                    fontSize: '1.5rem',
+                    color: '#888'
+                }}>
+                    <h1>404</h1>
+                    <p>Sorry, the page you are looking for does not exist.</p>
+                </div>
+            } />
         </Routes>
     );
 };
