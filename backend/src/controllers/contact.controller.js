@@ -120,4 +120,30 @@ const markContactAsResolved = asyncHandler(async (req, res) => {
         );
 });
 
-export { sendContact, getAllContacts, getContactById, markContactAsResolved };
+const deleteContact = asyncHandler(async (req, res) => {
+    const contactId = req.params.id;
+
+    // Validate contact ID
+    if (!contactId) {
+        throw ApiError.badRequest('Contact ID is required');
+    }
+
+    // Delete contact
+    const contact = await Contact.findByIdAndDelete(contactId);
+    if (!contact) {
+        throw ApiError.notFound('Contact not found');
+    }
+
+    // Send success response
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                null,
+                'Contact deleted successfully'
+            )
+        );
+})
+
+export { sendContact, getAllContacts, getContactById, markContactAsResolved, deleteContact };

@@ -1,6 +1,10 @@
 import { Router } from 'express';
 import {
-    sendContact, getAllContacts, getContactById, markContactAsResolved
+    sendContact,
+    getAllContacts,
+    getContactById,
+    markContactAsResolved,
+    deleteContact
 } from '../controllers/contact.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { validate } from '../middlewares/validator.middleware.js';
@@ -53,11 +57,10 @@ router.patch(
     markContactAsResolved
 );
 
-// router.delete(
-//     '/:id',
-//     authMiddleware.verifyToken,
-//     authMiddleware.isAdmin,
-//     deleteContact
-// );
+router.delete(
+    '/:id',
+    authMiddleware.verifyToken,
+    deleteContact
+);
 
 export default router;
