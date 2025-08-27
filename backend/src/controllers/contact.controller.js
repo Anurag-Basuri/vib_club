@@ -34,21 +34,17 @@ const sendContact = asyncHandler(async (req, res) => {
 });
 
 const getAllContacts = asyncHandler(async (req, res) => {
-    // Fetch all contacts
+    // Fetch all contacts, most recent first
     const contacts = await Contact.find().sort({ createdAt: -1 });
-    
-    if (!contacts || contacts.length === 0) {
-        throw ApiError.notFound('No contacts found');
-    }
 
-    // Send success response
+    // Send success response (empty array is valid)
     return res
         .status(200)
         .json(
             new ApiResponse(
                 200,
                 contacts,
-                'Contacts retrieved successfully'
+                contacts.length > 0 ? 'Contacts retrieved successfully' : 'No contacts found'
             )
         );
 });
