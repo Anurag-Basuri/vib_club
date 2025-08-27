@@ -6,7 +6,7 @@ import {
 } from '../hooks/useContact.js';
 
 const ShowContacts = () => {
-	const { getAllContacts, contacts, loading, error, reset } = useGetAllContacts();
+	const { getAllContacts, loading, error, reset } = useGetAllContacts();
 	const {
 		getContactById,
 		contact: selectedContact,
@@ -21,38 +21,36 @@ const ShowContacts = () => {
 		reset: resetResolve,
 	} = useMarkContactAsResolved();
 
+	const [contacts, setContacts] = useState([]);
+	const [page, setPage] = useState(1);
+	const [limit] = useState(10);
+	const [totalPages, setTotalPages] = useState(1);
+	const [totalDocs, setTotalDocs] = useState(0);
+
 	const [expandedId, setExpandedId] = useState(null);
 	const [searchTerm, setSearchTerm] = useState('');
-	const [statusFilter, setStatusFilter] = useState('pending');
+	const [statusFilter, setStatusFilter] = useState('all');
 	const [showExportOptions, setShowExportOptions] = useState(false);
 	const [exportType, setExportType] = useState('current');
 	const [exportFormat, setExportFormat] = useState('csv');
-	const [localContacts, setLocalContacts] = useState([]);
 	const [copiedEmail, setCopiedEmail] = useState(null);
 
-	// Track if initial fetch is done
-	const initialFetchDone = useRef(false);
+	// Fetch contacts for current page
+	const fetchContacts = async (pageNum = 1) => {
+		const data = await getAllContacts({ page: pageNum, limit });
+		const docs = data?.data?.docs || [];
+		setContacts(docs);
+		setTotalPages(data?.data?.totalPages || 1);
+		setTotalDocs(data?.data?.totalDocs || 0);
+	};
 
-	// Fetch contacts only once on mount
 	useEffect(() => {
-		getAllContacts();
+		fetchContacts(page);
 		// eslint-disable-next-line
-	}, []);
+	}, [page]);
 
-	// Set localContacts only on first fetch or manual refresh
-	useEffect(() => {
-		if (!initialFetchDone.current && contacts.length) {
-			setLocalContacts(contacts);
-			initialFetchDone.current = true;
-		}
-	}, [contacts]);
-
-	// Manual refresh if needed
 	const handleRefresh = async () => {
-		const data = await getAllContacts();
-		if (data?.data?.docs) {
-			setLocalContacts(data.data.docs);
-		}
+		await fetchContacts(page);
 	};
 
 	const handleExpand = async (id) => {
@@ -67,9 +65,7 @@ const ShowContacts = () => {
 
 	const handleResolve = async (id) => {
 		await markAsResolved(id);
-		setLocalContacts((prev) =>
-			prev.map((c) => (c._id === id ? { ...c, status: 'resolved' } : c))
-		);
+		setContacts((prev) => prev.map((c) => (c._id === id ? { ...c, status: 'resolved' } : c)));
 	};
 
 	const handleCopyEmail = (email) => {
@@ -78,7 +74,7 @@ const ShowContacts = () => {
 		setTimeout(() => setCopiedEmail(null), 2000);
 	};
 
-	const filteredContacts = localContacts
+	const filteredContacts = contacts
 		.filter(
 			(c) =>
 				c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -91,8 +87,6 @@ const ShowContacts = () => {
 		switch (status) {
 			case 'resolved':
 				return 'bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/30';
-			case 'closed':
-				return 'bg-rose-500/20 text-rose-300 ring-1 ring-rose-500/30';
 			case 'pending':
 			default:
 				return 'bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/30';
@@ -178,7 +172,6 @@ const ShowContacts = () => {
 								className="text-gray-400 hover:text-white transition-colors"
 								aria-label="Close"
 							>
-								{/* X Mark Icon */}
 								<svg
 									className="w-6 h-6"
 									fill="none"
@@ -250,7 +243,6 @@ const ShowContacts = () => {
 									onClick={exportData}
 									className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg flex items-center transition-colors shadow-lg shadow-cyan-500/30"
 								>
-									{/* Download Icon */}
 									<svg
 										className="w-5 h-5 mr-2"
 										fill="none"
@@ -285,7 +277,6 @@ const ShowContacts = () => {
 							onClick={() => setShowExportOptions(true)}
 							className="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-lg flex items-center shadow-lg shadow-blue-500/20 transition-all hover:shadow-blue-500/40"
 						>
-							{/* Download Icon */}
 							<svg
 								className="w-5 h-5 mr-2"
 								fill="none"
@@ -307,7 +298,6 @@ const ShowContacts = () => {
 							disabled={loading}
 						>
 							{loading ? (
-								// Spinner
 								<svg
 									className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
 									xmlns="http://www.w3.org/2000/svg"
@@ -329,7 +319,6 @@ const ShowContacts = () => {
 									></path>
 								</svg>
 							) : (
-								// Refresh Icon
 								<svg
 									className="w-4 h-4 mr-1"
 									fill="none"
@@ -354,28 +343,17 @@ const ShowContacts = () => {
 								onChange={(e) => setSearchTerm(e.target.value)}
 								className="bg-gray-800/50 backdrop-blur-lg rounded-xl py-2 pl-10 pr-4 text-white border border-gray-700 focus:border-cyan-500 focus:outline-none w-52 shadow-lg shadow-cyan-500/10 transition-colors"
 							/>
-							{/* Magnifier Icon */}
 							<svg
 								className="w-5 h-5 text-gray-400 absolute left-3 top-2.5"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
 							>
-								<circle
-									cx="11"
-									cy="11"
-									r="7"
-									stroke="currentColor"
-									strokeWidth="2"
-								/>
-								<line
-									x1="16.5"
-									y1="16.5"
-									x2="21"
-									y2="21"
-									stroke="currentColor"
-									strokeWidth="2"
+								<path
 									strokeLinecap="round"
+									strokeLinejoin="round"
+									strokeWidth={2}
+									d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
 								/>
 							</svg>
 						</div>
@@ -388,12 +366,34 @@ const ShowContacts = () => {
 						<div className="bg-gray-800/50 backdrop-blur-lg rounded-2xl p-6 border border-gray-700 shadow-xl sticky top-4">
 							<div className="flex justify-between items-center mb-4">
 								<h3 className="text-lg font-semibold text-white">Filters</h3>
+								<button
+									onClick={() => {
+										setSearchTerm('');
+										setStatusFilter('all');
+									}}
+									className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors flex items-center"
+								>
+									<svg
+										className="w-4 h-4 mr-1"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											strokeWidth="2"
+											d="M19 9l-7 7-7-7"
+										></path>
+									</svg>
+									Clear filters
+								</button>
 							</div>
 
 							<div className="mb-6">
 								<label className="block text-gray-300 mb-2">Status</label>
 								<div className="space-y-2">
-									{['all', 'pending', 'resolved', 'closed'].map((status) => (
+									{['all', 'pending', 'resolved'].map((status) => (
 										<div key={status} className="flex items-center group">
 											<input
 												type="radio"
@@ -419,7 +419,7 @@ const ShowContacts = () => {
 								<div className="flex items-center justify-between mb-2">
 									<span className="text-gray-300">Total Contacts</span>
 									<span className="text-white font-medium bg-gray-700/50 px-2 py-1 rounded-md">
-										{contacts.length}
+										{totalDocs}
 									</span>
 								</div>
 								<div className="flex items-center justify-between mb-2">
@@ -450,7 +450,6 @@ const ShowContacts = () => {
 						{error && (
 							<div className="bg-red-900/30 backdrop-blur-lg rounded-2xl p-6 border border-red-700 shadow-xl">
 								<div className="flex items-center text-red-300">
-									{/* Exclamation Triangle Icon */}
 									<svg
 										className="w-6 h-6 mr-2"
 										fill="none"
@@ -472,7 +471,6 @@ const ShowContacts = () => {
 									onClick={reset}
 									className="mt-4 px-4 py-2 bg-red-700/50 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center"
 								>
-									{/* Refresh Icon */}
 									<svg
 										className="w-5 h-5 mr-2"
 										fill="none"
@@ -496,33 +494,18 @@ const ShowContacts = () => {
 								{filteredContacts.length === 0 ? (
 									<div className="bg-gray-800/50 backdrop-blur-lg rounded-2xl p-8 border border-gray-700 shadow-xl text-center">
 										<div className="flex justify-center mb-4">
-											{/* Inbox Icon */}
 											<svg
 												className="w-16 h-16 text-gray-500"
 												fill="none"
 												stroke="currentColor"
 												viewBox="0 0 24 24"
 											>
-												<rect
-													x="3"
-													y="7"
-													width="18"
-													height="13"
-													rx="2"
-													strokeWidth="2"
-												/>
 												<path
 													strokeLinecap="round"
 													strokeLinejoin="round"
 													strokeWidth="2"
-													d="M16 3H8a2 2 0 00-2 2v2h12V5a2 2 0 00-2-2z"
-												/>
-												<path
-													strokeLinecap="round"
-													strokeLinejoin="round"
-													strokeWidth="2"
-													d="M3 7l9 6 9-6"
-												/>
+													d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+												></path>
 											</svg>
 										</div>
 										<h3 className="text-xl font-medium text-gray-300 mb-2">
@@ -570,7 +553,6 @@ const ShowContacts = () => {
 																</h3>
 																{contact.status === 'pending' && (
 																	<span className="ml-2 px-2 py-0.5 bg-cyan-500 text-white text-xs rounded-full animate-pulse flex items-center">
-																		{/* Bell Icon */}
 																		<svg
 																			className="w-3 h-3 mr-1"
 																			fill="none"
@@ -590,26 +572,17 @@ const ShowContacts = () => {
 															</div>
 															<div className="flex items-center mt-1 text-sm">
 																<span className="text-gray-400 truncate flex items-center">
-																	{/* Mail Icon */}
 																	<svg
 																		className="w-4 h-4 mr-1"
 																		fill="none"
 																		stroke="currentColor"
 																		viewBox="0 0 24 24"
 																	>
-																		<rect
-																			x="3"
-																			y="7"
-																			width="18"
-																			height="13"
-																			rx="2"
-																			strokeWidth="2"
-																		/>
 																		<path
 																			strokeLinecap="round"
 																			strokeLinejoin="round"
 																			strokeWidth="2"
-																			d="M3 7l9 6 9-6"
+																			d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
 																		/>
 																	</svg>
 																	{contact.email}
@@ -618,7 +591,6 @@ const ShowContacts = () => {
 																	•
 																</span>
 																<span className="text-cyan-400 truncate flex items-center">
-																	{/* Tag Icon */}
 																	<svg
 																		className="w-4 h-4 mr-1"
 																		fill="none"
@@ -629,7 +601,7 @@ const ShowContacts = () => {
 																			strokeLinecap="round"
 																			strokeLinejoin="round"
 																			strokeWidth="2"
-																			d="M7 7h.01M7 7a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V7zm0 0l10 10"
+																			d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
 																		/>
 																	</svg>
 																	{contact.subject}
@@ -645,26 +617,17 @@ const ShowContacts = () => {
 																{contact.status}
 															</div>
 															<div className="text-xs text-gray-500 flex items-center">
-																{/* Calendar Icon */}
 																<svg
 																	className="w-4 h-4 mr-1"
 																	fill="none"
 																	stroke="currentColor"
 																	viewBox="0 0 24 24"
 																>
-																	<rect
-																		x="3"
-																		y="4"
-																		width="18"
-																		height="18"
-																		rx="2"
-																		strokeWidth="2"
-																	/>
 																	<path
 																		strokeLinecap="round"
 																		strokeLinejoin="round"
 																		strokeWidth="2"
-																		d="M16 2v4M8 2v4M3 10h18"
+																		d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
 																	/>
 																</svg>
 																{new Date(
@@ -687,24 +650,17 @@ const ShowContacts = () => {
 																<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 																	<div>
 																		<h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
-																			{/* User Icon */}
 																			<svg
 																				className="w-4 h-4 mr-1"
 																				fill="none"
 																				stroke="currentColor"
 																				viewBox="0 0 24 24"
 																			>
-																				<circle
-																					cx="12"
-																					cy="7"
-																					r="4"
-																					strokeWidth="2"
-																				/>
 																				<path
 																					strokeLinecap="round"
 																					strokeLinejoin="round"
 																					strokeWidth="2"
-																					d="M5.5 21a7.5 7.5 0 0113 0"
+																					d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
 																				/>
 																			</svg>
 																			Name
@@ -715,26 +671,17 @@ const ShowContacts = () => {
 																	</div>
 																	<div>
 																		<h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
-																			{/* Mail Icon */}
 																			<svg
 																				className="w-4 h-4 mr-1"
 																				fill="none"
 																				stroke="currentColor"
 																				viewBox="0 0 24 24"
 																			>
-																				<rect
-																					x="3"
-																					y="7"
-																					width="18"
-																					height="13"
-																					rx="2"
-																					strokeWidth="2"
-																				/>
 																				<path
 																					strokeLinecap="round"
 																					strokeLinejoin="round"
 																					strokeWidth="2"
-																					d="M3 7l9 6 9-6"
+																					d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
 																				/>
 																			</svg>
 																			Email
@@ -745,7 +692,6 @@ const ShowContacts = () => {
 																	</div>
 																	<div>
 																		<h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
-																			{/* Phone Icon */}
 																			<svg
 																				className="w-4 h-4 mr-1"
 																				fill="none"
@@ -756,7 +702,7 @@ const ShowContacts = () => {
 																					strokeLinecap="round"
 																					strokeLinejoin="round"
 																					strokeWidth="2"
-																					d="M3 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm0 10a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-2zm10-10a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zm0 10a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+																					d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
 																				/>
 																			</svg>
 																			Phone
@@ -767,26 +713,17 @@ const ShowContacts = () => {
 																	</div>
 																	<div>
 																		<h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
-																			{/* ID Card Icon */}
 																			<svg
 																				className="w-4 h-4 mr-1"
 																				fill="none"
 																				stroke="currentColor"
 																				viewBox="0 0 24 24"
 																			>
-																				<rect
-																					x="3"
-																					y="7"
-																					width="18"
-																					height="13"
-																					rx="2"
-																					strokeWidth="2"
-																				/>
 																				<path
 																					strokeLinecap="round"
 																					strokeLinejoin="round"
 																					strokeWidth="2"
-																					d="M7 10h.01M7 14h.01M11 10h2M11 14h2"
+																					d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"
 																				/>
 																			</svg>
 																			LPU ID
@@ -797,7 +734,6 @@ const ShowContacts = () => {
 																	</div>
 																	<div>
 																		<h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
-																			{/* Tag Icon */}
 																			<svg
 																				className="w-4 h-4 mr-1"
 																				fill="none"
@@ -808,7 +744,7 @@ const ShowContacts = () => {
 																					strokeLinecap="round"
 																					strokeLinejoin="round"
 																					strokeWidth="2"
-																					d="M7 7h.01M7 7a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V7zm0 0l10 10"
+																					d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
 																				/>
 																			</svg>
 																			Subject
@@ -821,7 +757,6 @@ const ShowContacts = () => {
 																	</div>
 																	<div className="md:col-span-2">
 																		<h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
-																			{/* Message Icon */}
 																			<svg
 																				className="w-4 h-4 mr-1"
 																				fill="none"
@@ -832,7 +767,7 @@ const ShowContacts = () => {
 																					strokeLinecap="round"
 																					strokeLinejoin="round"
 																					strokeWidth="2"
-																					d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z"
+																					d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
 																				/>
 																			</svg>
 																			Message
@@ -845,24 +780,17 @@ const ShowContacts = () => {
 																	</div>
 																	<div>
 																		<h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
-																			{/* Status Icon */}
 																			<svg
 																				className="w-4 h-4 mr-1"
 																				fill="none"
 																				stroke="currentColor"
 																				viewBox="0 0 24 24"
 																			>
-																				<circle
-																					cx="12"
-																					cy="12"
-																					r="10"
-																					strokeWidth="2"
-																				/>
 																				<path
 																					strokeLinecap="round"
 																					strokeLinejoin="round"
 																					strokeWidth="2"
-																					d="M12 6v6l4 2"
+																					d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
 																				/>
 																			</svg>
 																			Status
@@ -873,26 +801,17 @@ const ShowContacts = () => {
 																	</div>
 																	<div>
 																		<h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
-																			{/* Calendar Icon */}
 																			<svg
 																				className="w-4 h-4 mr-1"
 																				fill="none"
 																				stroke="currentColor"
 																				viewBox="0 0 24 24"
 																			>
-																				<rect
-																					x="3"
-																					y="4"
-																					width="18"
-																					height="18"
-																					rx="2"
-																					strokeWidth="2"
-																				/>
 																				<path
 																					strokeLinecap="round"
 																					strokeLinejoin="round"
 																					strokeWidth="2"
-																					d="M16 2v4M8 2v4M3 10h18"
+																					d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
 																				/>
 																			</svg>
 																			Created At
@@ -918,7 +837,6 @@ const ShowContacts = () => {
 																		>
 																			{resolving ? (
 																				<>
-																					{/* Spinner */}
 																					<svg
 																						className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
 																						xmlns="http://www.w3.org/2000/svg"
@@ -943,7 +861,6 @@ const ShowContacts = () => {
 																				</>
 																			) : (
 																				<>
-																					{/* Check Icon */}
 																					<svg
 																						className="w-4 h-4 mr-1"
 																						fill="none"
@@ -973,7 +890,6 @@ const ShowContacts = () => {
 																		{copiedEmail ===
 																		contact.email ? (
 																			<>
-																				{/* Check Icon */}
 																				<svg
 																					className="w-4 h-4 mr-1 text-emerald-400"
 																					fill="none"
@@ -991,28 +907,17 @@ const ShowContacts = () => {
 																			</>
 																		) : (
 																			<>
-																				{/* Copy Icon */}
 																				<svg
 																					className="w-4 h-4 mr-1"
 																					fill="none"
 																					stroke="currentColor"
 																					viewBox="0 0 24 24"
 																				>
-																					<rect
-																						x="9"
-																						y="9"
-																						width="13"
-																						height="13"
-																						rx="2"
+																					<path
+																						strokeLinecap="round"
+																						strokeLinejoin="round"
 																						strokeWidth="2"
-																					/>
-																					<rect
-																						x="3"
-																						y="3"
-																						width="13"
-																						height="13"
-																						rx="2"
-																						strokeWidth="2"
+																						d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
 																					/>
 																				</svg>
 																				Copy Email
@@ -1047,7 +952,6 @@ const ShowContacts = () => {
 																className="px-3 py-1 text-xs bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center disabled:opacity-50"
 															>
 																{resolving ? (
-																	// Spinner
 																	<svg
 																		className="animate-spin -ml-1 mr-1 h-3 w-3 text-white"
 																		xmlns="http://www.w3.org/2000/svg"
@@ -1069,7 +973,6 @@ const ShowContacts = () => {
 																		></path>
 																	</svg>
 																) : (
-																	// Check Icon
 																	<svg
 																		className="w-3 h-3 mr-1"
 																		fill="none"
@@ -1099,6 +1002,43 @@ const ShowContacts = () => {
 						)}
 					</div>
 				</div>
+
+				{/* Pagination Controls */}
+				{totalPages > 1 && (
+					<div className="flex justify-center mt-8">
+						<nav className="inline-flex rounded-md shadow-sm" aria-label="Pagination">
+							<button
+								onClick={() => setPage((p) => Math.max(1, p - 1))}
+								disabled={page === 1}
+								className={`px-3 py-2 rounded-l-md border border-gray-700 bg-gray-800 text-gray-300 hover:bg-cyan-700 hover:text-white transition ${
+									page === 1 ? 'opacity-50 cursor-not-allowed' : ''
+								}`}
+							>
+								Prev
+							</button>
+							{Array.from({ length: totalPages }, (_, i) => (
+								<button
+									key={i + 1}
+									onClick={() => setPage(i + 1)}
+									className={`px-3 py-2 border-t border-b border-gray-700 bg-gray-800 text-gray-300 hover:bg-cyan-700 hover:text-white transition ${
+										page === i + 1 ? 'bg-cyan-700 text-white font-bold' : ''
+									}`}
+								>
+									{i + 1}
+								</button>
+							))}
+							<button
+								onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+								disabled={page === totalPages}
+								className={`px-3 py-2 rounded-r-md border border-gray-700 bg-gray-800 text-gray-300 hover:bg-cyan-700 hover:text-white transition ${
+									page === totalPages ? 'opacity-50 cursor-not-allowed' : ''
+								}`}
+							>
+								Next
+							</button>
+						</nav>
+					</div>
+				)}
 			</div>
 		</div>
 	);

@@ -45,12 +45,12 @@ const useContactAction = (actionFn) => {
 export const useGetAllContacts = () => {
 	const actionFn = async (params = {}) => {
 		const res = await apiClient.get('/api/contact/getall', { params });
-		return res.data; // <-- return only the data
+		return res.data;
 	};
 	const { action: getAllContacts, data, loading, error, reset } = useContactAction(actionFn);
 
 	// Always return an array, even if data is undefined/null
-	const contacts = Array.isArray(data?.data) ? data.data : [];
+	const contacts = Array.isArray(data?.data?.docs) ? data.data.docs : [];
 
 	return {
 		getAllContacts,
