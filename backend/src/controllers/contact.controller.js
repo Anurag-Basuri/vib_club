@@ -34,16 +34,33 @@ const sendContact = asyncHandler(async (req, res) => {
 });
 
 const getAllContacts = asyncHandler(async (req, res) => {
-    // Fetch all contacts, most recent first
-    const contacts = await Contact.find();
+    // Parse pagination parameters
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const skip = (page - 1) * limit;
 
-    // Send success response (empty array is valid)
+    // Fetch total count for pagination info
+    const totalContacts = await Contact.countDocuments();
+
+    // Fetch paginated contacts, most recent first
+    const contacts = await Contact.find()
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+
+    // Send success response with pagination info
     return res
         .status(200)
         .json(
             new ApiResponse(
                 200,
-                contacts,
+                {
+                    contacts,
+                    page,
+                    limit,
+                    totalContacts,
+                    totalPages: Math.ceil(totalContacts / limit)
+                },
                 contacts.length > 0 ? 'Contacts retrieved successfully' : 'No contacts found'
             )
         );
