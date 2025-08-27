@@ -35,7 +35,7 @@ const sendContact = asyncHandler(async (req, res) => {
 
 const getAllContacts = asyncHandler(async (req, res) => {
     // Fetch all contacts, most recent first
-    const contacts = await Contact.find().sort({ createdAt: -1 });
+    const contacts = await Contact.find();
 
     // Send success response (empty array is valid)
     return res
