@@ -94,3 +94,19 @@ export const useMarkContactAsResolved = () => {
 
 	return { markAsResolved, updated: updated?.data, loading, error, reset };
 };
+
+export const useDeleteContact = () => {
+	const actionFn = async (id) => {
+		const res = await apiClient.delete(`/api/contact/${id}`);
+		return res.data;
+	};
+	const {
+		action: deleteContact,
+		data: deleted,
+		loading,
+		error,
+		reset,
+	} = useContactAction(actionFn);
+
+	return { deleteContact, deleted: deleted?.data, loading, error, reset };
+};

@@ -1,8 +1,9 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import {
 	useGetAllContacts,
 	useGetContactById,
 	useMarkContactAsResolved,
+	useDeleteContact,
 } from '../hooks/useContact.js';
 
 const ShowContacts = () => {
@@ -20,6 +21,12 @@ const ShowContacts = () => {
 		error: errorResolve,
 		reset: resetResolve,
 	} = useMarkContactAsResolved();
+	const {
+		deleteContact,
+		loading: deleting,
+		error: errorDelete,
+		reset: resetDelete,
+	} = useDeleteContact();
 
 	const [contacts, setContacts] = useState([]);
 	const [page, setPage] = useState(1);
@@ -73,6 +80,22 @@ const ShowContacts = () => {
 		setCopiedEmail(email);
 		setTimeout(() => setCopiedEmail(null), 2000);
 	};
+
+	const handleDelete = async (id) => {
+        if (!window.confirm('Are you sure you want to delete this contact?')) return;
+        try {
+            await deleteContact(id);
+            // If last item on page, go to previous page if not on first
+            if (contacts.length === 1 && page > 1) {
+                setPage(page - 1);
+            } else {
+                await fetchContacts(page);
+            }
+            if (expandedId === id) setExpandedId(null);
+        } catch (e) {
+            alert('Failed to delete contact. Please try again.');
+        }
+    };
 
 	const filteredContacts = contacts
 		.filter(
@@ -723,17 +746,9 @@ const ShowContacts = () => {
 																					strokeLinecap="round"
 																					strokeLinejoin="round"
 																					strokeWidth="2"
-																					d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"
-																				/>
+																					d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0"
+																			/>
 																			</svg>
-																			LPU ID
-																		</h4>
-																		<p className="text-gray-300 text-sm">
-																			{selectedContact.lpuID}
-																		</p>
-																	</div>
-																	<div>
-																		<h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
 																			<svg
 																				className="w-4 h-4 mr-1"
 																				fill="none"
@@ -745,7 +760,7 @@ const ShowContacts = () => {
 																					strokeLinejoin="round"
 																					strokeWidth="2"
 																					d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-																				/>
+																			/>
 																			</svg>
 																			Subject
 																		</h4>
@@ -942,56 +957,13 @@ const ShowContacts = () => {
 														ID: {contact._id}
 													</div>
 													<div>
-														{contact.status === 'pending' && (
-															<button
-																onClick={(e) => {
-																	e.stopPropagation();
-																	handleResolve(contact._id);
-																}}
-																disabled={resolving}
-																className="px-3 py-1 text-xs bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center disabled:opacity-50"
-															>
-																{resolving ? (
-																	<svg
-																		className="animate-spin -ml-1 mr-1 h-3 w-3 text-white"
-																		xmlns="http://www.w3.org/2000/svg"
-																		fill="none"
-																		viewBox="0 0 24 24"
-																	>
-																		<circle
-																			className="opacity-25"
-																			cx="12"
-																			cy="12"
-																			r="10"
-																			stroke="currentColor"
-																			strokeWidth="4"
-																		></circle>
-																		<path
-																			className="opacity-75"
-																			fill="currentColor"
-																			d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-																		></path>
-																	</svg>
-																) : (
-																	<svg
-																		className="w-3 h-3 mr-1"
-																		fill="none"
-																		stroke="currentColor"
-																		viewBox="0 0 24 24"
-																	>
-																		<path
-																			strokeLinecap="round"
-																			strokeLinejoin="round"
-																			strokeWidth="2"
-																			d="M5 13l4 4L19 7"
-																		></path>
-																	</svg>
-																)}
-																{resolving
-																	? 'Processing...'
-																	: 'Resolve'}
-															</button>
-														)}
+														{/*Give a delete button here*/}
+														<button
+															onClick={() => handleDelete(contact._id)}
+															className="px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+														>
+															Delete
+														</button>
 													</div>
 												</div>
 											</div>
