@@ -7,6 +7,7 @@ import {
 
 const ShowContacts = () => {
 	const { getAllContacts, contacts, loading, error, reset } = useGetAllContacts();
+	console.log("contacts: ", contacts);
 	const {
 		getContactById,
 		contact: selectedContact,
@@ -23,7 +24,7 @@ const ShowContacts = () => {
 
 	const [expandedId, setExpandedId] = useState(null);
 	const [searchTerm, setSearchTerm] = useState('');
-	const [statusFilter, setStatusFilter] = useState('all');
+	const [statusFilter, setStatusFilter] = useState('pending');
 	const [showExportOptions, setShowExportOptions] = useState(false);
 	const [exportType, setExportType] = useState('current');
 	const [exportFormat, setExportFormat] = useState('csv');
@@ -375,12 +376,6 @@ const ShowContacts = () => {
 									<span className="text-gray-300">Resolved</span>
 									<span className="text-emerald-400 font-medium">
 										{contacts.filter((c) => c.status === 'resolved').length}
-									</span>
-								</div>
-								<div className="flex items-center justify-between mt-2">
-									<span className="text-gray-300">Closed</span>
-									<span className="text-rose-400 font-medium">
-										{contacts.filter((c) => c.status === 'closed').length}
 									</span>
 								</div>
 							</div>
