@@ -48,7 +48,6 @@ router.post(
 router.get(
     "/applications",
     authMiddleware.verifyToken,
-    authMiddleware.isAdmin,
     getAllApplications
 );
 
@@ -56,7 +55,6 @@ router.get(
 router.get(
     "/applications/:id",
     authMiddleware.verifyToken,
-    authMiddleware.isAdmin,
     validate([
         param("id")
             .isMongoId()
@@ -69,7 +67,6 @@ router.get(
 router.patch(
     "/applications/:id/status",
     authMiddleware.verifyToken,
-    authMiddleware.isAdmin,
     validate([
         param("id")
             .isMongoId()
@@ -85,7 +82,6 @@ router.patch(
 router.patch(
   "/applications/:id/seen",
   authMiddleware.verifyToken,
-  authMiddleware.isAdmin,
   validate([param("id").isMongoId().withMessage("Invalid application ID")]),
   markApplicationAsSeen
 );
@@ -94,7 +90,6 @@ router.patch(
 router.delete(
     "/applications/:id/delete",
     authMiddleware.verifyToken,
-    authMiddleware.isAdmin,
     validate([
         param("id")
             .isMongoId()

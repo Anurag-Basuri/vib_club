@@ -463,6 +463,15 @@ const Navbar = () => {
                                                     </span>
                                                 </button>
                                                 <button
+                                                    onClick={() => {
+                                                        navigate('/show');
+                                                    }}
+                                                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-all duration-300 text-white group"
+                                                >
+                                                    <QrCode className="h-5 w-5 text-cyan-400 group-hover:scale-110 transition-transform" />
+                                                    <span>Show</span>
+                                                </button>
+                                                <button
                                                     onClick={handleQRScannerClick}
                                                     className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/5 transition-all duration-300 text-white group"
                                                 >
