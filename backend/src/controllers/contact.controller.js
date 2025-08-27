@@ -49,21 +49,19 @@ const getAllContacts = asyncHandler(async (req, res) => {
         .limit(limit);
 
     // Send success response with pagination info
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(
-                200,
-                {
-                    contacts,
-                    page,
-                    limit,
-                    totalContacts,
-                    totalPages: Math.ceil(totalContacts / limit)
-                },
-                contacts.length > 0 ? 'Contacts retrieved successfully' : 'No contacts found'
-            )
-        );
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            {
+                docs: contacts, // <-- Use 'docs' for consistency with frontend expectations
+                page,
+                limit,
+                totalDocs: totalContacts,
+                totalPages: Math.ceil(totalContacts / limit)
+            },
+            contacts.length > 0 ? 'Contacts retrieved successfully' : 'No contacts found'
+        )
+    );
 });
 
 const getContactById = asyncHandler(async (req, res) => {

@@ -7,7 +7,6 @@ import {
 
 const ShowContacts = () => {
 	const { getAllContacts, contacts, loading, error, reset } = useGetAllContacts();
-	console.log("contacts: ", contacts);
 	const {
 		getContactById,
 		contact: selectedContact,
@@ -29,6 +28,7 @@ const ShowContacts = () => {
 	const [exportType, setExportType] = useState('current');
 	const [exportFormat, setExportFormat] = useState('csv');
 	const [localContacts, setLocalContacts] = useState([]);
+	const [copiedEmail, setCopiedEmail] = useState(null);
 
 	// Track if initial fetch is done
 	const initialFetchDone = useRef(false);
@@ -72,6 +72,12 @@ const ShowContacts = () => {
 		);
 	};
 
+	const handleCopyEmail = (email) => {
+		navigator.clipboard.writeText(email);
+		setCopiedEmail(email);
+		setTimeout(() => setCopiedEmail(null), 2000);
+	};
+
 	const filteredContacts = localContacts
 		.filter(
 			(c) =>
@@ -84,12 +90,12 @@ const ShowContacts = () => {
 	const getStatusColor = (status) => {
 		switch (status) {
 			case 'resolved':
-				return 'bg-emerald-500/20 text-emerald-300';
+				return 'bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/30';
 			case 'closed':
-				return 'bg-rose-500/20 text-rose-300';
+				return 'bg-rose-500/20 text-rose-300 ring-1 ring-rose-500/30';
 			case 'pending':
 			default:
-				return 'bg-amber-500/20 text-amber-300';
+				return 'bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/30';
 		}
 	};
 
@@ -169,8 +175,10 @@ const ShowContacts = () => {
 							<h3 className="text-xl font-bold text-cyan-300">Export Options</h3>
 							<button
 								onClick={() => setShowExportOptions(false)}
-								className="text-gray-400 hover:text-white"
+								className="text-gray-400 hover:text-white transition-colors"
+								aria-label="Close"
 							>
+								{/* X Mark Icon */}
 								<svg
 									className="w-6 h-6"
 									fill="none"
@@ -197,7 +205,7 @@ const ShowContacts = () => {
 											onClick={() => setExportType(type)}
 											className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
 												exportType === type
-													? 'bg-cyan-600 text-white'
+													? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/30'
 													: 'bg-gray-700/50 text-gray-300 hover:bg-gray-700'
 											}`}
 										>
@@ -205,6 +213,11 @@ const ShowContacts = () => {
 										</button>
 									))}
 								</div>
+								<p className="text-xs text-gray-400 mt-1">
+									{exportType === 'current'
+										? `Exporting ${filteredContacts.length} filtered contacts`
+										: `Exporting all ${contacts.length} contacts`}
+								</p>
 							</div>
 
 							<div>
@@ -216,7 +229,7 @@ const ShowContacts = () => {
 											onClick={() => setExportFormat(format)}
 											className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
 												exportFormat === format
-													? 'bg-cyan-600 text-white'
+													? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/30'
 													: 'bg-gray-700/50 text-gray-300 hover:bg-gray-700'
 											}`}
 										>
@@ -229,14 +242,15 @@ const ShowContacts = () => {
 							<div className="pt-4 flex justify-end gap-3">
 								<button
 									onClick={() => setShowExportOptions(false)}
-									className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg"
+									className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg transition-colors"
 								>
 									Cancel
 								</button>
 								<button
 									onClick={exportData}
-									className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg flex items-center"
+									className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg flex items-center transition-colors shadow-lg shadow-cyan-500/30"
 								>
+									{/* Download Icon */}
 									<svg
 										className="w-5 h-5 mr-2"
 										fill="none"
@@ -269,8 +283,9 @@ const ShowContacts = () => {
 					<div className="mt-4 md:mt-0 flex items-center space-x-3">
 						<button
 							onClick={() => setShowExportOptions(true)}
-							className="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-lg flex items-center shadow-lg shadow-blue-500/20"
+							className="px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-lg flex items-center shadow-lg shadow-blue-500/20 transition-all hover:shadow-blue-500/40"
 						>
+							{/* Download Icon */}
 							<svg
 								className="w-5 h-5 mr-2"
 								fill="none"
@@ -288,9 +303,48 @@ const ShowContacts = () => {
 						</button>
 						<button
 							onClick={handleRefresh}
-							className="px-4 py-2 bg-cyan-700 hover:bg-cyan-800 text-white rounded-lg text-sm"
+							className="px-4 py-2 bg-cyan-700 hover:bg-cyan-800 text-white rounded-lg text-sm transition-colors flex items-center"
+							disabled={loading}
 						>
-							Refresh
+							{loading ? (
+								// Spinner
+								<svg
+									className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+									xmlns="http://www.w3.org/2000/svg"
+									fill="none"
+									viewBox="0 0 24 24"
+								>
+									<circle
+										className="opacity-25"
+										cx="12"
+										cy="12"
+										r="10"
+										stroke="currentColor"
+										strokeWidth="4"
+									></circle>
+									<path
+										className="opacity-75"
+										fill="currentColor"
+										d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+									></path>
+								</svg>
+							) : (
+								// Refresh Icon
+								<svg
+									className="w-4 h-4 mr-1"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth="2"
+										d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+									></path>
+								</svg>
+							)}
+							{loading ? 'Refreshing...' : 'Refresh'}
 						</button>
 						<div className="relative">
 							<input
@@ -298,19 +352,30 @@ const ShowContacts = () => {
 								placeholder="Search contacts..."
 								value={searchTerm}
 								onChange={(e) => setSearchTerm(e.target.value)}
-								className="bg-gray-800/50 backdrop-blur-lg rounded-xl py-2 pl-10 pr-4 text-white border border-gray-700 focus:border-cyan-500 focus:outline-none w-52 shadow-lg shadow-cyan-500/10"
+								className="bg-gray-800/50 backdrop-blur-lg rounded-xl py-2 pl-10 pr-4 text-white border border-gray-700 focus:border-cyan-500 focus:outline-none w-52 shadow-lg shadow-cyan-500/10 transition-colors"
 							/>
+							{/* Magnifier Icon */}
 							<svg
 								className="w-5 h-5 text-gray-400 absolute left-3 top-2.5"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
 							>
-								<path
+								<circle
+									cx="11"
+									cy="11"
+									r="7"
+									stroke="currentColor"
+									strokeWidth="2"
+								/>
+								<line
+									x1="16.5"
+									y1="16.5"
+									x2="21"
+									y2="21"
+									stroke="currentColor"
+									strokeWidth="2"
 									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth={2}
-									d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
 								/>
 							</svg>
 						</div>
@@ -320,25 +385,16 @@ const ShowContacts = () => {
 				<div className="grid grid-cols-1 md:grid-cols-12 gap-6">
 					{/* Filters sidebar */}
 					<div className="md:col-span-3">
-						<div className="bg-gray-800/50 backdrop-blur-lg rounded-2xl p-6 border border-gray-700 shadow-xl">
+						<div className="bg-gray-800/50 backdrop-blur-lg rounded-2xl p-6 border border-gray-700 shadow-xl sticky top-4">
 							<div className="flex justify-between items-center mb-4">
 								<h3 className="text-lg font-semibold text-white">Filters</h3>
-								<button
-									onClick={() => {
-										setSearchTerm('');
-										setStatusFilter('all');
-									}}
-									className="text-xs text-cyan-400 hover:text-cyan-300"
-								>
-									Clear filters
-								</button>
 							</div>
 
 							<div className="mb-6">
 								<label className="block text-gray-300 mb-2">Status</label>
 								<div className="space-y-2">
 									{['all', 'pending', 'resolved', 'closed'].map((status) => (
-										<div key={status} className="flex items-center">
+										<div key={status} className="flex items-center group">
 											<input
 												type="radio"
 												id={`status-${status}`}
@@ -346,11 +402,11 @@ const ShowContacts = () => {
 												value={status}
 												checked={statusFilter === status}
 												onChange={() => setStatusFilter(status)}
-												className="mr-2 accent-cyan-500"
+												className="mr-2 accent-cyan-500 cursor-pointer"
 											/>
 											<label
 												htmlFor={`status-${status}`}
-												className="text-gray-300 capitalize"
+												className="text-gray-300 capitalize cursor-pointer group-hover:text-white transition-colors"
 											>
 												{status}
 											</label>
@@ -360,21 +416,21 @@ const ShowContacts = () => {
 							</div>
 
 							<div className="mt-6 pt-4 border-t border-gray-700">
-								<div className="flex items-center justify-between">
+								<div className="flex items-center justify-between mb-2">
 									<span className="text-gray-300">Total Contacts</span>
-									<span className="text-white font-medium">
+									<span className="text-white font-medium bg-gray-700/50 px-2 py-1 rounded-md">
 										{contacts.length}
 									</span>
 								</div>
-								<div className="flex items-center justify-between mt-2">
+								<div className="flex items-center justify-between mb-2">
 									<span className="text-gray-300">Pending</span>
-									<span className="text-amber-400 font-medium">
+									<span className="text-amber-400 font-medium bg-amber-500/10 px-2 py-1 rounded-md">
 										{contacts.filter((c) => c.status === 'pending').length}
 									</span>
 								</div>
-								<div className="flex items-center justify-between mt-2">
+								<div className="flex items-center justify-between">
 									<span className="text-gray-300">Resolved</span>
-									<span className="text-emerald-400 font-medium">
+									<span className="text-emerald-400 font-medium bg-emerald-500/10 px-2 py-1 rounded-md">
 										{contacts.filter((c) => c.status === 'resolved').length}
 									</span>
 								</div>
@@ -394,6 +450,7 @@ const ShowContacts = () => {
 						{error && (
 							<div className="bg-red-900/30 backdrop-blur-lg rounded-2xl p-6 border border-red-700 shadow-xl">
 								<div className="flex items-center text-red-300">
+									{/* Exclamation Triangle Icon */}
 									<svg
 										className="w-6 h-6 mr-2"
 										fill="none"
@@ -405,7 +462,7 @@ const ShowContacts = () => {
 											strokeLinejoin="round"
 											strokeWidth="2"
 											d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-										></path>
+										/>
 									</svg>
 									<span className="text-lg font-medium">
 										Error loading contacts: {error}
@@ -413,8 +470,22 @@ const ShowContacts = () => {
 								</div>
 								<button
 									onClick={reset}
-									className="mt-4 px-4 py-2 bg-red-700/50 hover:bg-red-700 text-white rounded-lg transition"
+									className="mt-4 px-4 py-2 bg-red-700/50 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center"
 								>
+									{/* Refresh Icon */}
+									<svg
+										className="w-5 h-5 mr-2"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											strokeWidth="2"
+											d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+										></path>
+									</svg>
 									Try Again
 								</button>
 							</div>
@@ -425,18 +496,33 @@ const ShowContacts = () => {
 								{filteredContacts.length === 0 ? (
 									<div className="bg-gray-800/50 backdrop-blur-lg rounded-2xl p-8 border border-gray-700 shadow-xl text-center">
 										<div className="flex justify-center mb-4">
+											{/* Inbox Icon */}
 											<svg
 												className="w-16 h-16 text-gray-500"
 												fill="none"
 												stroke="currentColor"
 												viewBox="0 0 24 24"
 											>
+												<rect
+													x="3"
+													y="7"
+													width="18"
+													height="13"
+													rx="2"
+													strokeWidth="2"
+												/>
 												<path
 													strokeLinecap="round"
 													strokeLinejoin="round"
 													strokeWidth="2"
-													d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-												></path>
+													d="M16 3H8a2 2 0 00-2 2v2h12V5a2 2 0 00-2-2z"
+												/>
+												<path
+													strokeLinecap="round"
+													strokeLinejoin="round"
+													strokeWidth="2"
+													d="M3 7l9 6 9-6"
+												/>
 											</svg>
 										</div>
 										<h3 className="text-xl font-medium text-gray-300 mb-2">
@@ -452,7 +538,7 @@ const ShowContacts = () => {
 												setSearchTerm('');
 												setStatusFilter('all');
 											}}
-											className="mt-4 px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white rounded-lg transition"
+											className="mt-4 px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white rounded-lg transition-colors"
 										>
 											Clear Filters
 										</button>
@@ -462,9 +548,9 @@ const ShowContacts = () => {
 										{filteredContacts.map((contact) => (
 											<div
 												key={contact._id}
-												className={`bg-gray-800/50 backdrop-blur-lg rounded-2xl border border-gray-700 shadow-xl overflow-hidden transition-all duration-300 ${
+												className={`bg-gray-800/50 backdrop-blur-lg rounded-2xl border border-gray-700 shadow-xl overflow-hidden transition-all duration-300 hover:border-cyan-500/30 ${
 													expandedId === contact._id
-														? 'ring-2 ring-cyan-500'
+														? 'ring-2 ring-cyan-500 border-cyan-500/50'
 														: ''
 												}`}
 											>
@@ -483,19 +569,69 @@ const ShowContacts = () => {
 																	{contact.name}
 																</h3>
 																{contact.status === 'pending' && (
-																	<span className="ml-2 px-2 py-0.5 bg-cyan-500 text-white text-xs rounded-full animate-pulse">
+																	<span className="ml-2 px-2 py-0.5 bg-cyan-500 text-white text-xs rounded-full animate-pulse flex items-center">
+																		{/* Bell Icon */}
+																		<svg
+																			className="w-3 h-3 mr-1"
+																			fill="none"
+																			stroke="currentColor"
+																			viewBox="0 0 24 24"
+																		>
+																			<path
+																				strokeLinecap="round"
+																				strokeLinejoin="round"
+																				strokeWidth="2"
+																				d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+																			/>
+																		</svg>
 																		New
 																	</span>
 																)}
 															</div>
 															<div className="flex items-center mt-1 text-sm">
-																<span className="text-gray-400 truncate">
+																<span className="text-gray-400 truncate flex items-center">
+																	{/* Mail Icon */}
+																	<svg
+																		className="w-4 h-4 mr-1"
+																		fill="none"
+																		stroke="currentColor"
+																		viewBox="0 0 24 24"
+																	>
+																		<rect
+																			x="3"
+																			y="7"
+																			width="18"
+																			height="13"
+																			rx="2"
+																			strokeWidth="2"
+																		/>
+																		<path
+																			strokeLinecap="round"
+																			strokeLinejoin="round"
+																			strokeWidth="2"
+																			d="M3 7l9 6 9-6"
+																		/>
+																	</svg>
 																	{contact.email}
 																</span>
 																<span className="mx-2 text-gray-600">
 																	•
 																</span>
-																<span className="text-cyan-400 truncate">
+																<span className="text-cyan-400 truncate flex items-center">
+																	{/* Tag Icon */}
+																	<svg
+																		className="w-4 h-4 mr-1"
+																		fill="none"
+																		stroke="currentColor"
+																		viewBox="0 0 24 24"
+																	>
+																		<path
+																			strokeLinecap="round"
+																			strokeLinejoin="round"
+																			strokeWidth="2"
+																			d="M7 7h.01M7 7a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V7zm0 0l10 10"
+																		/>
+																	</svg>
 																	{contact.subject}
 																</span>
 															</div>
@@ -508,7 +644,29 @@ const ShowContacts = () => {
 															>
 																{contact.status}
 															</div>
-															<div className="text-xs text-gray-500">
+															<div className="text-xs text-gray-500 flex items-center">
+																{/* Calendar Icon */}
+																<svg
+																	className="w-4 h-4 mr-1"
+																	fill="none"
+																	stroke="currentColor"
+																	viewBox="0 0 24 24"
+																>
+																	<rect
+																		x="3"
+																		y="4"
+																		width="18"
+																		height="18"
+																		rx="2"
+																		strokeWidth="2"
+																	/>
+																	<path
+																		strokeLinecap="round"
+																		strokeLinejoin="round"
+																		strokeWidth="2"
+																		d="M16 2v4M8 2v4M3 10h18"
+																	/>
+																</svg>
 																{new Date(
 																	contact.createdAt
 																).toLocaleDateString()}
@@ -517,11 +675,38 @@ const ShowContacts = () => {
 													</div>
 
 													{expandedId === contact._id &&
-														selectedContact && (
+														(loadingContact ? (
+															<div className="mt-4 pt-4 border-t border-gray-700 flex justify-center">
+																<div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-cyan-500"></div>
+																<p className="text-gray-400 ml-2">
+																	Loading details...
+																</p>
+															</div>
+														) : selectedContact ? (
 															<div className="mt-4 pt-4 border-t border-gray-700">
 																<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 																	<div>
-																		<h4 className="text-gray-400 text-sm font-medium mb-1">
+																		<h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
+																			{/* User Icon */}
+																			<svg
+																				className="w-4 h-4 mr-1"
+																				fill="none"
+																				stroke="currentColor"
+																				viewBox="0 0 24 24"
+																			>
+																				<circle
+																					cx="12"
+																					cy="7"
+																					r="4"
+																					strokeWidth="2"
+																				/>
+																				<path
+																					strokeLinecap="round"
+																					strokeLinejoin="round"
+																					strokeWidth="2"
+																					d="M5.5 21a7.5 7.5 0 0113 0"
+																				/>
+																			</svg>
 																			Name
 																		</h4>
 																		<p className="text-gray-300 text-sm">
@@ -529,7 +714,29 @@ const ShowContacts = () => {
 																		</p>
 																	</div>
 																	<div>
-																		<h4 className="text-gray-400 text-sm font-medium mb-1">
+																		<h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
+																			{/* Mail Icon */}
+																			<svg
+																				className="w-4 h-4 mr-1"
+																				fill="none"
+																				stroke="currentColor"
+																				viewBox="0 0 24 24"
+																			>
+																				<rect
+																					x="3"
+																					y="7"
+																					width="18"
+																					height="13"
+																					rx="2"
+																					strokeWidth="2"
+																				/>
+																				<path
+																					strokeLinecap="round"
+																					strokeLinejoin="round"
+																					strokeWidth="2"
+																					d="M3 7l9 6 9-6"
+																				/>
+																			</svg>
 																			Email
 																		</h4>
 																		<p className="text-gray-300 text-sm">
@@ -537,7 +744,21 @@ const ShowContacts = () => {
 																		</p>
 																	</div>
 																	<div>
-																		<h4 className="text-gray-400 text-sm font-medium mb-1">
+																		<h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
+																			{/* Phone Icon */}
+																			<svg
+																				className="w-4 h-4 mr-1"
+																				fill="none"
+																				stroke="currentColor"
+																				viewBox="0 0 24 24"
+																			>
+																				<path
+																					strokeLinecap="round"
+																					strokeLinejoin="round"
+																					strokeWidth="2"
+																					d="M3 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm0 10a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-2zm10-10a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zm0 10a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+																				/>
+																			</svg>
 																			Phone
 																		</h4>
 																		<p className="text-gray-300 text-sm">
@@ -545,7 +766,29 @@ const ShowContacts = () => {
 																		</p>
 																	</div>
 																	<div>
-																		<h4 className="text-gray-400 text-sm font-medium mb-1">
+																		<h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
+																			{/* ID Card Icon */}
+																			<svg
+																				className="w-4 h-4 mr-1"
+																				fill="none"
+																				stroke="currentColor"
+																				viewBox="0 0 24 24"
+																			>
+																				<rect
+																					x="3"
+																					y="7"
+																					width="18"
+																					height="13"
+																					rx="2"
+																					strokeWidth="2"
+																				/>
+																				<path
+																					strokeLinecap="round"
+																					strokeLinejoin="round"
+																					strokeWidth="2"
+																					d="M7 10h.01M7 14h.01M11 10h2M11 14h2"
+																				/>
+																			</svg>
 																			LPU ID
 																		</h4>
 																		<p className="text-gray-300 text-sm">
@@ -553,7 +796,21 @@ const ShowContacts = () => {
 																		</p>
 																	</div>
 																	<div>
-																		<h4 className="text-gray-400 text-sm font-medium mb-1">
+																		<h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
+																			{/* Tag Icon */}
+																			<svg
+																				className="w-4 h-4 mr-1"
+																				fill="none"
+																				stroke="currentColor"
+																				viewBox="0 0 24 24"
+																			>
+																				<path
+																					strokeLinecap="round"
+																					strokeLinejoin="round"
+																					strokeWidth="2"
+																					d="M7 7h.01M7 7a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V7zm0 0l10 10"
+																				/>
+																			</svg>
 																			Subject
 																		</h4>
 																		<p className="text-gray-300 text-sm">
@@ -563,7 +820,21 @@ const ShowContacts = () => {
 																		</p>
 																	</div>
 																	<div className="md:col-span-2">
-																		<h4 className="text-gray-400 text-sm font-medium mb-1">
+																		<h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
+																			{/* Message Icon */}
+																			<svg
+																				className="w-4 h-4 mr-1"
+																				fill="none"
+																				stroke="currentColor"
+																				viewBox="0 0 24 24"
+																			>
+																				<path
+																					strokeLinecap="round"
+																					strokeLinejoin="round"
+																					strokeWidth="2"
+																					d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z"
+																				/>
+																			</svg>
 																			Message
 																		</h4>
 																		<p className="text-gray-300 text-sm bg-gray-900/30 rounded-lg p-3 whitespace-pre-wrap">
@@ -573,7 +844,27 @@ const ShowContacts = () => {
 																		</p>
 																	</div>
 																	<div>
-																		<h4 className="text-gray-400 text-sm font-medium mb-1">
+																		<h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
+																			{/* Status Icon */}
+																			<svg
+																				className="w-4 h-4 mr-1"
+																				fill="none"
+																				stroke="currentColor"
+																				viewBox="0 0 24 24"
+																			>
+																				<circle
+																					cx="12"
+																					cy="12"
+																					r="10"
+																					strokeWidth="2"
+																				/>
+																				<path
+																					strokeLinecap="round"
+																					strokeLinejoin="round"
+																					strokeWidth="2"
+																					d="M12 6v6l4 2"
+																				/>
+																			</svg>
 																			Status
 																		</h4>
 																		<p className="text-gray-300 text-sm">
@@ -581,7 +872,29 @@ const ShowContacts = () => {
 																		</p>
 																	</div>
 																	<div>
-																		<h4 className="text-gray-400 text-sm font-medium mb-1">
+																		<h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
+																			{/* Calendar Icon */}
+																			<svg
+																				className="w-4 h-4 mr-1"
+																				fill="none"
+																				stroke="currentColor"
+																				viewBox="0 0 24 24"
+																			>
+																				<rect
+																					x="3"
+																					y="4"
+																					width="18"
+																					height="18"
+																					rx="2"
+																					strokeWidth="2"
+																				/>
+																				<path
+																					strokeLinecap="round"
+																					strokeLinejoin="round"
+																					strokeWidth="2"
+																					d="M16 2v4M8 2v4M3 10h18"
+																				/>
+																			</svg>
 																			Created At
 																		</h4>
 																		<p className="text-gray-300 text-sm">
@@ -595,7 +908,7 @@ const ShowContacts = () => {
 																	{selectedContact.status ===
 																		'pending' && (
 																		<button
-																			className="px-3 py-1.5 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition flex items-center"
+																			className="px-3 py-1.5 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition flex items-center disabled:opacity-50"
 																			disabled={resolving}
 																			onClick={() =>
 																				handleResolve(
@@ -605,6 +918,7 @@ const ShowContacts = () => {
 																		>
 																			{resolving ? (
 																				<>
+																					{/* Spinner */}
 																					<svg
 																						className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
 																						xmlns="http://www.w3.org/2000/svg"
@@ -628,43 +942,151 @@ const ShowContacts = () => {
 																					Processing...
 																				</>
 																			) : (
-																				'Mark as Resolved'
+																				<>
+																					{/* Check Icon */}
+																					<svg
+																						className="w-4 h-4 mr-1"
+																						fill="none"
+																						stroke="currentColor"
+																						viewBox="0 0 24 24"
+																					>
+																						<path
+																							strokeLinecap="round"
+																							strokeLinejoin="round"
+																							strokeWidth="2"
+																							d="M5 13l4 4L19 7"
+																						></path>
+																					</svg>
+																					Mark as Resolved
+																				</>
 																			)}
 																		</button>
 																	)}
 																	<button
-																		className="px-3 py-1.5 text-sm bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg transition"
-																		onClick={() => {
-																			navigator.clipboard.writeText(
+																		className="px-3 py-1.5 text-sm bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg transition flex items-center"
+																		onClick={() =>
+																			handleCopyEmail(
 																				contact.email
-																			);
-																		}}
+																			)
+																		}
 																	>
-																		Copy Email
+																		{copiedEmail ===
+																		contact.email ? (
+																			<>
+																				{/* Check Icon */}
+																				<svg
+																					className="w-4 h-4 mr-1 text-emerald-400"
+																					fill="none"
+																					stroke="currentColor"
+																					viewBox="0 0 24 24"
+																				>
+																					<path
+																						strokeLinecap="round"
+																						strokeLinejoin="round"
+																						strokeWidth="2"
+																						d="M5 13l4 4L19 7"
+																					></path>
+																				</svg>
+																				Copied!
+																			</>
+																		) : (
+																			<>
+																				{/* Copy Icon */}
+																				<svg
+																					className="w-4 h-4 mr-1"
+																					fill="none"
+																					stroke="currentColor"
+																					viewBox="0 0 24 24"
+																				>
+																					<rect
+																						x="9"
+																						y="9"
+																						width="13"
+																						height="13"
+																						rx="2"
+																						strokeWidth="2"
+																					/>
+																					<rect
+																						x="3"
+																						y="3"
+																						width="13"
+																						height="13"
+																						rx="2"
+																						strokeWidth="2"
+																					/>
+																				</svg>
+																				Copy Email
+																			</>
+																		)}
 																	</button>
 																</div>
 																{errorResolve && (
-																	<div className="text-red-400 mt-2">
+																	<div className="text-red-400 mt-2 text-sm">
 																		{errorResolve}
 																	</div>
 																)}
 															</div>
-														)}
+														) : (
+															<div className="mt-4 pt-4 border-t border-gray-700 text-center text-gray-400">
+																Failed to load contact details
+															</div>
+														))}
 												</div>
 												<div className="px-5 py-3 bg-gray-800/70 border-t border-gray-700 flex justify-between items-center">
-													<div className="text-xs text-gray-500">
+													<div className="text-xs text-gray-500 font-mono">
 														ID: {contact._id}
 													</div>
 													<div>
 														{contact.status === 'pending' && (
 															<button
-																onClick={() =>
-																	handleResolve(contact._id)
-																}
+																onClick={(e) => {
+																	e.stopPropagation();
+																	handleResolve(contact._id);
+																}}
 																disabled={resolving}
-																className="px-3 py-1 text-xs bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition"
+																className="px-3 py-1 text-xs bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors flex items-center disabled:opacity-50"
 															>
-																Resolve
+																{resolving ? (
+																	// Spinner
+																	<svg
+																		className="animate-spin -ml-1 mr-1 h-3 w-3 text-white"
+																		xmlns="http://www.w3.org/2000/svg"
+																		fill="none"
+																		viewBox="0 0 24 24"
+																	>
+																		<circle
+																			className="opacity-25"
+																			cx="12"
+																			cy="12"
+																			r="10"
+																			stroke="currentColor"
+																			strokeWidth="4"
+																		></circle>
+																		<path
+																			className="opacity-75"
+																			fill="currentColor"
+																			d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+																		></path>
+																	</svg>
+																) : (
+																	// Check Icon
+																	<svg
+																		className="w-3 h-3 mr-1"
+																		fill="none"
+																		stroke="currentColor"
+																		viewBox="0 0 24 24"
+																	>
+																		<path
+																			strokeLinecap="round"
+																			strokeLinejoin="round"
+																			strokeWidth="2"
+																			d="M5 13l4 4L19 7"
+																		></path>
+																	</svg>
+																)}
+																{resolving
+																	? 'Processing...'
+																	: 'Resolve'}
 															</button>
 														)}
 													</div>
