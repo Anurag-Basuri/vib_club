@@ -38,21 +38,18 @@ router.post(
 router.get(
     '/getall',
     authMiddleware.verifyToken,
-    authMiddleware.isAdmin,
     getAllContacts
 );
 
 router.get(
     '/:id',
     authMiddleware.verifyToken,
-    authMiddleware.isAdmin,
     getContactById
 );
 
 router.patch(
     '/:id/resolve',
     authMiddleware.verifyToken,
-    authMiddleware.isAdmin,
     markContactAsResolved
 );
 
