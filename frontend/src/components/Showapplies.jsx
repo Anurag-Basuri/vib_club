@@ -153,17 +153,51 @@ const ShowApplies = () => {
 
     // Export functionality
     const exportData = () => {
+        // Always export what is shown on the current page (sortedApplications) or all fetched applications
         const dataToExport = exportType === 'current' ? sortedApplications : applications;
-        if (dataToExport.length === 0) {
+        if (!Array.isArray(dataToExport) || dataToExport.length === 0) {
             alert('No data to export');
             return;
         }
-        let content = '';
-        const headers = ['Name', 'Email', 'Position', 'Status', 'Seen', 'Created At'];
+
+        // Define all fields you want to export
+        const headers = [
+            'Name',
+            'LPU ID',
+            'Email',
+            'Phone',
+            'Course',
+            'Gender',
+            'Domains',
+            'Accommodation',
+            'Previous Experience',
+            'Any Other Org',
+            'Bio',
+            'Status',
+            'Seen',
+            'Created At'
+        ];
+
         if (exportFormat === 'csv') {
-            content += headers.join(',') + '\n';
+            // CSV export
+            let content = headers.join(',') + '\n';
             dataToExport.forEach((app) => {
-                content += `"${app.fullName}","${app.email}","${app.position || ''}","${app.status}","${app.seen ? 'Yes' : 'No'}","${new Date(app.createdAt).toLocaleString()}"\n`;
+                content += [
+                    `"${app.fullName || ''}"`,
+                    `"${app.LpuId || ''}"`,
+                    `"${app.email || ''}"`,
+                    `"${app.phone || ''}"`,
+                    `"${app.course || ''}"`,
+                    `"${app.gender || ''}"`,
+                    `"${Array.isArray(app.domains) ? app.domains.join('; ') : (app.domains || '')}"`,
+                    `"${app.accommodation || ''}"`,
+                    `"${app.previousExperience ? 'Yes' : 'No'}"`,
+                    `"${app.anyotherorg ? 'Yes' : 'No'}"`,
+                    `"${(app.bio || '').replace(/"/g, '""')}"`,
+                    `"${app.status || ''}"`,
+                    `"${app.seen ? 'Yes' : 'No'}"`,
+                    `"${app.createdAt ? new Date(app.createdAt).toLocaleString() : ''}"`
+                ].join(',') + '\n';
             });
             const blob = new Blob([content], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
@@ -175,20 +209,22 @@ const ShowApplies = () => {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         } else {
+            // JSON export
             const jsonData = dataToExport.map((app) => ({
-                name: app.fullName,
-                LpuId: app.LpuId,
-                email: app.email,
-                phone: app.phone,
-                gender: app.gender,
-                domains: app.domains?.join(', ') || '',
-                accommodation: app.accommodation?.join(', ') || '',
-                experience: app.previousExperience,
-                anyOtherOrg: app.anyotherorg,
-                bio: app.bio,
-                seen: app.seen,
-                status: app.status,
-                createdAt: new Date(app.createdAt).toISOString(),
+                name: app.fullName || '',
+                LpuId: app.LpuId || '',
+                email: app.email || '',
+                phone: app.phone || '',
+                course: app.course || '',
+                gender: app.gender || '',
+                domains: Array.isArray(app.domains) ? app.domains : [],
+                accommodation: app.accommodation || '',
+                previousExperience: !!app.previousExperience,
+                anyotherorg: !!app.anyotherorg,
+                bio: app.bio || '',
+                status: app.status || '',
+                seen: !!app.seen,
+                createdAt: app.createdAt ? new Date(app.createdAt).toISOString() : ''
             }));
             const jsonString = JSON.stringify(jsonData, null, 2);
             const blob = new Blob([jsonString], { type: 'application/json' });
@@ -224,26 +260,8 @@ const ShowApplies = () => {
                         </div>
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-gray-300 mb-2">Export Type</label>
-                                <div className="flex gap-3">
-                                    {['current', 'all'].map((type) => (
-                                        <button
-                                            key={type}
-                                            onClick={() => setExportType(type)}
-                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                                                exportType === type
-                                                    ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/30'
-                                                    : 'bg-gray-700/50 text-gray-300 hover:bg-gray-700'
-                                            }`}
-                                        >
-                                            {type === 'current' ? 'Current View' : 'All Data'}
-                                        </button>
-                                    ))}
-                                </div>
                                 <p className="text-xs text-gray-400 mt-1">
-                                    {exportType === 'current'
-                                        ? `Exporting ${sortedApplications.length} filtered applications`
-                                        : `Exporting all ${applications.length} applications`}
+                                    Exporting {sortedApplications.length} applications of this page
                                 </p>
                             </div>
                             <div>
