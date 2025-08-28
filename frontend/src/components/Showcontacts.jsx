@@ -357,7 +357,6 @@ const ShowContacts = () => {
                         <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">
                             Contact Queries
                         </h1>
-                        <p className="text-gray-400 mt-1 text-sm md:text-base">Manage all user contact requests</p>
                     </div>
 
                     {/* Controls: responsive layout */}
@@ -685,7 +684,7 @@ const ShowContacts = () => {
                                                                         ) : (
                                                                             <>
                                                                                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                                                                 </svg>
                                                                                 Copy Email
                                                                             </>
@@ -723,31 +722,72 @@ const ShowContacts = () => {
                 {/* Pagination Controls */}
                 {totalPages > 1 && (
                     <div className="flex justify-center mt-8">
-                        <nav className="inline-flex rounded-md shadow-sm overflow-auto" aria-label="Pagination">
-                            <button
-                                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                                disabled={page === 1}
-                                className={`px-3 py-2 rounded-l-md border border-gray-700 bg-gray-800 text-gray-300 hover:bg-cyan-700 hover:text-white transition ${page === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            >
-                                Prev
-                            </button>
-                            {Array.from({ length: totalPages }, (_, i) => (
-                                <button
-                                    key={i + 1}
-                                    onClick={() => setPage(i + 1)}
-                                    className={`min-w-[44px] px-3 py-2 border-t border-b border-gray-700 bg-gray-800 text-gray-300 hover:bg-cyan-700 hover:text-white transition ${page === i + 1 ? 'bg-cyan-700 text-white font-bold' : ''}`}
+                        {(() => {
+                            // build a compact page list with ellipses for large page counts
+                            const maxButtons = 7;
+                            const pages = [];
+                            if (totalPages <= maxButtons) {
+                                for (let i = 1; i <= totalPages; i++) pages.push(i);
+                            } else {
+                                pages.push(1);
+                                const left = Math.max(2, page - 2);
+                                const right = Math.min(totalPages - 1, page + 2);
+                                if (left > 2) pages.push('left-ellipsis');
+                                for (let i = left; i <= right; i++) pages.push(i);
+                                if (right < totalPages - 1) pages.push('right-ellipsis');
+                                pages.push(totalPages);
+                            }
+
+                            return (
+                                <nav
+                                    className="inline-flex items-center rounded-md shadow-sm overflow-auto px-2"
+                                    aria-label="Pagination"
                                 >
-                                    {i + 1}
-                                </button>
-                            ))}
-                            <button
-                                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                                disabled={page === totalPages}
-                                className={`px-3 py-2 rounded-r-md border border-gray-700 bg-gray-800 text-gray-300 hover:bg-cyan-700 hover:text-white transition ${page === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            >
-                                Next
-                            </button>
-                        </nav>
+                                    <button
+                                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                        disabled={page === 1}
+                                        className={`px-3 py-2 md:px-4 md:py-2 rounded-l-md border border-gray-700 bg-gray-800 text-gray-300 hover:bg-cyan-700 hover:text-white transition ${page === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        aria-label="Previous page"
+                                    >
+                                        Prev
+                                    </button>
+
+                                    {/* Desktop / wide screens: show compact buttons; mobile: show page indicator */}
+                                    <div className="hidden sm:flex items-center gap-1 mx-2">
+                                        {pages.map((p, idx) =>
+                                            p === 'left-ellipsis' || p === 'right-ellipsis' ? (
+                                                <span key={p + idx} className="px-3 py-2 text-gray-400 select-none">…</span>
+                                            ) : (
+                                                <button
+                                                    key={p}
+                                                    onClick={() => setPage(p)}
+                                                    aria-current={p === page ? 'page' : undefined}
+                                                    className={`min-w-[44px] px-3 py-2 border-t border-b border-gray-700 bg-gray-800 text-gray-300 hover:bg-cyan-700 hover:text-white transition ${page === p ? 'bg-cyan-700 text-white font-semibold ring-1 ring-cyan-400' : ''}`}
+                                                >
+                                                    {p}
+                                                </button>
+                                            )
+                                        )}
+                                    </div>
+
+                                    <div className="flex sm:hidden items-center gap-3 mx-2 px-2 text-sm text-gray-300">
+                                        <span className="whitespace-nowrap">Page</span>
+                                        <span className="font-medium">{page}</span>
+                                        <span className="text-gray-500">/</span>
+                                        <span className="font-medium">{totalPages}</span>
+                                    </div>
+
+                                    <button
+                                        onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                                        disabled={page === totalPages}
+                                        className={`px-3 py-2 md:px-4 md:py-2 rounded-r-md border border-gray-700 bg-gray-800 text-gray-300 hover:bg-cyan-700 hover:text-white transition ${page === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        aria-label="Next page"
+                                    >
+                                        Next
+                                    </button>
+                                </nav>
+                            );
+                        })()}
                     </div>
                 )}
             </div>
