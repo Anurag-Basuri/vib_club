@@ -262,98 +262,72 @@ const ShowApplies = () => {
 	const PaginationControls = () => {
 		if (totalPages <= 1) return null;
 
-		const pageNumbers = [];
-		const maxVisiblePages = 5;
-		let startPage = Math.max(1, page - Math.floor(maxVisiblePages / 2));
-		let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
-		if (endPage - startPage + 1 < maxVisiblePages) {
-			startPage = Math.max(1, endPage - maxVisiblePages + 1);
-		}
-
-		for (let i = startPage; i <= endPage; i++) {
-			pageNumbers.push(i);
+		// compact pagination with ellipses (matches ShowContacts)
+		const maxButtons = 7;
+		const pages = [];
+		if (totalPages <= maxButtons) {
+			for (let i = 1; i <= totalPages; i++) pages.push(i);
+		} else {
+			pages.push(1);
+			const left = Math.max(2, page - 2);
+			const right = Math.min(totalPages - 1, page + 2);
+			if (left > 2) pages.push('left-ellipsis');
+			for (let i = left; i <= right; i++) pages.push(i);
+			if (right < totalPages - 1) pages.push('right-ellipsis');
+			pages.push(totalPages);
 		}
 
 		return (
 			<div className="flex justify-center mt-8">
-				<nav className="flex items-center space-x-1">
-					<button
-						onClick={() => setPage(1)}
-						disabled={page === 1}
-						className="p-2 rounded-md border border-gray-700 bg-gray-800 text-gray-300 hover:bg-cyan-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-						aria-label="First page"
+				{(() => (
+					<nav
+						className="inline-flex items-center rounded-md shadow-sm overflow-auto px-2"
+						aria-label="Pagination"
 					>
-						<svg
-							className="w-4 h-4"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth="2"
-								d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
-							/>
-						</svg>
-					</button>
-
-					<button
-						onClick={() => setPage(page - 1)}
-						disabled={page === 1}
-						className="px-3 py-2 rounded-md border border-gray-700 bg-gray-800 text-gray-300 hover:bg-cyan-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-					>
-						Previous
-					</button>
-
-					{startPage > 1 && <span className="px-2 py-2 text-gray-400">...</span>}
-
-					{pageNumbers.map((number) => (
 						<button
-							key={number}
-							onClick={() => setPage(number)}
-							className={`px-3 py-2 rounded-md border border-gray-700 ${
-								page === number
-									? 'bg-cyan-700 text-white'
-									: 'bg-gray-800 text-gray-300 hover:bg-cyan-700 hover:text-white'
-							}`}
+							onClick={() => setPage((p) => Math.max(1, p - 1))}
+							disabled={page === 1}
+							className={`px-3 py-2 md:px-4 md:py-2 rounded-l-md border border-gray-700 bg-gray-800 text-gray-300 hover:bg-cyan-700 hover:text-white transition ${page === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+							aria-label="Previous page"
 						>
-							{number}
+							Prev
 						</button>
-					))}
 
-					{endPage < totalPages && <span className="px-2 py-2 text-gray-400">...</span>}
+						{/* Desktop / wide screens: show compact buttons; mobile: show page indicator */}
+						<div className="hidden sm:flex items-center gap-1 mx-2">
+							{pages.map((p, idx) =>
+								p === 'left-ellipsis' || p === 'right-ellipsis' ? (
+									<span key={p + idx} className="px-3 py-2 text-gray-400 select-none">…</span>
+								) : (
+									<button
+										key={p}
+										onClick={() => setPage(p)}
+										aria-current={p === page ? 'page' : undefined}
+										className={`min-w-[44px] px-3 py-2 border-t border-b border-gray-700 bg-gray-800 text-gray-300 hover:bg-cyan-700 hover:text-white transition ${page === p ? 'bg-cyan-700 text-white font-semibold ring-1 ring-cyan-400' : ''}`}
+									>
+										{p}
+									</button>
+								)
+							)}
+						</div>
 
-					<button
-						onClick={() => setPage(page + 1)}
-						disabled={page === totalPages}
-						className="px-3 py-2 rounded-md border border-gray-700 bg-gray-800 text-gray-300 hover:bg-cyan-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-					>
-						Next
-					</button>
+						<div className="flex sm:hidden items-center gap-3 mx-2 px-2 text-sm text-gray-300">
+							<span className="whitespace-nowrap">Page</span>
+							<span className="font-medium">{page}</span>
+							<span className="text-gray-500">/</span>
+							<span className="font-medium">{totalPages}</span>
+						</div>
 
-					<button
-						onClick={() => setPage(totalPages)}
-						disabled={page === totalPages}
-						className="p-2 rounded-md border border-gray-700 bg-gray-800 text-gray-300 hover:bg-cyan-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-						aria-label="Last page"
-					>
-						<svg
-							className="w-4 h-4"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
+						<button
+							onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+							disabled={page === totalPages}
+							className={`px-3 py-2 md:px-4 md:py-2 rounded-r-md border border-gray-700 bg-gray-800 text-gray-300 hover:bg-cyan-700 hover:text-white transition ${page === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+							aria-label="Next page"
 						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth="2"
-								d="M13 5l7 7-7 7M5 5l7 7-7 7"
-							/>
-						</svg>
-					</button>
-				</nav>
+							Next
+						</button>
+					</nav>
+				))()}
 			</div>
 		);
 	};
