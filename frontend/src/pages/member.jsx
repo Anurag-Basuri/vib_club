@@ -72,9 +72,9 @@ const MemberProfilePage = () => {
 	const { resetPassword, loading: resettingPassword } = useResetPassword();
 
 	// State management
-	const [isEditing, setIsEditing] = useState(false);
-	const [activeTab, setActiveTab] = useState('profile');
-	const [formData, setFormData] = useState({
+    const [isEditing, setIsEditing] = useState(false);
+    const [activeTab, setActiveTab] = useState('profile');
+    const [formData, setFormData] = useState({
 		fullname: '',
 		program: '',
 		year: 1,

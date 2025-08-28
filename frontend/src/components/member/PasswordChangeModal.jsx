@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiShield, FiX, FiEye, FiEyeOff } from 'react-icons/fi';
+import { toast } from 'react-toastify';
 
 const PasswordChangeModal = ({ isOpen, onClose, onChangePassword, loading }) => {
 	const [oldPassword, setOldPassword] = useState('');
