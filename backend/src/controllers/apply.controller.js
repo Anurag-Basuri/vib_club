@@ -53,46 +53,49 @@ const applyController = asyncHandler(async (req, res) => {
 
 // Get all applications (with filtering and pagination)
 const getAllApplications = asyncHandler(async (req, res) => {
-	const {
-		page = 1,
-		limit = 10,
-		status,
-		course,
-		startDate,
-		endDate,
-		search,
-	} = req.query;
+    const {
+        page = 1,
+        limit = 10,
+        status,
+        course,
+        startDate,
+        endDate,
+        search,
+        seen, // <-- add seen
+    } = req.query;
 
-	const filter = {};
+    const filter = {};
 
-	if (status) filter.status = status;
-	if (course) filter.course = course;
+    if (status) filter.status = status;
+    if (course) filter.course = course;
+    if (seen === 'true') filter.seen = true;
+    if (seen === 'false') filter.seen = false;
 
-	if (startDate || endDate) {
-		filter.createdAt = {};
-		if (startDate) filter.createdAt.$gte = new Date(startDate);
-		if (endDate) filter.createdAt.$lte = new Date(endDate);
-	}
+    if (startDate || endDate) {
+        filter.createdAt = {};
+        if (startDate) filter.createdAt.$gte = new Date(startDate);
+        if (endDate) filter.createdAt.$lte = new Date(endDate);
+    }
 
-	if (search) {
-		filter.$or = [
-			{ fullName: { $regex: search, $options: "i" } },
-			{ LpuId: { $regex: search, $options: "i" } },
-			{ email: { $regex: search, $options: "i" } },
-		];
-	}
+    if (search) {
+        filter.$or = [
+            { fullName: { $regex: search, $options: "i" } },
+            { LpuId: { $regex: search, $options: "i" } },
+            { email: { $regex: search, $options: "i" } },
+        ];
+    }
 
-	const options = {
-		page: parseInt(page, 10),
-		limit: parseInt(limit, 10),
-		sort: { createdAt: -1 },
-	};
+    const options = {
+        page: parseInt(page, 10),
+        limit: parseInt(limit, 10),
+        sort: { createdAt: -1 },
+    };
 
-	const applications = await Apply.paginate(filter, options);
+    const applications = await Apply.paginate(filter, options);
 
-	return res
-		.status(200)
-		.json(
+    return res
+        .status(200)
+        .json(
             new ApiResponse(
                 200,
                 applications,

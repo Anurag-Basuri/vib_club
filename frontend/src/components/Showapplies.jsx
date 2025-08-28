@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import {
     useGetAllApplications,
     useGetApplicationById,
@@ -49,11 +49,10 @@ const ShowApplies = () => {
     const [exportType, setExportType] = useState('current');
     const [exportFormat, setExportFormat] = useState('csv');
     const [copiedEmail, setCopiedEmail] = useState(null);
-    const [seenFilter, setSeenFilter] = useState('all'); // NEW
+    const [seenFilter, setSeenFilter] = useState('all');
 
     // Fetch applications for current page
     const fetchApplications = async (pageNum = 1) => {
-        // Pass seen filter as query param if not 'all'
         const params = { page: pageNum, limit };
         if (seenFilter !== 'all') params.seen = seenFilter === 'seen' ? 'true' : 'false';
         const data = await getAllApplications(params);
@@ -66,7 +65,7 @@ const ShowApplies = () => {
     useEffect(() => {
         fetchApplications(page);
         // eslint-disable-next-line
-    }, [page, seenFilter]); // Add seenFilter as dependency
+    }, [page, seenFilter]);
 
     const handleRefresh = async () => {
         await fetchApplications(page);
@@ -104,7 +103,6 @@ const ShowApplies = () => {
         if (!window.confirm('Are you sure you want to delete this application?')) return;
         try {
             await deleteApplication(id);
-            // If last item on page, go to previous page if not on first
             if (applications.length === 1 && page > 1) {
                 setPage(page - 1);
             } else {
@@ -143,7 +141,6 @@ const ShowApplies = () => {
                 (app.position || '').toLowerCase().includes(searchTerm.toLowerCase())
         )
         .filter((app) => statusFilter === 'all' || app.status === statusFilter)
-        // Remove seen filter here, as it's now handled by backend
         .sort((a, b) => {
             if (sortOption === 'newest') return new Date(b.createdAt) - new Date(a.createdAt);
             if (sortOption === 'oldest') return new Date(a.createdAt) - new Date(b.createdAt);
@@ -201,6 +198,33 @@ const ShowApplies = () => {
             URL.revokeObjectURL(url);
         }
         setShowExportOptions(false);
+    };
+
+    // Pagination functions
+    const renderPageNumbers = () => {
+        const pages = [];
+        const maxVisiblePages = 5;
+        let startPage = Math.max(1, page - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+        
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+            pages.push(
+                <button
+                    key={i}
+                    onClick={() => setPage(i)}
+                    className={`px-3 py-2 border-t border-b border-gray-700 bg-gray-800 text-gray-300 hover:bg-cyan-700 hover:text-white transition ${
+                        page === i ? 'bg-cyan-700 text-white font-bold' : ''
+                    }`}
+                >
+                    {i}
+                </button>
+            );
+        }
+        return pages;
     };
 
     return (
@@ -345,6 +369,7 @@ const ShowApplies = () => {
                                     onClick={() => {
                                         setSearchTerm('');
                                         setStatusFilter('all');
+                                        setSeenFilter('all');
                                     }}
                                     className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors flex items-center"
                                 >
@@ -489,6 +514,7 @@ const ShowApplies = () => {
                                             onClick={() => {
                                                 setSearchTerm('');
                                                 setStatusFilter('all');
+                                                setSeenFilter('all');
                                             }}
                                             className="mt-4 px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white rounded-lg transition-colors"
                                         >
@@ -583,123 +609,313 @@ const ShowApplies = () => {
                                                         </button>
                                                     </div>
                                                 </div>
-                                                {expandedId === apply._id && (
-                                                    <div className="p-5 pt-0 bg-gray-900/50 border-t border-gray-700">
-                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                {expandedId === apply._id && (loadingApplication ? (
+                                                    <div className="mt-4 pt-4 border-t border-gray-700 flex justify-center">
+                                                        <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-cyan-500"></div>
+                                                        <p className="text-gray-400 ml-2">Loading details...</p>
+                                                    </div>
+                                                ) : selectedApplication ? (
+                                                    <div className="mt-4 pt-4 border-t border-gray-700">
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                             <div>
-                                                                <h4 className="text-sm font-semibold text-gray-300 mb-2">
-                                                                    Application Details
+                                                                <h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
+                                                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                                    </svg>
+                                                                    Full Name
                                                                 </h4>
-                                                                <div className="space-y-2">
-                                                                    <div>
-                                                                        <span className="text-gray-400">Full Name:</span>{' '}
-                                                                        <span className="text-white">{apply.fullName}</span>
-                                                                    </div>
-                                                                    <div>
-                                                                        <span className="text-gray-400">Email:</span>{' '}
-                                                                        <span className="text-white">{apply.email}</span>
-                                                                    </div>
-                                                                    <div>
-                                                                        <span className="text-gray-400">Phone:</span>{' '}
-                                                                        <span className="text-white">{apply.phone}</span>
-                                                                    </div>
-                                                                    <div>
-                                                                        <span className="text-gray-400">Position:</span>{' '}
-                                                                        <span className="text-white">{apply.position}</span>
-                                                                    </div>
-                                                                    <div>
-                                                                        <span className="text-gray-400">Status:</span>{' '}
-                                                                        <span className={`text-sm font-medium ${getStatusColor(apply.status)}`}>
-                                                                            {apply.status}
-                                                                        </span>
-                                                                    </div>
-                                                                    <div>
-                                                                        <span className="text-gray-400">Seen:</span>{' '}
-                                                                        <span className="text-white">
-                                                                            {apply.seen ? 'Yes' : 'No'}
-                                                                        </span>
-                                                                    </div>
-                                                                    <div>
-                                                                        <span className="text-gray-400">Created At:</span>{' '}
-                                                                        <span className="text-white">
-                                                                            {new Date(apply.createdAt).toLocaleString()}
-                                                                        </span>
-                                                                    </div>
-                                                                </div>
+                                                                <p className="text-gray-300 text-sm">
+                                                                    {selectedApplication.fullName}
+                                                                </p>
                                                             </div>
                                                             <div>
-                                                                <h4 className="text-sm font-semibold text-gray-300 mb-2">
+                                                                <h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
+                                                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                                                                    </svg>
+                                                                    LPU ID
+                                                                </h4>
+                                                                <p className="text-gray-300 text-sm">
+                                                                    {selectedApplication.LpuId}
+                                                                </p>
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
+                                                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                                    </svg>
+                                                                    Email
+                                                                </h4>
+                                                                <p className="text-gray-300 text-sm">
+                                                                    {selectedApplication.email}
+                                                                </p>
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
+                                                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                                                    </svg>
+                                                                    Phone
+                                                                </h4>
+                                                                <p className="text-gray-300 text-sm">
+                                                                    {selectedApplication.phone}
+                                                                </p>
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
+                                                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14l9-5-9-5-9 5 9 5z" />
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14l9-5-9-5-9 5 9 5z" />
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14v6l9-5m-9 5l-9-5m9 5v-6" />
+                                                                    </svg>
+                                                                    Course
+                                                                </h4>
+                                                                <p className="text-gray-300 text-sm">
+                                                                    {selectedApplication.course}
+                                                                </p>
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
+                                                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                                    </svg>
+                                                                    Gender
+                                                                </h4>
+                                                                <p className="text-gray-300 text-sm">
+                                                                    {selectedApplication.gender}
+                                                                </p>
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
+                                                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                                                    </svg>
+                                                                    Domains
+                                                                </h4>
+                                                                <p className="text-gray-300 text-sm">
+                                                                    {(selectedApplication.domains || []).join(', ')}
+                                                                </p>
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
+                                                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                                                    </svg>
+                                                                    Accommodation
+                                                                </h4>
+                                                                <p className="text-gray-300 text-sm">
+                                                                    {selectedApplication.accommodation}
+                                                                </p>
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
+                                                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                                    </svg>
                                                                     Previous Experience
                                                                 </h4>
-                                                                <div className="space-y-2">
-                                                                    {apply.previousExperience?.length > 0 ? (
-                                                                        apply.previousExperience.map((exp, index) => (
-                                                                            <div
-                                                                                key={index}
-                                                                                className="p-3 bg-gray-800 rounded-lg border border-gray-700"
-                                                                            >
-                                                                                <div className="flex justify-between items-center mb-2">
-                                                                                    <span className="text-gray-400 text-sm">
-                                                                                        {exp.role}
-                                                                                    </span>
-                                                                                    <span className="text-xs font-medium text-gray-300">
-                                                                                        {new Date(exp.from).toLocaleString()} -{' '}
-                                                                                        {exp.to ? new Date(exp.to).toLocaleString() : 'Present'}
-                                                                                    </span>
-                                                                                </div>
-                                                                                <div className="text-gray-500 text-sm">
-                                                                                    {exp.description}
-                                                                                </div>
-                                                                            </div>
-                                                                        ))
-                                                                    ) : (
-                                                                        <div className="text-gray-500 text-sm">
-                                                                            No previous experience listed.
-                                                                        </div>
-                                                                    )}
-                                                                </div>
+                                                                <p className="text-gray-300 text-sm">
+                                                                    {selectedApplication.previousExperience ? 'Yes' : 'No'}
+                                                                </p>
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
+                                                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                                                    </svg>
+                                                                    Any Other Org
+                                                                </h4>
+                                                                <p className="text-gray-300 text-sm">
+                                                                    {selectedApplication.anyotherorg ? 'Yes' : 'No'}
+                                                                </p>
+                                                            </div>
+                                                            <div className="md:col-span-2">
+                                                                <h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
+                                                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                                                                    </svg>
+                                                                    Bio
+                                                                </h4>
+                                                                <p className="text-gray-300 text-sm bg-gray-900/30 rounded-lg p-3 whitespace-pre-wrap">
+                                                                    {selectedApplication.bio || 'No bio provided'}
+                                                                </p>
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
+                                                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 01118 0z" />
+                                                                    </svg>
+                                                                    Status
+                                                                </h4>
+                                                                <p className="text-gray-300 text-sm">
+                                                                    {selectedApplication.status}
+                                                                </p>
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
+                                                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                                    </svg>
+                                                                    Seen
+                                                                </h4>
+                                                                <p className="text-gray-300 text-sm">
+                                                                    {selectedApplication.seen ? 'Yes' : 'No'}
+                                                                </p>
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
+                                                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                                    </svg>
+                                                                    Created At
+                                                                </h4>
+                                                                <p className="text-gray-300 text-sm">
+                                                                    {new Date(selectedApplication.createdAt).toLocaleString()}
+                                                                </p>
                                                             </div>
                                                         </div>
-                                                        <div className="mt-4">
-                                                            <h4 className="text-sm font-semibold text-gray-300 mb-2">
-                                                                Additional Information
-                                                            </h4>
-                                                            <div className="space-y-2">
-                                                                <div>
-                                                                    <span className="text-gray-400">Gender:</span>{' '}
-                                                                    <span className="text-white">{apply.gender}</span>
-                                                                </div>
-                                                                <div>
-                                                                    <span className="text-gray-400">Domains:</span>{' '}
-                                                                    <span className="text-white">
-                                                                        {apply.domains?.join(', ') || 'N/A'}
-                                                                    </span>
-                                                                </div>
-                                                                <div>
-                                                                    <span className="text-gray-400">Accommodation:</span>{' '}
-                                                                    <span className="text-white">
-                                                                        {apply.accommodation?.join(', ') || 'N/A'}
-                                                                    </span>
-                                                                </div>
-                                                                <div>
-                                                                    <span className="text-gray-400">Any Other Organization:</span>{' '}
-                                                                    <span className="text-white">
-                                                                        {apply.anyotherorg ? 'Yes' : 'No'}
-                                                                    </span>
-                                                                </div>
-                                                                <div>
-                                                                    <span className="text-gray-400">Bio:</span>{' '}
-                                                                    <span className="text-white">{apply.bio}</span>
-                                                                </div>
-                                                            </div>
+                                                        <div className="mt-4 flex flex-wrap gap-2">
+                                                            <button
+                                                                className="px-3 py-1.5 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition flex items-center disabled:opacity-50"
+                                                                disabled={updatingStatus}
+                                                                onClick={() => handleStatusUpdate(apply._id, 'approved')}
+                                                            >
+                                                                {updatingStatus ? (
+                                                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                                    </svg>
+                                                                ) : (
+                                                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                                                    </svg>
+                                                                )}
+                                                                {updatingStatus ? 'Processing...' : 'Approve'}
+                                                            </button>
+                                                            <button
+                                                                className="px-3 py-1.5 text-sm bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition flex items-center disabled:opacity-50"
+                                                                disabled={updatingStatus}
+                                                                onClick={() => handleStatusUpdate(apply._id, 'rejected')}
+                                                            >
+                                                                {updatingStatus ? (
+                                                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                                    </svg>
+                                                                ) : (
+                                                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                                    </svg>
+                                                                )}
+                                                                {updatingStatus ? 'Processing...' : 'Reject'}
+                                                            </button>
+                                                            <button
+                                                                className="px-3 py-1.5 text-sm bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg transition flex items-center"
+                                                                onClick={() => handleCopyEmail(apply.email)}
+                                                            >
+                                                                {copiedEmail === apply.email ? (
+                                                                    <>
+                                                                        <svg className="w-4 h-4 mr-1 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                                                        </svg>
+                                                                        Copied!
+                                                                    </>
+                                                                ) : (
+                                                                    <>
+                                                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                                                        </svg>
+                                                                        Copy Email
+                                                                    </>
+                                                                )}
+                                                            </button>
+                                                            <button
+                                                                className="px-3 py-1.5 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg transition flex items-center"
+                                                                onClick={() => handleDelete(apply._id)}
+                                                                disabled={deleting}
+                                                            >
+                                                                {deleting ? (
+                                                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                                    </svg>
+                                                                ) : (
+                                                                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                    </svg>
+                                                                )}
+                                                                {deleting ? 'Deleting...' : 'Delete'}
+                                                            </button>
                                                         </div>
+                                                        {(errorStatus || errorDelete) && (
+                                                            <div className="text-red-400 mt-2 text-sm">
+                                                                {errorStatus || errorDelete}
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                )}
+                                                ) : (
+                                                    <div className="mt-4 pt-4 border-t border-gray-700 text-center text-gray-400">
+                                                        Failed to load application details
+                                                    </div>
+                                                ))}
+                                                <div className="px-5 py-3 bg-gray-800/70 border-t border-gray-700 flex justify-between items-center">
+                                                    <div>
+                                                        {!apply.seen && (
+                                                            <button
+                                                                onClick={() => handleMarkAsSeen(apply._id)}
+                                                                disabled={markLoading}
+                                                                className="px-4 py-1.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white rounded-lg text-sm font-medium transition flex items-center"
+                                                            >
+                                                                {markLoading ? (
+                                                                    <>
+                                                                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                                        </svg>
+                                                                        Processing...
+                                                                    </>
+                                                                ) : (
+                                                                    'Mark as Seen'
+                                                                )}
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                    <div className="text-xs text-gray-500 font-mono">
+                                                        ID: {apply._id}
+                                                    </div>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
                                 )}
                             </>
+                        )}
+                        {/* Pagination Controls */}
+                        {totalPages > 1 && (
+                            <div className="flex justify-center mt-8">
+                                <nav className="inline-flex rounded-md shadow-sm" aria-label="Pagination">
+                                    <button
+                                        onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                        disabled={page === 1}
+                                        className={`px-3 py-2 rounded-l-md border border-gray-700 bg-gray-800 text-gray-300 hover:bg-cyan-700 hover:text-white transition ${
+                                            page === 1 ? 'opacity-50 cursor-not-allowed' : ''
+                                        }`}
+                                    >
+                                        Previous
+                                    </button>
+                                    {renderPageNumbers()}
+                                    <button
+                                        onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                                        disabled={page === totalPages}
+                                        className={`px-3 py-2 rounded-r-md border border-gray-700 bg-gray-800 text-gray-300 hover:bg-cyan-700 hover:text-white transition ${
+                                            page === totalPages ? 'opacity-50 cursor-not-allowed' : ''
+                                        }`}
+                                    >
+                                        Next
+                                    </button>
+                                </nav>
+                            </div>
                         )}
                     </div>
                 </div>
