@@ -92,16 +92,6 @@ const memberSchema = new mongoose.Schema({
         {
             platform: {
                 type: String,
-                enum: [
-                    'LinkedIn',
-                    'GitHub',
-                    'Instagram',
-                    'Twitter',
-                    'Facebook',
-                    'LeetCode',
-                    'Codeforces',
-                    'CodeChef',
-                ],
                 required: [true, 'Platform is required']
             },
             url: {
@@ -121,14 +111,33 @@ const memberSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Department is required'],
         enum: {
-            values: ['HR', 'Technical', 'Marketing', 'Management', 'Content Writing', 'Event Management', 'Media', 'Design', 'Coordinator', 'PR'],
+            values: [
+                'HR',
+                'Technical',
+                'Marketing',
+                'Management',
+                'Content Writing',
+                'Event Management',
+                'Media',
+                'Design',
+                'Coordinator',
+                'PR'
+            ],
             message: 'Please select a valid department'
         }
     },
     designation: {
         type: String,
         enum: {
-            values: ['CEO', 'CTO', 'CFO', 'CMO', 'COO','Head','member'],
+            values: [
+                'CEO',
+                'CTO',
+                'CFO',
+                'CMO',
+                'COO',
+                'Head',
+                'member'
+            ],
             message: 'Please select a valid designation'
         },
         default: 'member',
