@@ -51,16 +51,6 @@ const ShowApplies = () => {
     const [exportFormat, setExportFormat] = useState('csv');
     const [copiedEmail, setCopiedEmail] = useState(null);
 
-    // Copy email to clipboard
-    const handleCopyEmail = (email) => {
-        if (navigator && navigator.clipboard) {
-            navigator.clipboard.writeText(email).then(() => {
-                setCopiedEmail(email);
-                setTimeout(() => setCopiedEmail(null), 1500);
-            });
-        }
-    };
-
     // Reset to page 1 when filters/search change
     useEffect(() => {
         setPage(1);
@@ -70,7 +60,8 @@ const ShowApplies = () => {
     const fetchApplications = async (pageNum = 1) => {
         const params = { page: pageNum, limit };
         if (statusFilter !== 'all') params.status = statusFilter;
-        if (seenFilter !== 'all') params.seen = seenFilter === 'seen' ? 'true' : 'false';
+        if (seenFilter === 'seen') params.seen = 'true';
+        else if (seenFilter === 'notseen') params.seen = 'false';
         if (searchTerm.trim()) params.search = searchTerm.trim();
         const data = await getAllApplications(params);
         const docs = data?.data?.docs || [];
@@ -145,22 +136,29 @@ const ShowApplies = () => {
         }
     };
 
-    const sortedApplications = applications.sort((a, b) => {
+    const sortedApplications = [...applications].sort((a, b) => {
         if (sortOption === 'newest') return new Date(b.createdAt) - new Date(a.createdAt);
         if (sortOption === 'oldest') return new Date(a.createdAt) - new Date(b.createdAt);
         return 0;
     });
 
+    // Copy email to clipboard
+    const handleCopyEmail = (email) => {
+        if (navigator && navigator.clipboard) {
+            navigator.clipboard.writeText(email).then(() => {
+                setCopiedEmail(email);
+                setTimeout(() => setCopiedEmail(null), 1500);
+            });
+        }
+    };
+
     // Export functionality
     const exportData = () => {
-        // Always export what is shown on the current page (sortedApplications) or all fetched applications
         const dataToExport = exportType === 'current' ? sortedApplications : applications;
         if (!Array.isArray(dataToExport) || dataToExport.length === 0) {
             alert('No data to export');
             return;
         }
-
-        // Define all fields you want to export
         const headers = [
             'Name',
             'LPU ID',
@@ -177,9 +175,7 @@ const ShowApplies = () => {
             'Seen',
             'Created At'
         ];
-
         if (exportFormat === 'csv') {
-            // CSV export
             let content = headers.join(',') + '\n';
             dataToExport.forEach((app) => {
                 content += [
@@ -209,7 +205,6 @@ const ShowApplies = () => {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         } else {
-            // JSON export
             const jsonData = dataToExport.map((app) => ({
                 name: app.fullName || '',
                 LpuId: app.LpuId || '',
@@ -838,8 +833,7 @@ const ShowApplies = () => {
                                                                 ) : (
                                                                     <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                                    </svg>
-                                                                )}
+                                                                </svg>)}
                                                                 {deleting ? 'Deleting...' : 'Delete'}
                                                             </button>
                                                         </div>
