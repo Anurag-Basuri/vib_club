@@ -44,17 +44,34 @@ const ShowApplies = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortOption, setSortOption] = useState('newest');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [seenFilter, setSeenFilter] = useState('all');
     const [expandedId, setExpandedId] = useState(null);
     const [showExportOptions, setShowExportOptions] = useState(false);
     const [exportType, setExportType] = useState('current');
     const [exportFormat, setExportFormat] = useState('csv');
     const [copiedEmail, setCopiedEmail] = useState(null);
-    const [seenFilter, setSeenFilter] = useState('all');
 
-    // Fetch applications for current page
+    // Copy email to clipboard
+    const handleCopyEmail = (email) => {
+        if (navigator && navigator.clipboard) {
+            navigator.clipboard.writeText(email).then(() => {
+                setCopiedEmail(email);
+                setTimeout(() => setCopiedEmail(null), 1500);
+            });
+        }
+    };
+
+    // Reset to page 1 when filters/search change
+    useEffect(() => {
+        setPage(1);
+    }, [statusFilter, seenFilter, searchTerm]);
+
+    // Fetch applications for current page and filters
     const fetchApplications = async (pageNum = 1) => {
         const params = { page: pageNum, limit };
+        if (statusFilter !== 'all') params.status = statusFilter;
         if (seenFilter !== 'all') params.seen = seenFilter === 'seen' ? 'true' : 'false';
+        if (searchTerm.trim()) params.search = searchTerm.trim();
         const data = await getAllApplications(params);
         const docs = data?.data?.docs || [];
         setApplications(docs);
@@ -65,7 +82,7 @@ const ShowApplies = () => {
     useEffect(() => {
         fetchApplications(page);
         // eslint-disable-next-line
-    }, [page, seenFilter]);
+    }, [page, statusFilter, seenFilter, searchTerm]);
 
     const handleRefresh = async () => {
         await fetchApplications(page);
@@ -103,6 +120,7 @@ const ShowApplies = () => {
         if (!window.confirm('Are you sure you want to delete this application?')) return;
         try {
             await deleteApplication(id);
+            // If last item on page, go to previous page if not on first
             if (applications.length === 1 && page > 1) {
                 setPage(page - 1);
             } else {
@@ -114,42 +132,28 @@ const ShowApplies = () => {
         }
     };
 
-    const handleCopyEmail = (email) => {
-        navigator.clipboard.writeText(email);
-        setCopiedEmail(email);
-        setTimeout(() => setCopiedEmail(null), 2000);
-    };
-
     const getStatusColor = (status) => {
         switch (status) {
             case 'approved':
-                return 'bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/30';
+                return 'bg-emerald-500/20 text-emerald-300';
             case 'rejected':
-                return 'bg-rose-500/20 text-rose-300 ring-1 ring-rose-500/30';
+                return 'bg-rose-500/20 text-rose-300';
             case 'pending':
-                return 'bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/30';
+                return 'bg-amber-500/20 text-amber-300';
             default:
-                return 'bg-blue-500/20 text-blue-300 ring-1 ring-blue-500/30';
+                return 'bg-blue-500/20 text-blue-300';
         }
     };
 
-    const filteredApplications = applications
-        .filter(
-            (app) =>
-                app.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                app.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (app.position || '').toLowerCase().includes(searchTerm.toLowerCase())
-        )
-        .filter((app) => statusFilter === 'all' || app.status === statusFilter)
-        .sort((a, b) => {
-            if (sortOption === 'newest') return new Date(b.createdAt) - new Date(a.createdAt);
-            if (sortOption === 'oldest') return new Date(a.createdAt) - new Date(b.createdAt);
-            return 0;
-        });
+    const sortedApplications = applications.sort((a, b) => {
+        if (sortOption === 'newest') return new Date(b.createdAt) - new Date(a.createdAt);
+        if (sortOption === 'oldest') return new Date(a.createdAt) - new Date(b.createdAt);
+        return 0;
+    });
 
     // Export functionality
     const exportData = () => {
-        const dataToExport = exportType === 'current' ? filteredApplications : applications;
+        const dataToExport = exportType === 'current' ? sortedApplications : applications;
         if (dataToExport.length === 0) {
             alert('No data to export');
             return;
@@ -200,33 +204,6 @@ const ShowApplies = () => {
         setShowExportOptions(false);
     };
 
-    // Pagination functions
-    const renderPageNumbers = () => {
-        const pages = [];
-        const maxVisiblePages = 5;
-        let startPage = Math.max(1, page - Math.floor(maxVisiblePages / 2));
-        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-        
-        if (endPage - startPage + 1 < maxVisiblePages) {
-            startPage = Math.max(1, endPage - maxVisiblePages + 1);
-        }
-        
-        for (let i = startPage; i <= endPage; i++) {
-            pages.push(
-                <button
-                    key={i}
-                    onClick={() => setPage(i)}
-                    className={`px-3 py-2 border-t border-b border-gray-700 bg-gray-800 text-gray-300 hover:bg-cyan-700 hover:text-white transition ${
-                        page === i ? 'bg-cyan-700 text-white font-bold' : ''
-                    }`}
-                >
-                    {i}
-                </button>
-            );
-        }
-        return pages;
-    };
-
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4 md:p-8">
             {/* Export Modal */}
@@ -265,7 +242,7 @@ const ShowApplies = () => {
                                 </div>
                                 <p className="text-xs text-gray-400 mt-1">
                                     {exportType === 'current'
-                                        ? `Exporting ${filteredApplications.length} filtered applications`
+                                        ? `Exporting ${sortedApplications.length} filtered applications`
                                         : `Exporting all ${applications.length} applications`}
                                 </p>
                             </div>
@@ -495,7 +472,7 @@ const ShowApplies = () => {
                         )}
                         {!loading && !error && (
                             <>
-                                {filteredApplications.length === 0 ? (
+                                {sortedApplications.length === 0 ? (
                                     <div className="bg-gray-800/50 backdrop-blur-lg rounded-2xl p-8 border border-gray-700 shadow-xl text-center">
                                         <div className="flex justify-center mb-4">
                                             <svg className="w-16 h-16 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -523,7 +500,7 @@ const ShowApplies = () => {
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
-                                        {filteredApplications.map((apply) => (
+                                        {sortedApplications.map((apply) => (
                                             <div
                                                 key={apply._id}
                                                 className={`bg-gray-800/50 backdrop-blur-lg rounded-2xl border border-gray-700 shadow-xl overflow-hidden transition-all duration-300 hover:border-cyan-500/30 ${
@@ -631,7 +608,7 @@ const ShowApplies = () => {
                                                             <div>
                                                                 <h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
                                                                     <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
                                                                     </svg>
                                                                     LPU ID
                                                                 </h4>
@@ -902,9 +879,19 @@ const ShowApplies = () => {
                                             page === 1 ? 'opacity-50 cursor-not-allowed' : ''
                                         }`}
                                     >
-                                        Previous
+                                        Prev
                                     </button>
-                                    {renderPageNumbers()}
+                                    {Array.from({ length: totalPages }, (_, i) => (
+                                        <button
+                                            key={i + 1}
+                                            onClick={() => setPage(i + 1)}
+                                            className={`px-3 py-2 border-t border-b border-gray-700 bg-gray-800 text-gray-300 hover:bg-cyan-700 hover:text-white transition ${
+                                                page === i + 1 ? 'bg-cyan-700 text-white font-bold' : ''
+                                            }`}
+                                        >
+                                            {i + 1}
+                                        </button>
+                                    ))}
                                     <button
                                         onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                                         disabled={page === totalPages}
