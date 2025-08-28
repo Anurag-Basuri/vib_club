@@ -1,6 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FiMail, FiBook, FiCalendar } from 'react-icons/fi';
+import {
+	FiUser,
+	FiMail,
+	FiBook,
+	FiCalendar
+} from 'react-icons/fi';
 
 const PersonalInfoSection = ({ member, isEditing, formData, handleInputChange }) => {
 	const getYearSuffix = (year) => {

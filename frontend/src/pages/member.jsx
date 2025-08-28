@@ -7,16 +7,6 @@ import {
 	useUploadProfilePicture,
 	useResetPassword,
 } from '../hooks/useMembers';
-import {
-	FiUser,
-	FiMail,
-	FiBook,
-	FiHome,
-	FiLink,
-	FiAward,
-	FiCalendar,
-	FiMapPin,
-} from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 // Components
