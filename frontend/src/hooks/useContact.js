@@ -1,112 +1,96 @@
 import { useState, useCallback } from 'react';
 import { apiClient } from '../services/api';
 
-// Utility for consistent error parsing
+// parse axios errors consistently
 const parseError = (err) => {
-	if (err?.data?.message) return err.data.message;
-	if (err?.data?.error) return err.data.error;
-	if (err?.message) return err.message;
-	return 'Unknown error occurred';
+  if (!err) return 'Unknown error';
+  const resp = err.response ?? err;
+  if (resp?.data?.message) return resp.data.message;
+  if (resp?.data?.error) return resp.data.error;
+  if (err.message) return err.message;
+  return String(err);
 };
 
-// Generic hook for contact actions
-const useContactAction = (actionFn) => {
-	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState(null);
-	const [data, setData] = useState(null);
+// generic request hook that stores last response data
+const useRequest = (fn) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [data, setData] = useState(null);
 
-	const action = useCallback(
-		async (...args) => {
-			setLoading(true);
-			setError(null);
-			try {
-				const result = await actionFn(...args);
-				setData(result);
-				return result;
-			} catch (err) {
-				setError(parseError(err));
-				throw err;
-			} finally {
-				setLoading(false);
-			}
-		},
-		[actionFn]
-	);
+  const action = useCallback(
+    async (...args) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fn(...args);
+        setData(res);
+        return res;
+      } catch (err) {
+        setError(parseError(err));
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [fn]
+  );
 
-	const reset = () => {
-		setData(null);
-		setError(null);
-	};
+  const reset = () => {
+    setData(null);
+    setError(null);
+  };
 
-	return { action, data, loading, error, reset };
+  return { action, data, loading, error, reset };
 };
 
-// Get all contacts (admin)
+// Get all contacts with support for pagination/search/filters
 export const useGetAllContacts = () => {
-	const actionFn = async (params = {}) => {
-		const res = await apiClient.get('/api/contact/getall', { params });
-		return res.data;
-	};
-	const { action: getAllContacts, data, loading, error, reset } = useContactAction(actionFn);
+  const fn = async (params = {}) => {
+    const res = await apiClient.get('/api/contact/getall', { params });
+    // return full axios payload (ApiResponse wrapper)
+    return res.data;
+  };
 
-	// Always return an array, even if data is undefined/null
-	const contacts = Array.isArray(data?.data?.docs) ? data.data.docs : [];
+  const { action: getAllContacts, data, loading, error, reset } = useRequest(fn);
 
-	return {
-		getAllContacts,
-		contacts,
-		loading,
-		error,
-		reset,
-	};
+  // normalize to convenient shape
+  const docs = Array.isArray(data?.data?.docs) ? data.data.docs : [];
+  const meta = {
+    totalDocs: data?.data?.totalDocs ?? 0,
+    totalPages: data?.data?.totalPages ?? 1,
+    page: data?.data?.page ?? 1,
+    limit: data?.data?.limit ?? 10,
+  };
+
+  return { getAllContacts, contacts: docs, meta, loading, error, reset };
 };
 
-// Get single contact by ID (admin)
+// Get single contact by id
 export const useGetContactById = () => {
-	const actionFn = async (id) => {
-		const res = await apiClient.get(`/api/contact/${id}`);
-		return res.data;
-	};
-	const {
-		action: getContactById,
-		data: contact,
-		loading,
-		error,
-		reset,
-	} = useContactAction(actionFn);
-
-	return { getContactById, contact: contact?.data, loading, error, reset };
+  const fn = async (id) => {
+    const res = await apiClient.get(`/api/contact/${id}`);
+    return res.data;
+  };
+  const { action: getContactById, data, loading, error, reset } = useRequest(fn);
+  return { getContactById, contact: data?.data ?? null, loading, error, reset };
 };
 
-// Mark contact as resolved (admin)
+// Mark contact as resolved
 export const useMarkContactAsResolved = () => {
-	const actionFn = async (id) => {
-		const res = await apiClient.patch(`/api/contact/${id}/resolve`);
-		return res.data;
-	};
-	const {
-		action: markAsResolved,
-		data: updated,
-		loading,
-		error,
-		reset,
-	} = useContactAction(actionFn);
-
-	return { markAsResolved, updated: updated?.data, loading, error, reset };
+  const fn = async (id) => {
+    const res = await apiClient.patch(`/api/contact/${id}/resolve`);
+    return res.data;
+  };
+  const { action: markAsResolved, data, loading, error, reset } = useRequest(fn);
+  return { markAsResolved, updated: data?.data ?? null, loading, error, reset };
 };
 
+// Delete contact
 export const useDeleteContact = () => {
-	const actionFn = async (id) => {
-		const res = await apiClient.delete(`/api/contact/${id}`);
-		return res.data;
-	};
-	const {
-		action: deleteContact,
-		data: deleted,
-		loading,
-		error,
-		reset,
-	} = useContactAction(actionFn);
-
-	return { deleteContact, deleted: deleted?.data, loading, error, reset };
+  const fn = async (id) => {
+    const res = await apiClient.delete(`/api/contact/${id}`);
+    return res.data;
+  };
+  const { action: deleteContact, data, loading, error, reset } = useRequest(fn);
+  return { deleteContact, deleted: data?.data ?? null, loading, error, reset };
 };
