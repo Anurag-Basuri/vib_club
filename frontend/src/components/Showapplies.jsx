@@ -1,1405 +1,750 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import {
-	useGetAllApplications,
-	useGetApplicationById,
-	useUpdateApplicationStatus,
-	useDeleteApplication,
-	useMarkApplicationAsSeen,
+  useGetAllApplications,
+  useGetApplicationById,
+  useUpdateApplicationStatus,
+  useDeleteApplication,
+  useMarkApplicationAsSeen,
 } from '../hooks/useApply.js';
 
 const ShowApplies = () => {
-	const { getAllApplications, loading, error, reset } = useGetAllApplications();
-	const {
-		getApplicationById,
-		application: selectedApplication,
-		loading: loadingApplication,
-		error: errorApplication,
-		reset: resetApplication,
-	} = useGetApplicationById();
-	const {
-		updateApplicationStatus,
-		loading: updatingStatus,
-		error: errorStatus,
-		reset: resetStatus,
-	} = useUpdateApplicationStatus();
-	const {
-		deleteApplication,
-		loading: deleting,
-		error: errorDelete,
-		reset: resetDelete,
-	} = useDeleteApplication();
-	const {
-		markAsSeen,
-		loading: markLoading,
-		error: markError,
-		reset: resetMark,
-	} = useMarkApplicationAsSeen();
+  const { getAllApplications, loading } = useGetAllApplications();
+  const { getApplicationById, reset: resetApplication } = useGetApplicationById();
+  const { updateApplicationStatus, loading: updatingStatus } = useUpdateApplicationStatus();
+  const { deleteApplication, loading: deleting } = useDeleteApplication();
+  const { markAsSeen, loading: markLoading } = useMarkApplicationAsSeen();
 
-	const [applications, setApplications] = useState([]);
-	const [page, setPage] = useState(1);
-	const [limit] = useState(10);
-	const [totalPages, setTotalPages] = useState(1);
-	const [totalDocs, setTotalDocs] = useState(0);
-	const [searchTerm, setSearchTerm] = useState('');
-	const [sortOption, setSortOption] = useState('newest');
-	const [statusFilter, setStatusFilter] = useState('all');
-	const [seenFilter, setSeenFilter] = useState('all');
-	const [expandedId, setExpandedId] = useState(null);
-	const [showExportOptions, setShowExportOptions] = useState(false);
-	const [exportType, setExportType] = useState('current');
-	const [exportFormat, setExportFormat] = useState('csv');
-	const [copiedEmail, setCopiedEmail] = useState(null);
-	const [filtersVisible, setFiltersVisible] = useState(false);
+  const [applications, setApplications] = useState([]);
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalDocs, setTotalDocs] = useState(0);
 
-	// Prevent double fetching and infinite loop
-	const fetchRef = useRef({ page: null, statusFilter: null, seenFilter: null, searchTerm: null });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [seenFilter, setSeenFilter] = useState('all');
+  const [sortOption, setSortOption] = useState('newest');
+  const [expandedId, setExpandedId] = useState(null);
+  const [copiedEmail, setCopiedEmail] = useState(null);
+  const [showExport, setShowExport] = useState(false);
+  const [exportFormat, setExportFormat] = useState('csv');
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
-	// Reset to page 1 when filters/search change
-	useEffect(() => {
-		setPage(1);
-	}, [statusFilter, seenFilter, searchTerm]);
+  const [errorMsg, setErrorMsg] = useState(null);
 
-	// Fetch applications for current page and filters
-	const fetchApplications = async (customPage = page) => {
-		const query = { page: customPage, limit };
-		if (statusFilter !== 'all') query.status = statusFilter;
-		if (seenFilter === 'seen') query.seen = 'true';
-		else if (seenFilter === 'notseen') query.seen = 'false';
-		if (searchTerm.trim()) query.search = searchTerm.trim();
+  // debounce search to allow server-side search across pagination without spamming requests
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchTerm.trim()), 400);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
 
-		const data = await getAllApplications(query);
-		const docs = data?.data?.docs || [];
-		setApplications(docs);
-		setTotalPages(data?.data?.totalPages || 1);
-		setTotalDocs(data?.data?.totalDocs || 0);
-	};
+  const buildQuery = (p = page) => {
+    const q = { page: p, limit };
+    if (statusFilter && statusFilter !== 'all') q.status = statusFilter;
+    if (seenFilter === 'seen') q.seen = 'true';
+    if (seenFilter === 'notseen') q.seen = 'false';
+    if (debouncedSearch) q.search = debouncedSearch;
+    return q;
+  };
 
-	useEffect(() => {
-		// Only fetch if params actually changed
-		const params = { page, limit, statusFilter, seenFilter, searchTerm };
-		const last = fetchRef.current;
-		if (
-			last.page === page &&
-			last.statusFilter === statusFilter &&
-			last.seenFilter === seenFilter &&
-			last.searchTerm === searchTerm
-		) {
-			return;
-		}
-		fetchRef.current = { ...params };
+  const fetchApplications = async (p = page) => {
+    setErrorMsg(null);
+    try {
+      const res = await getAllApplications(buildQuery(p));
+      // normalize possible shapes:
+      // - hook returns ApiResponse { status, data, message } => res.data === paginate object
+      // - hook may return paginate object directly
+      const payload = res?.data ?? res;
+      const paginated = payload?.data ?? payload;
+      const docs = paginated?.docs ?? [];
+      setApplications(docs);
+      setTotalPages(paginated?.totalPages ?? 1);
+      setTotalDocs(paginated?.totalDocs ?? 0);
+    } catch (err) {
+      // store readable message and clear current page data
+      setErrorMsg((err && (err.message || String(err))) || 'Failed to load applications');
+      setApplications([]);
+      setTotalPages(1);
+      setTotalDocs(0);
+    }
+  };
 
-		fetchApplications();
-		// eslint-disable-next-line
-	}, [page, statusFilter, seenFilter, searchTerm, limit, getAllApplications]);
+  // reset to first page when filters/search change
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter, seenFilter, debouncedSearch]);
 
-	const handleRefresh = async () => {
-		await fetchApplications(page);
-	};
+  // fetch when page or effective filters change
+  useEffect(() => {
+    fetchApplications(page);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, statusFilter, seenFilter, debouncedSearch]);
 
-	const handleExpand = async (id) => {
-		if (expandedId === id) {
-			setExpandedId(null);
-			resetApplication();
-		} else {
-			setExpandedId(id);
-			await getApplicationById(id);
-		}
-	};
+  const handleExpand = async (id) => {
+    if (expandedId === id) {
+      setExpandedId(null);
+      resetApplication && resetApplication();
+      return;
+    }
+    setExpandedId(id);
+    try {
+      await getApplicationById(id);
+    } catch {
+      // ignore - detail view isn't critical
+    }
+  };
 
-	const handleStatusUpdate = async (id, status) => {
-		try {
-			await updateApplicationStatus(id, status);
-			setApplications((prev) =>
-				prev.map((app) => (app._id === id ? { ...app, status } : app))
-			);
-		} catch (e) {}
-	};
+  const handleStatusUpdate = async (id, status) => {
+    try {
+      await updateApplicationStatus(id, status);
+      setApplications((prev) => prev.map((p) => (p._id === id ? { ...p, status } : p)));
+    } catch (err) {
+      setErrorMsg(err?.message ?? 'Failed to update status');
+    }
+  };
 
-	const handleMarkAsSeen = async (id) => {
-		try {
-			await markAsSeen(id);
-			setApplications((prev) =>
-				prev.map((app) => (app._id === id ? { ...app, seen: true } : app))
-			);
-		} catch (e) {}
-	};
+  const handleMarkAsSeen = async (id) => {
+    try {
+      await markAsSeen(id);
+      setApplications((prev) => prev.map((p) => (p._id === id ? { ...p, seen: true } : p)));
+    } catch (err) {
+      setErrorMsg(err?.message ?? 'Failed to mark seen');
+    }
+  };
 
-	const handleDelete = async (id) => {
-		if (!window.confirm('Are you sure you want to delete this application?')) return;
-		try {
-			await deleteApplication(id);
-			// If last item on page, go to previous page if not on first
-			if (applications.length === 1 && page > 1) {
-				setPage(page - 1);
-			} else {
-				await fetchApplications(page);
-			}
-			if (expandedId === id) setExpandedId(null);
-		} catch (e) {
-			alert('Failed to delete application. Please try again.');
-		}
-	};
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this application?')) return;
+    try {
+      await deleteApplication(id);
+      if (applications.length === 1 && page > 1) {
+        setPage((s) => s - 1);
+      } else {
+        await fetchApplications(page);
+      }
+      if (expandedId === id) setExpandedId(null);
+    } catch (err) {
+      setErrorMsg(err?.message ?? 'Failed to delete');
+    }
+  };
 
-	const getStatusColor = (status) => {
-		switch (status) {
-			case 'approved':
-				return 'bg-emerald-500/20 text-emerald-300';
-			case 'rejected':
-				return 'bg-rose-500/20 text-rose-300';
-			case 'pending':
-				return 'bg-amber-500/20 text-amber-300';
-			default:
-				return 'bg-blue-500/20 text-blue-300';
-		}
-	};
+  const copyEmail = (email) => {
+    if (!navigator?.clipboard) return;
+    navigator.clipboard.writeText(email).then(() => {
+      setCopiedEmail(email);
+      setTimeout(() => setCopiedEmail(null), 1200);
+    });
+  };
 
-	const sortedApplications = [...applications].sort((a, b) => {
-		if (sortOption === 'newest') return new Date(b.createdAt) - new Date(a.createdAt);
-		if (sortOption === 'oldest') return new Date(a.createdAt) - new Date(b.createdAt);
-		return 0;
-	});
+  // client-side sort (server returns paginated set already filtered by search/filters)
+  const sorted = [...applications].sort((a, b) =>
+    sortOption === 'newest' ? new Date(b.createdAt) - new Date(a.createdAt) : new Date(a.createdAt) - new Date(b.createdAt)
+  );
 
-	const handleCopyEmail = (email) => {
-		if (navigator && navigator.clipboard) {
-			navigator.clipboard.writeText(email).then(() => {
-				setCopiedEmail(email);
-				setTimeout(() => setCopiedEmail(null), 1500);
-			});
-		}
-	};
+  const exportData = () => {
+    const data = sorted;
+    if (!data.length) {
+      alert('No data to export');
+      return;
+    }
+    if (exportFormat === 'csv') {
+      const headers = ['Name', 'LPU ID', 'Email', 'Phone', 'Course', 'Status', 'Seen', 'Created At'];
+      const rows = data.map((r) =>
+        [
+          `"${r.fullName || ''}"`,
+          `"${r.LpuId || ''}"`,
+          `"${r.email || ''}"`,
+          `"${r.phone || ''}"`,
+          `"${r.course || ''}"`,
+          `"${r.status || ''}"`,
+          `"${r.seen ? 'Yes' : 'No'}"`,
+          `"${r.createdAt ? new Date(r.createdAt).toLocaleString() : ''}"`,
+        ].join(',')
+      );
+      const csv = [headers.join(','), ...rows].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `applications-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } else {
+      const json = JSON.stringify(
+        data.map((r) => ({
+          fullName: r.fullName,
+          LpuId: r.LpuId,
+          email: r.email,
+          phone: r.phone,
+          course: r.course,
+          status: r.status,
+          seen: !!r.seen,
+          createdAt: r.createdAt,
+        })),
+        null,
+        2
+      );
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `applications-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+    setShowExport(false);
+  };
 
-	const exportData = () => {
-		const dataToExport = exportType === 'current' ? sortedApplications : applications;
-		if (!Array.isArray(dataToExport) || dataToExport.length === 0) {
-			alert('No data to export');
-			return;
-		}
-		const headers = [
-			'Name',
-			'LPU ID',
-			'Email',
-			'Phone',
-			'Course',
-			'Gender',
-			'Domains',
-			'Accommodation',
-			'Previous Experience',
-			'Any Other Org',
-			'Bio',
-			'Status',
-			'Seen',
-			'Created At',
-		];
-		if (exportFormat === 'csv') {
-			let content = headers.join(',') + '\n';
-			dataToExport.forEach((app) => {
-				content +=
-					[
-						`"${app.fullName || ''}"`,
-						`"${app.LpuId || ''}"`,
-						`"${app.email || ''}"`,
-						`"${app.phone || ''}"`,
-						`"${app.course || ''}"`,
-						`"${app.gender || ''}"`,
-						`"${Array.isArray(app.domains) ? app.domains.join('; ') : app.domains || ''}"`,
-						`"${app.accommodation || ''}"`,
-						`"${app.previousExperience ? 'Yes' : 'No'}"`,
-						`"${app.anyotherorg ? 'Yes' : 'No'}"`,
-						`"${(app.bio || '').replace(/"/g, '""')}"`,
-						`"${app.status || ''}"`,
-						`"${app.seen ? 'Yes' : 'No'}"`,
-						`"${app.createdAt ? new Date(app.createdAt).toLocaleString() : ''}"`,
-					].join(',') + '\n';
-			});
-			const blob = new Blob([content], { type: 'text/csv' });
-			const url = URL.createObjectURL(blob);
-			const a = document.createElement('a');
-			a.href = url;
-			a.download = `applications-${new Date().toISOString().slice(0, 10)}.csv`;
-			document.body.appendChild(a);
-			a.click();
-			document.body.removeChild(a);
-			URL.revokeObjectURL(url);
-		} else {
-			const jsonData = dataToExport.map((app) => ({
-				name: app.fullName || '',
-				LpuId: app.LpuId || '',
-				email: app.email || '',
-				phone: app.phone || '',
-				course: app.course || '',
-				gender: app.gender || '',
-				domains: Array.isArray(app.domains) ? app.domains : [],
-				accommodation: app.accommodation || '',
-				previousExperience: !!app.previousExperience,
-				anyotherorg: !!app.anyotherorg,
-				bio: app.bio || '',
-				status: app.status || '',
-				seen: !!app.seen,
-				createdAt: app.createdAt ? new Date(app.createdAt).toISOString() : '',
-			}));
-			const jsonString = JSON.stringify(jsonData, null, 2);
-			const blob = new Blob([jsonString], { type: 'application/json' });
-			const url = URL.createObjectURL(blob);
-			const a = document.createElement('a');
-			a.href = url;
-			a.download = `applications-${new Date().toISOString().slice(0, 10)}.json`;
-			document.body.appendChild(a);
-			a.click();
-			document.body.removeChild(a);
-			URL.revokeObjectURL(url);
-		}
-		setShowExportOptions(false);
-	};
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'approved':
+        return 'bg-emerald-900/50 text-emerald-200 ring-1 ring-emerald-500/50';
+      case 'rejected':
+        return 'bg-rose-900/50 text-rose-200 ring-1 ring-rose-500/50';
+      default:
+        return 'bg-amber-900/50 text-amber-200 ring-1 ring-amber-500/50';
+    }
+  };
 
-	const clearFilters = () => {
-		setSearchTerm('');
-		setStatusFilter('all');
-		setSeenFilter('all');
-		setSortOption('newest');
-	};
+  return (
+    <div className="min-h-screen bg-slate-950 relative overflow-hidden">
+      {/* Background effects */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-blue-900/10 to-cyan-900/20"></div>
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+      
+      <div className="relative z-10 p-4 md:p-8">
+        {/* Error banner */}
+        {errorMsg && (
+          <div className="max-w-7xl mx-auto mb-6">
+            <div className="bg-red-900/50 backdrop-blur-sm border border-red-500/30 text-red-100 p-4 rounded-2xl shadow-2xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs">!</span>
+                  </div>
+                  <span>{errorMsg}</span>
+                </div>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => fetchApplications(page)} 
+                    className="px-3 py-1 bg-red-600 hover:bg-red-500 rounded-lg text-white text-sm transition-colors"
+                  >
+                    Retry
+                  </button>
+                  <button 
+                    onClick={() => setErrorMsg(null)} 
+                    className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-lg text-white text-sm transition-colors"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
-	// Pagination controls component
-	const PaginationControls = () => {
-		if (totalPages <= 1) return null;
+        {/* Export modal */}
+        {showExport && (
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-slate-800/90 backdrop-blur-xl p-8 rounded-3xl w-full max-w-md border border-cyan-500/30 shadow-2xl">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
+                  Export Applications
+                </h3>
+                <button 
+                  onClick={() => setShowExport(false)} 
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-gray-300 mb-3 font-medium">Format</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {['csv', 'json'].map((f) => (
+                      <button
+                        key={f}
+                        onClick={() => setExportFormat(f)}
+                        className={`px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
+                          exportFormat === f 
+                            ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/25' 
+                            : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
+                        }`}
+                      >
+                        {f.toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-		// compact pagination with ellipses (matches ShowContacts)
-		const maxButtons = 7;
-		const pages = [];
-		if (totalPages <= maxButtons) {
-			for (let i = 1; i <= totalPages; i++) pages.push(i);
-		} else {
-			pages.push(1);
-			const left = Math.max(2, page - 2);
-			const right = Math.min(totalPages - 1, page + 2);
-			if (left > 2) pages.push('left-ellipsis');
-			for (let i = left; i <= right; i++) pages.push(i);
-			if (right < totalPages - 1) pages.push('right-ellipsis');
-			pages.push(totalPages);
-		}
+                <div className="flex justify-end gap-3 pt-4 border-t border-slate-700">
+                  <button 
+                    onClick={() => setShowExport(false)} 
+                    className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-gray-200 rounded-xl transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={exportData} 
+                    className="px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-xl transition-all duration-200 shadow-lg shadow-cyan-500/25"
+                  >
+                    Export
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
-		return (
-			<div className="flex justify-center mt-8">
-				{(() => (
-					<nav
-						className="inline-flex items-center rounded-md shadow-sm overflow-auto px-2"
-						aria-label="Pagination"
-					>
-						<button
-							onClick={() => setPage((p) => Math.max(1, p - 1))}
-							disabled={page === 1}
-							className={`px-3 py-2 md:px-4 md:py-2 rounded-l-md border border-gray-700 bg-gray-800 text-gray-300 hover:bg-cyan-700 hover:text-white transition ${page === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
-							aria-label="Previous page"
-						>
-							Prev
-						</button>
+        {/* Mobile Filters */}
+        {showMobileFilters && (
+          <div className="fixed inset-0 z-40 flex items-start justify-center md:hidden">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowMobileFilters(false)} />
+            <div className="relative mt-20 w-full max-w-md bg-slate-800/90 backdrop-blur-xl p-6 rounded-3xl border border-slate-700 mx-4 shadow-2xl">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-white">Filters</h3>
+                <button 
+                  onClick={() => setShowMobileFilters(false)} 
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
 
-						{/* Desktop / wide screens: show compact buttons; mobile: show page indicator */}
-						<div className="hidden sm:flex items-center gap-1 mx-2">
-							{pages.map((p, idx) =>
-								p === 'left-ellipsis' || p === 'right-ellipsis' ? (
-									<span key={p + idx} className="px-3 py-2 text-gray-400 select-none">…</span>
-								) : (
-									<button
-										key={p}
-										onClick={() => setPage(p)}
-										aria-current={p === page ? 'page' : undefined}
-										className={`min-w-[44px] px-3 py-2 border-t border-b border-gray-700 bg-gray-800 text-gray-300 hover:bg-cyan-700 hover:text-white transition ${page === p ? 'bg-cyan-700 text-white font-semibold ring-1 ring-cyan-400' : ''}`}
-									>
-										{p}
-									</button>
-								)
-							)}
-						</div>
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-gray-300 mb-3 font-medium">Status</label>
+                  <div className="space-y-3">
+                    {['all', 'pending', 'approved', 'rejected'].map((s) => (
+                      <label key={s} className="flex items-center gap-3 cursor-pointer">
+                        <input 
+                          type="radio" 
+                          name="m-status" 
+                          checked={statusFilter === s} 
+                          onChange={() => setStatusFilter(s)} 
+                          className="w-4 h-4 text-cyan-600"
+                        />
+                        <span className="capitalize text-gray-300">{s}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
 
-						<div className="flex sm:hidden items-center gap-3 mx-2 px-2 text-sm text-gray-300">
-							<span className="whitespace-nowrap">Page</span>
-							<span className="font-medium">{page}</span>
-							<span className="text-gray-500">/</span>
-							<span className="font-medium">{totalPages}</span>
-						</div>
+                <div>
+                  <label className="block text-gray-300 mb-3 font-medium">Seen</label>
+                  <div className="space-y-3">
+                    {['all', 'seen', 'notseen'].map((s) => (
+                      <label key={s} className="flex items-center gap-3 cursor-pointer">
+                        <input 
+                          type="radio" 
+                          name="m-seen" 
+                          checked={seenFilter === s} 
+                          onChange={() => setSeenFilter(s)} 
+                          className="w-4 h-4 text-cyan-600"
+                        />
+                        <span className="text-gray-300">{s === 'notseen' ? 'Not Seen' : s}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
 
-						<button
-							onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-							disabled={page === totalPages}
-							className={`px-3 py-2 md:px-4 md:py-2 rounded-r-md border border-gray-700 bg-gray-800 text-gray-300 hover:bg-cyan-700 hover:text-white transition ${page === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
-							aria-label="Next page"
-						>
-							Next
-						</button>
-					</nav>
-				))()}
-			</div>
-		);
-	};
+                <div className="flex justify-between pt-6 border-t border-slate-700">
+                  <button
+                    onClick={() => {
+                      setSearchTerm('');
+                      setDebouncedSearch('');
+                      setStatusFilter('all');
+                      setSeenFilter('all');
+                      setShowMobileFilters(false);
+                    }}
+                    className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-gray-200 rounded-xl transition-colors"
+                  >
+                    Clear
+                  </button>
+                  <button 
+                    onClick={() => setShowMobileFilters(false)} 
+                    className="px-6 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-xl transition-colors"
+                  >
+                    Apply
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
-	// Application list item component
-	const ApplicationListItem = ({ application }) => {
-		const isExpanded = expandedId === application._id;
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
+            <div>
+              <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 mb-2">
+                Job Applications
+              </h1>
+              <p className="text-gray-400 text-lg">Manage and review submitted applications</p>
+            </div>
 
-		return (
-			<div
-				className={`bg-gray-800/50 backdrop-blur-lg rounded-2xl border border-gray-700 shadow-xl overflow-hidden transition-all duration-300 hover:border-cyan-500/30 ${
-					isExpanded ? 'ring-2 ring-cyan-500 border-cyan-500/50' : ''
-				}`}
-			>
-				<div
-					className={`p-4 cursor-pointer transition-all duration-200 ${
-						application.seen
-							? ''
-							: 'bg-gradient-to-r from-cyan-900/10 to-blue-900/10 border-l-4 border-cyan-500'
-					}`}
-					onClick={() => handleExpand(application._id)}
-				>
-					<div className="flex flex-col sm:flex-row items-start justify-between gap-2">
-						<div className="flex-1 min-w-0">
-							<div className="flex items-center flex-wrap gap-2">
-								<h3 className="text-lg font-semibold text-white truncate">
-									{application.fullName}
-								</h3>
-								{!application.seen && (
-									<span className="px-2 py-0.5 bg-cyan-500 text-white text-xs rounded-full animate-pulse flex items-center shrink-0">
-										<svg
-											className="w-3 h-3 mr-1"
-											fill="none"
-											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
-											<path
-												strokeLinecap="round"
-												strokeLinejoin="round"
-												strokeWidth="2"
-												d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-											/>
-										</svg>
-										New
-									</span>
-								)}
-							</div>
-							<div className="flex flex-col sm:flex-row sm:items-center mt-1 text-sm gap-1 sm:gap-2">
-								<span className="text-gray-400 flex items-center">
-									<svg
-										className="w-4 h-4 mr-1"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth="2"
-											d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-										/>
-									</svg>
-									{application.email}
-								</span>
-								<span className="hidden sm:inline text-gray-600">•</span>
-								<span className="text-cyan-400 flex items-center">
-									<svg
-										className="w-4 h-4 mr-1"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth="2"
-											d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-										/>
-									</svg>
-									{application.position}
-								</span>
-							</div>
-						</div>
-						<div className="flex items-center space-x-2 sm:space-x-3">
-							<div
-								className={`px-2 py-1 rounded-full text-xs sm:text-sm font-medium ${getStatusColor(
-									application.status
-								)}`}
-							>
-								{application.status}
-							</div>
-							<div className="text-xs text-gray-500 flex items-center">
-								<svg
-									className="w-4 h-4 mr-1"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										strokeWidth="2"
-										d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-									/>
-								</svg>
-								{new Date(application.createdAt).toLocaleDateString()}
-							</div>
-						</div>
-					</div>
+            <div className="flex gap-3 w-full lg:w-auto">
+              <div className="relative flex-1 lg:w-80">
+                <input
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search by name, LPU ID, or email..."
+                  className="bg-slate-800/50 backdrop-blur-sm rounded-2xl py-3 pl-12 pr-4 text-white border border-slate-700 w-full focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all duration-200"
+                />
+                <svg className="w-5 h-5 text-gray-400 absolute left-4 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
 
-					{/* Delete Button */}
-					<div className="flex justify-end mt-2">
-						<button
-							onClick={(e) => {
-								e.stopPropagation();
-								handleDelete(application._id);
-							}}
-							disabled={deleting}
-							className="px-2 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center disabled:opacity-50"
-						>
-							{deleting ? (
-								<svg
-									className="animate-spin -ml-1 mr-1 h-3 w-3 text-white"
-									xmlns="http://www.w3.org/2000/svg"
-									fill="none"
-									viewBox="0 0 24 24"
-								>
-									<circle
-										className="opacity-25"
-										cx="12"
-										cy="12"
-										r="10"
-										stroke="currentColor"
-										strokeWidth="4"
-									></circle>
-									<path
-										className="opacity-75"
-										fill="currentColor"
-										d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-									></path>
-								</svg>
-							) : (
-								<svg
-									className="w-3 h-3 mr-1"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										strokeWidth="2"
-										d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-									/>
-								</svg>
-							)}
-							{deleting ? 'Deleting...' : 'Delete'}
-						</button>
-					</div>
-				</div>
+              <button 
+                onClick={() => setShowMobileFilters(true)} 
+                className="px-4 py-3 bg-slate-800/60 backdrop-blur-sm text-gray-200 rounded-2xl lg:hidden border border-slate-700 hover:bg-slate-700 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z" />
+                </svg>
+              </button>
 
-				{isExpanded && (
-					<ApplicationDetails
-						application={application}
-						selectedApplication={selectedApplication}
-						loadingApplication={loadingApplication}
-						errorApplication={errorApplication}
-						updatingStatus={updatingStatus}
-						errorStatus={errorStatus}
-						errorDelete={errorDelete}
-						deleting={deleting}
-						copiedEmail={copiedEmail}
-						handleStatusUpdate={handleStatusUpdate}
-						handleDelete={handleDelete}
-						handleCopyEmail={handleCopyEmail}
-					/>
-				)}
+              <button 
+                onClick={() => setShowExport(true)} 
+                className="px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-2xl transition-all duration-200 shadow-lg shadow-cyan-500/25 font-medium"
+              >
+                Export
+              </button>
+              
+              <button 
+                onClick={() => fetchApplications(page)} 
+                className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-2xl transition-colors font-medium border border-slate-600" 
+                disabled={loading}
+              >
+                {loading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Loading...
+                  </div>
+                ) : (
+                  'Refresh'
+                )}
+              </button>
+            </div>
+          </div>
 
-				<div className="px-4 py-3 bg-gray-800/70 border-t border-gray-700 flex justify-between items-center">
-					<div>
-						{!application.seen && (
-							<button
-								onClick={() => handleMarkAsSeen(application._id)}
-								disabled={markLoading}
-								className="px-3 py-1 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white rounded-lg text-xs font-medium transition flex items-center"
-							>
-								{markLoading ? (
-									<>
-										<svg
-											className="animate-spin -ml-1 mr-1 h-3 w-3 text-white"
-											xmlns="http://www.w3.org/2000/svg"
-											fill="none"
-											viewBox="0 0 24 24"
-										>
-											<circle
-												className="opacity-25"
-												cx="12"
-												cy="12"
-												r="10"
-												stroke="currentColor"
-												strokeWidth="4"
-											></circle>
-											<path
-												className="opacity-75"
-												fill="currentColor"
-												d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-											></path>
-										</svg>
-										Processing...
-									</>
-								) : (
-									'Mark as Seen'
-								)}
-							</button>
-						)}
-					</div>
-					<div className="text-xs text-gray-500 font-mono truncate max-w-[120px] sm:max-w-none">
-						ID: {application._id}
-					</div>
-				</div>
-			</div>
-		);
-	};
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+            {/* Sidebar */}
+            <aside className="xl:col-span-3 hidden lg:block">
+              <div className="bg-slate-800/40 backdrop-blur-xl p-6 rounded-3xl border border-slate-700/50 sticky top-8 shadow-2xl">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-bold text-white">Filters</h3>
+                  <button 
+                    onClick={() => { 
+                      setSearchTerm(''); 
+                      setDebouncedSearch(''); 
+                      setStatusFilter('all'); 
+                      setSeenFilter('all'); 
+                    }} 
+                    className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors font-medium"
+                  >
+                    Clear All
+                  </button>
+                </div>
 
-	// Application details component
-	const ApplicationDetails = ({
-		application,
-		selectedApplication,
-		loadingApplication,
-		errorApplication,
-		updatingStatus,
-		errorStatus,
-		errorDelete,
-		deleting,
-		copiedEmail,
-		handleStatusUpdate,
-		handleDelete,
-		handleCopyEmail,
-	}) => {
-		if (loadingApplication) {
-			return (
-				<div className="mt-4 pt-4 border-t border-gray-700 flex justify-center items-center py-4">
-					<div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-cyan-500 mr-2"></div>
-					<p className="text-gray-400">Loading details...</p>
-				</div>
-			);
-		}
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-gray-300 mb-3 font-medium">Status</label>
+                    <div className="space-y-3">
+                      {['all', 'pending', 'approved', 'rejected'].map((s) => (
+                        <label key={s} className="flex items-center gap-3 cursor-pointer group">
+                          <input 
+                            type="radio" 
+                            name="status" 
+                            checked={statusFilter === s} 
+                            onChange={() => setStatusFilter(s)} 
+                            className="w-4 h-4 text-cyan-600 focus:ring-cyan-500 focus:ring-2"
+                          />
+                          <span className="capitalize text-gray-300 group-hover:text-white transition-colors">{s}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
 
-		if (errorApplication || !selectedApplication) {
-			return (
-				<div className="mt-4 pt-4 border-t border-gray-700 text-center text-gray-400 py-4">
-					Failed to load application details
-				</div>
-			);
-		}
+                  <div>
+                    <label className="block text-gray-300 mb-3 font-medium">Seen Status</label>
+                    <div className="space-y-3">
+                      {['all', 'seen', 'notseen'].map((s) => (
+                        <label key={s} className="flex items-center gap-3 cursor-pointer group">
+                          <input 
+                            type="radio" 
+                            name="seen" 
+                            checked={seenFilter === s} 
+                            onChange={() => setSeenFilter(s)} 
+                            className="w-4 h-4 text-cyan-600 focus:ring-cyan-500 focus:ring-2"
+                          />
+                          <span className="text-gray-300 group-hover:text-white transition-colors">
+                            {s === 'notseen' ? 'Not Seen' : s === 'all' ? 'All' : 'Seen'}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
 
-		return (
-			<div className="mt-4 pt-4 border-t border-gray-700 p-4">
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-					<DetailItem
-						label="Full Name"
-						value={selectedApplication.fullName}
-						icon="user"
-					/>
-					<DetailItem label="LPU ID" value={selectedApplication.LpuId} icon="id" />
-					<DetailItem label="Email" value={selectedApplication.email} icon="email" />
-					<DetailItem label="Phone" value={selectedApplication.phone} icon="phone" />
-					<DetailItem label="Course" value={selectedApplication.course} icon="course" />
-					<DetailItem label="Gender" value={selectedApplication.gender} icon="gender" />
-					<DetailItem
-						label="Domains"
-						value={
-							Array.isArray(selectedApplication.domains)
-								? selectedApplication.domains.join(', ')
-								: selectedApplication.domains
-						}
-						icon="domains"
-					/>
-					<DetailItem
-						label="Accommodation"
-						value={selectedApplication.accommodation}
-						icon="accommodation"
-					/>
-					<DetailItem
-						label="Previous Experience"
-						value={selectedApplication.previousExperience ? 'Yes' : 'No'}
-						icon="experience"
-					/>
-					<DetailItem
-						label="Any Other Org"
-						value={selectedApplication.anyotherorg ? 'Yes' : 'No'}
-						icon="org"
-					/>
-					<div className="md:col-span-2">
-						<h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
-							<svg
-								className="w-4 h-4 mr-1"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth="2"
-									d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-								/>
-							</svg>
-							Bio
-						</h4>
-						<p className="text-gray-300 text-sm bg-gray-900/30 rounded-lg p-3 whitespace-pre-wrap">
-							{selectedApplication.bio || 'No bio provided'}
-						</p>
-					</div>
-					<DetailItem label="Status" value={selectedApplication.status} icon="status" />
-					<DetailItem
-						label="Seen"
-						value={selectedApplication.seen ? 'Yes' : 'No'}
-						icon="seen"
-					/>
-					<DetailItem
-						label="Created At"
-						value={new Date(selectedApplication.createdAt).toLocaleString()}
-						icon="createdAt"
-					/>
-				</div>
+                  <div className="pt-6 border-t border-slate-700">
+                    <h4 className="text-gray-300 font-medium mb-4">Statistics</h4>
+                    <div className="space-y-3 text-sm">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400">Total Applications</span>
+                        <span className="font-bold text-cyan-400 bg-cyan-900/30 px-2 py-1 rounded-lg">{totalDocs}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400">Unseen (Current Page)</span>
+                        <span className="font-bold text-amber-400 bg-amber-900/30 px-2 py-1 rounded-lg">
+                          {applications.filter(a => !a.seen).length}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-400">Pending (Current Page)</span>
+                        <span className="font-bold text-orange-400 bg-orange-900/30 px-2 py-1 rounded-lg">
+                          {applications.filter(a => a.status === 'pending').length}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </aside>
 
-				<div className="mt-4 flex flex-wrap gap-2">
-					<ActionButton
-						onClick={() => handleStatusUpdate(application._id, 'approved')}
-						disabled={updatingStatus}
-						loading={updatingStatus}
-						variant="success"
-						icon="check"
-						label="Approve"
-					/>
-					<ActionButton
-						onClick={() => handleStatusUpdate(application._id, 'rejected')}
-						disabled={updatingStatus}
-						loading={updatingStatus}
-						variant="danger"
-						icon="x"
-						label="Reject"
-					/>
-					<ActionButton
-						onClick={() => handleCopyEmail(application.email)}
-						variant="secondary"
-						icon={copiedEmail === application.email ? 'check' : 'copy'}
-						label={copiedEmail === application.email ? 'Copied!' : 'Copy Email'}
-					/>
-					<ActionButton
-						onClick={() => handleDelete(application._id)}
-						disabled={deleting}
-						loading={deleting}
-						variant="danger"
-						icon="trash"
-						label="Delete"
-					/>
-				</div>
+            {/* Main Content */}
+            <main className="xl:col-span-9">
+              {loading && (
+                <div className="flex flex-col items-center justify-center h-64 bg-slate-800/30 backdrop-blur-sm rounded-3xl border border-slate-700">
+                  <div className="w-12 h-12 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mb-4"></div>
+                  <p className="text-gray-400 text-lg">Loading applications...</p>
+                </div>
+              )}
 
-				{(errorStatus || errorDelete) && (
-					<div className="text-red-400 mt-2 text-sm">{errorStatus || errorDelete}</div>
-				)}
-			</div>
-		);
-	};
+              {!loading && !applications.length && !errorMsg && (
+                <div className="flex flex-col items-center justify-center h-64 bg-slate-800/30 backdrop-blur-sm rounded-3xl border border-slate-700">
+                  <div className="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center mb-4">
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <p className="text-gray-400 text-lg">No applications found</p>
+                  <p className="text-gray-500 text-sm mt-1">Try adjusting your filters or search terms</p>
+                </div>
+              )}
 
-	// Detail item component
-	const DetailItem = ({ label, value, icon }) => {
-		const getIcon = () => {
-			switch (icon) {
-				case 'user':
-					return (
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth="2"
-							d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-						/>
-					);
-				case 'id':
-					return (
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth="2"
-							d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"
-						/>
-					);
-				case 'email':
-					return (
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth="2"
-							d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-						/>
-					);
-				case 'phone':
-					return (
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth="2"
-							d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-						/>
-					);
-				case 'course':
-					return (
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth="2"
-							d="M12 14l9-5-9-5-9 5 9 5z M12 14l9-5-9-5-9 5 9 5z M12 14v6l9-5m-9 5l-9-5m9 5v-6"
-						/>
-					);
-				case 'gender':
-					return (
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth="2"
-							d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-						/>
-					);
-				case 'domains':
-					return (
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth="2"
-							d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-						/>
-					);
-				case 'accommodation':
-					return (
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth="2"
-							d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-						/>
-					);
-				case 'experience':
-					return (
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth="2"
-							d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-						/>
-					);
-				case 'org':
-					return (
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth="2"
-							d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-						/>
-					);
-				case 'status':
-					return (
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth="2"
-							d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 01118 0z"
-						/>
-					);
-				case 'seen':
-					return (
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth="2"
-							d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-						/>
-					);
-				case 'createdAt':
-					return (
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth="2"
-							d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-						/>
-					);
-				default:
-					return null;
-			}
-		};
+              <div className="space-y-4">
+                {sorted.map((app) => (
+                  <article 
+                    key={app._id} 
+                    className={`group bg-slate-800/40 backdrop-blur-xl rounded-3xl border transition-all duration-300 hover:shadow-2xl ${
+                      expandedId === app._id 
+                        ? 'border-cyan-500/50 shadow-lg shadow-cyan-500/10' 
+                        : 'border-slate-700/50 hover:border-slate-600'
+                    }`}
+                  >
+                    <div className="p-6">
+                      <div 
+                        className="flex justify-between items-start gap-4 cursor-pointer" 
+                        onClick={() => handleExpand(app._id)}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="text-xl font-bold text-white truncate group-hover:text-cyan-300 transition-colors">
+                              {app.fullName}
+                            </h3>
+                            {!app.seen && (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-900/50 text-amber-200 ring-1 ring-amber-500/50">
+                                New
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-gray-400 mb-1 flex items-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 018 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                            </svg>
+                            <span className="truncate">{app.email}</span>
+                            <span className="text-gray-500">•</span>
+                            <span>{app.LpuId}</span>
+                          </div>
+                          <div className="text-sm text-gray-500 flex items-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {new Date(app.createdAt).toLocaleString()}
+                          </div>
+                        </div>
 
-		return (
-			<div>
-				<h4 className="text-gray-400 text-sm font-medium mb-1 flex items-center">
-					<svg
-						className="w-4 h-4 mr-1"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
-						{getIcon()}
-					</svg>
-					{label}
-				</h4>
-				<p className="text-gray-300 text-sm truncate" title={value}>
-					{value || 'N/A'}
-				</p>
-			</div>
-		);
-	};
+                        <div className="flex items-start gap-3">
+                          <div className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(app.status)}`}>
+                            {app.status}
+                          </div>
+                          <button 
+                            onClick={(e) => { 
+                              e.stopPropagation(); 
+                              setExpandedId(expandedId === app._id ? null : app._id); 
+                            }} 
+                            className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl transition-colors font-medium"
+                          >
+                            {expandedId === app._id ? 'Close' : 'View'}
+                          </button>
+                        </div>
+                      </div>
 
-	// Action button component
-	const ActionButton = ({ onClick, disabled, loading, variant, icon, label }) => {
-		const getVariantClass = () => {
-			switch (variant) {
-				case 'success':
-					return 'bg-emerald-600 hover:bg-emerald-700';
-				case 'danger':
-					return 'bg-rose-600 hover:bg-rose-700';
-				case 'secondary':
-					return 'bg-gray-700 hover:bg-gray-600';
-				default:
-					return 'bg-blue-600 hover:bg-blue-700';
-			}
-		};
+                      {expandedId === app._id && (
+                        <div className="mt-6 pt-6 border-t border-slate-700">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div className="space-y-4">
+                              <div>
+                                <label className="text-sm font-medium text-gray-400">Phone</label>
+                                <p className="text-white mt-1">{app.phone || 'N/A'}</p>
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium text-gray-400">Course</label>
+                                <p className="text-white mt-1">{app.course || 'N/A'}</p>
+                              </div>
+                            </div>
+                            <div className="space-y-4">
+                              <div>
+                                <label className="text-sm font-medium text-gray-400">Domains</label>
+                                <p className="text-white mt-1">
+                                  {Array.isArray(app.domains) ? app.domains.join(', ') : app.domains || 'N/A'}
+                                </p>
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium text-gray-400">Bio</label>
+                                <p className="text-white mt-1 max-h-20 overflow-y-auto">{app.bio || 'N/A'}</p>
+                              </div>
+                            </div>
+                          </div>
 
-		const getIcon = () => {
-			if (loading) {
-				return (
-					<svg
-						className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-						xmlns="http://www.w3.org/2000/svg"
-						fill="none"
-						viewBox="0 0 24 24"
-					>
-						<circle
-							className="opacity-25"
-							cx="12"
-							cy="12"
-							r="10"
-							stroke="currentColor"
-							strokeWidth="4"
-						></circle>
-						<path
-							className="opacity-75"
-							fill="currentColor"
-							d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-						></path>
-					</svg>
-				);
-			}
+                          <div className="flex flex-wrap gap-3 mb-4">
+                            <button 
+                              onClick={() => handleStatusUpdate(app._id, 'approved')} 
+                              disabled={updatingStatus} 
+                              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {updatingStatus ? 'Updating...' : 'Approve'}
+                            </button>
+                            <button 
+                              onClick={() => handleStatusUpdate(app._id, 'rejected')} 
+                              disabled={updatingStatus} 
+                              className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {updatingStatus ? 'Updating...' : 'Reject'}
+                            </button>
+                            <button 
+                              onClick={() => copyEmail(app.email)} 
+                              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-xl transition-colors font-medium"
+                            >
+                              {copiedEmail === app.email ? 'Copied!' : 'Copy Email'}
+                            </button>
+                            <button 
+                              onClick={() => handleMarkAsSeen(app._id)} 
+                              disabled={markLoading || app.seen} 
+                              className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {markLoading ? 'Marking...' : app.seen ? 'Seen' : 'Mark Seen'}
+                            </button>
+                            <button 
+                              onClick={() => handleDelete(app._id)} 
+                              disabled={deleting} 
+                              className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {deleting ? 'Deleting...' : 'Delete'}
+                            </button>
+                          </div>
 
-			switch (icon) {
-				case 'check':
-					return (
-						<svg
-							className="w-4 h-4 mr-1"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth="2"
-								d="M5 13l4 4L19 7"
-							></path>
-						</svg>
-					);
-				case 'x':
-					return (
-						<svg
-							className="w-4 h-4 mr-1"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth="2"
-								d="M6 18L18 6M6 6l12 12"
-							></path>
-						</svg>
-					);
-				case 'copy':
-					return (
-						<svg
-							className="w-4 h-4 mr-1"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth="2"
-								d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-							/>
-						</svg>
-					);
-				case 'trash':
-					return (
-						<svg
-							className="w-4 h-4 mr-1"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth="2"
-								d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-							/>
-						</svg>
-					);
-				default:
-					return null;
-			}
-		};
+                          <div className="text-xs text-gray-500 font-mono bg-slate-900/50 p-2 rounded-lg">
+                            ID: {app._id}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </article>
+                ))}
+              </div>
 
-		return (
-			<button
-				onClick={onClick}
-				disabled={disabled || loading}
-				className={`px-3 py-1.5 text-sm text-white rounded-lg transition flex items-center disabled:opacity-50 ${getVariantClass()}`}
-			>
-				{getIcon()}
-				{label}
-			</button>
-		);
-	};
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex justify-center mt-12">
+                  <nav className="inline-flex items-center bg-slate-800/60 backdrop-blur-xl rounded-2xl border border-slate-700 p-2 shadow-2xl">
+                    <button 
+                      onClick={() => setPage((p) => Math.max(1, p - 1))} 
+                      disabled={page === 1} 
+                      className="px-4 py-2 text-gray-300 hover:text-white hover:bg-slate-700 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                    >
+                      Previous
+                    </button>
 
-	// Export modal component
-	const ExportModal = () => {
-		if (!showExportOptions) return null;
+                    <div className="hidden sm:flex items-center gap-1 mx-4">
+                      {(() => {
+                        const maxButtons = 7;
+                        const pages = [];
+                        if (totalPages <= maxButtons) {
+                          for (let i = 1; i <= totalPages; i++) pages.push(i);
+                        } else {
+                          pages.push(1);
+                          const left = Math.max(2, page - 2);
+                          const right = Math.min(totalPages - 1, page + 2);
+                          if (left > 2) pages.push('left-ellipsis');
+                          for (let i = left; i <= right; i++) pages.push(i);
+                          if (right < totalPages - 1) pages.push('right-ellipsis');
+                          pages.push(totalPages);
+                        }
+                        return pages.map((p, idx) =>
+                          p === 'left-ellipsis' || p === 'right-ellipsis' ? (
+                            <span key={p + idx} className="px-3 py-2 text-gray-400 select-none">…</span>
+                          ) : (
+                            <button 
+                              key={p} 
+                              onClick={() => setPage(p)} 
+                              className={`min-w-[44px] px-3 py-2 rounded-xl font-medium transition-all duration-200 ${
+                                page === p 
+                                  ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/25' 
+                                  : 'text-gray-300 hover:text-white hover:bg-slate-700'
+                              }`}
+                            >
+                              {p}
+                            </button>
+                          )
+                        );
+                      })()}
+                    </div>
 
-		return (
-			<div className="fixed inset-0 bg-black/70 backdrop-blur-lg flex items-center justify-center z-50 p-4">
-				<div className="bg-gray-800/80 backdrop-blur-lg border border-cyan-500/30 rounded-xl p-6 max-w-md w-full shadow-2xl">
-					<div className="flex justify-between items-center mb-4">
-						<h3 className="text-xl font-bold text-cyan-300">Export Options</h3>
-						<button
-							onClick={() => setShowExportOptions(false)}
-							className="text-gray-400 hover:text-white transition-colors"
-							aria-label="Close"
-						>
-							<svg
-								className="w-6 h-6"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth="2"
-									d="M6 18L18 6M6 6l12 12"
-								/>
-							</svg>
-						</button>
-					</div>
-					<div className="space-y-4">
-						<div>
-							<p className="text-xs text-gray-400 mt-1">
-								Exporting {sortedApplications.length} applications of this page
-							</p>
-						</div>
-						<div>
-							<label className="block text-gray-300 mb-2">Format</label>
-							<div className="flex gap-3">
-								{['csv', 'json'].map((format) => (
-									<button
-										key={format}
-										onClick={() => setExportFormat(format)}
-										className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-											exportFormat === format
-												? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/30'
-												: 'bg-gray-700/50 text-gray-300 hover:bg-gray-700'
-										}`}
-									>
-										{format.toUpperCase()}
-									</button>
-								))}
-							</div>
-						</div>
-						<div className="pt-4 flex flex-col sm:flex-row justify-end gap-3">
-							<button
-								onClick={() => setShowExportOptions(false)}
-								className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg transition-colors"
-							>
-								Cancel
-							</button>
-							<button
-								onClick={exportData}
-								className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg flex items-center justify-center transition-colors shadow-lg shadow-cyan-500/30"
-							>
-								<svg
-									className="w-5 h-5 mr-2"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										strokeWidth="2"
-										d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-									/>
-								</svg>
-								Export Data
-							</button>
-						</div>
-					</div>
-				</div>
-			</div>
-		);
-	};
+                    <div className="flex sm:hidden items-center gap-3 mx-4 text-sm text-gray-300">
+                      <span>Page</span>
+                      <span className="font-bold text-cyan-400">{page}</span>
+                      <span className="text-gray-500">/</span>
+                      <span className="font-bold text-cyan-400">{totalPages}</span>
+                    </div>
 
-	// Mobile filters toggle
-	const MobileFiltersToggle = () => (
-		<button
-			onClick={() => setFiltersVisible(!filtersVisible)}
-			className="md:hidden flex items-center justify-center w-full py-2 bg-gray-800/50 rounded-lg mb-4 border border-gray-700"
-		>
-			<span className="text-gray-300 mr-2">{filtersVisible ? 'Hide' : 'Show'} Filters</span>
-			<svg
-				className={`w-5 h-5 text-gray-400 transition-transform ${filtersVisible ? 'rotate-180' : ''}`}
-				fill="none"
-				stroke="currentColor"
-				viewBox="0 0 24 24"
-			>
-				<path
-					strokeLinecap="round"
-					strokeLinejoin="round"
-					strokeWidth="2"
-					d="M19 9l-7 7-7-7"
-				/>
-			</svg>
-		</button>
-	);
-
-	return (
-		<div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4 md:p-8">
-			<ExportModal />
-
-			<div className="max-w-6xl mx-auto">
-				<div className="flex flex-col md:flex-row justify-between items-center mb-6 md:mb-8">
-					<div>
-						<h1 className="text-2xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">
-							Job Applications
-						</h1>
-						<p className="text-gray-400 mt-1 md:mt-2 text-sm md:text-base">
-							Manage all submitted job applications
-						</p>
-					</div>
-					<div className="mt-4 md:mt-0 flex items-center flex-wrap gap-2 justify-end w-full md:w-auto">
-						<div className="relative order-2 md:order-1 w-full md:w-auto">
-							<input
-								type="text"
-								placeholder="Search applications..."
-								value={searchTerm}
-								onChange={(e) => setSearchTerm(e.target.value)}
-								className="bg-gray-800/50 backdrop-blur-lg rounded-xl py-2 pl-10 pr-4 text-white border border-gray-700 focus:border-cyan-500 focus:outline-none w-full shadow-lg shadow-cyan-500/10 transition-colors"
-							/>
-							<svg
-								className="w-5 h-5 text-gray-400 absolute left-3 top-2.5"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth={2}
-									d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-								/>
-							</svg>
-						</div>
-						<button
-							onClick={() => setShowExportOptions(true)}
-							className="px-3 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-lg flex items-center shadow-lg shadow-blue-500/20 transition-all hover:shadow-blue-500/40 order-1 md:order-2"
-						>
-							<svg
-								className="w-4 h-4 mr-1"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth="2"
-									d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-								/>
-							</svg>
-							Export
-						</button>
-						<button
-							onClick={handleRefresh}
-							className="px-3 py-2 bg-cyan-700 hover:bg-cyan-800 text-white rounded-lg text-sm transition-colors flex items-center order-3"
-							disabled={loading}
-						>
-							{loading ? (
-								<svg
-									className="animate-spin -ml-1 mr-1 h-4 w-4 text-white"
-									xmlns="http://www.w3.org/2000/svg"
-									fill="none"
-									viewBox="0 0 24 24"
-								>
-									<circle
-										className="opacity-25"
-										cx="12"
-										cy="12"
-										r="10"
-										stroke="currentColor"
-										strokeWidth="4"
-									></circle>
-									<path
-										className="opacity-75"
-										fill="currentColor"
-										d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-									></path>
-								</svg>
-							) : (
-								<svg
-									className="w-4 h-4 mr-1"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										strokeWidth="2"
-										d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-									></path>
-								</svg>
-							)}
-							{loading ? 'Refreshing...' : 'Refresh'}
-						</button>
-					</div>
-				</div>
-
-				<MobileFiltersToggle />
-
-				<div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-					{/* Filters sidebar */}
-					<div
-						className={`md:col-span-3 ${filtersVisible ? 'block' : 'hidden'} md:block`}
-					>
-						<div className="bg-gray-800/50 backdrop-blur-lg rounded-2xl p-4 md:p-6 border border-gray-700 shadow-xl sticky top-4">
-							<div className="flex justify-between items-center mb-4">
-								<h3 className="text-lg font-semibold text-white">Filters</h3>
-								<button
-									onClick={clearFilters}
-									className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors flex items-center"
-								>
-									<svg
-										className="w-4 h-4 mr-1"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth="2"
-											d="M19 9l-7 7-7-7"
-										></path>
-									</svg>
-									Clear filters
-								</button>
-							</div>
-							<div className="mb-6">
-								<label className="block text-gray-300 mb-2">Sort by</label>
-								<select
-									value={sortOption}
-									onChange={(e) => setSortOption(e.target.value)}
-									className="w-full bg-gray-900/70 border border-gray-700 rounded-lg py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-colors"
-								>
-									<option value="newest">Newest First</option>
-									<option value="oldest">Oldest First</option>
-								</select>
-							</div>
-							<div className="mb-6">
-								<label className="block text-gray-300 mb-2">Status</label>
-								<div className="space-y-2">
-									{['all', 'pending', 'approved', 'rejected'].map((status) => (
-										<div key={status} className="flex items-center group">
-											<input
-												type="radio"
-												id={`status-${status}`}
-												name="status"
-												value={status}
-												checked={statusFilter === status}
-												onChange={() => setStatusFilter(status)}
-												className="mr-2 accent-cyan-500 cursor-pointer"
-											/>
-											<label
-												htmlFor={`status-${status}`}
-												className="text-gray-300 capitalize cursor-pointer group-hover:text-white transition-colors"
-											>
-												{status}
-											</label>
-										</div>
-									))}
-								</div>
-							</div>
-							<div className="mb-6">
-								<label className="block text-gray-300 mb-2">Seen Status</label>
-								<div className="space-y-2">
-									{['all', 'seen', 'notseen'].map((seen) => (
-										<div key={seen} className="flex items-center group">
-											<input
-												type="radio"
-												id={`seen-${seen}`}
-												name="seen"
-												value={seen}
-												checked={seenFilter === seen}
-												onChange={() => setSeenFilter(seen)}
-												className="mr-2 accent-cyan-500 cursor-pointer"
-											/>
-											<label
-												htmlFor={`seen-${seen}`}
-												className="text-gray-300 capitalize cursor-pointer group-hover:text-white transition-colors"
-											>
-												{seen === 'all'
-													? 'All'
-													: seen === 'seen'
-														? 'Seen'
-														: 'Not Seen'}
-											</label>
-										</div>
-									))}
-								</div>
-							</div>
-							<div className="mt-6 pt-4 border-t border-gray-700">
-								<div className="flex items-center justify-between mb-2">
-									<span className="text-gray-300">Total Applications</span>
-									<span className="text-white font-medium bg-gray-700/50 px-2 py-1 rounded-md text-xs">
-										{totalDocs}
-									</span>
-								</div>
-								<div className="flex items-center justify-between mb-2">
-									<span className="text-gray-300">Unseen</span>
-									<span className="text-cyan-400 font-medium bg-cyan-500/10 px-2 py-1 rounded-md text-xs">
-										{applications.filter((app) => !app.seen).length}
-									</span>
-								</div>
-								<div className="flex items-center justify-between">
-									<span className="text-gray-300">Pending</span>
-									<span className="text-amber-400 font-medium bg-amber-500/10 px-2 py-1 rounded-md text-xs">
-										{
-											applications.filter((app) => app.status === 'pending')
-												.length
-										}
-									</span>
-								</div>
-							</div>
-						</div>
-					</div>
-
-					{/* Main content */}
-					<div className="md:col-span-9">
-						{loading && (
-							<div className="flex flex-col items-center justify-center h-64 bg-gray-800/30 backdrop-blur-lg rounded-2xl border border-gray-700">
-								<div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500 mb-4"></div>
-								<p className="text-gray-400">Loading applications...</p>
-							</div>
-						)}
-
-						{error && (
-							<div className="bg-red-900/30 backdrop-blur-lg rounded-2xl p-6 border border-red-700 shadow-xl">
-								<div className="flex items-center text-red-300">
-									<svg
-										className="w-6 h-6 mr-2"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth="2"
-											d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-										/>
-									</svg>
-									<span className="text-lg font-medium">
-										Error loading applications: {error}
-									</span>
-								</div>
-								<button
-									onClick={reset}
-									className="mt-4 px-4 py-2 bg-red-700/50 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center"
-								>
-									<svg
-										className="w-5 h-5 mr-2"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth="2"
-											d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-										></path>
-									</svg>
-									Try Again
-								</button>
-							</div>
-						)}
-
-						{!loading && !error && (
-							<>
-								{sortedApplications.length === 0 ? (
-									<div className="bg-gray-800/50 backdrop-blur-lg rounded-2xl p-6 md:p-8 border border-gray-700 shadow-xl text-center">
-										<div className="flex justify-center mb-4">
-											<svg
-												className="w-16 h-16 text-gray-500"
-												fill="none"
-												stroke="currentColor"
-												viewBox="0 0 24 24"
-											>
-												<path
-													strokeLinecap="round"
-													strokeLinejoin="round"
-													strokeWidth="2"
-													d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-												/>
-											</svg>
-										</div>
-										<h3 className="text-xl font-medium text-gray-300 mb-2">
-											No applications found
-										</h3>
-										<p className="text-gray-500 max-w-md mx-auto mb-4">
-											{statusFilter !== 'all' ||
-											seenFilter !== 'all' ||
-											searchTerm
-												? 'No applications match your current filters. Try adjusting your search criteria.'
-												: 'There are no applications in the system yet.'}
-										</p>
-										<button
-											onClick={clearFilters}
-											className="px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white rounded-lg transition-colors"
-										>
-											Clear Filters
-										</button>
-									</div>
-								) : (
-									<div className="space-y-4">
-										{sortedApplications.map((application) => (
-											<ApplicationListItem
-												key={application._id}
-												application={application}
-											/>
-										))}
-									</div>
-								)}
-							</>
-						)}
-
-						<PaginationControls />
-					</div>
-				</div>
-			</div>
-		</div>
-	);
+                    <button 
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))} 
+                      disabled={page === totalPages} 
+                      className="px-4 py-2 text-gray-300 hover:text-white hover:bg-slate-700 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                    >
+                      Next
+                    </button>
+                  </nav>
+                </div>
+              )}
+            </main>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default ShowApplies;
