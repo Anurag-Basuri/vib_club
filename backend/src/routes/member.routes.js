@@ -80,13 +80,22 @@ router.put(
     authMiddleware.isMember,
     validate([
         param('id').isMongoId().withMessage('Invalid member ID'),
-        body('fullName').optional().isString(),
-        body('email').optional().isEmail().withMessage('Invalid email'),
-        body('program').optional().isString(),
-        body('year').optional().isInt({ min: 1, max: 5 }),
-        body('linkedIn').optional().isURL().withMessage('Invalid LinkedIn URL'),
-        body('github').optional().isURL().withMessage('Invalid GitHub URL'),
-        body('bio').optional().isString()
+        body('email').optional().isEmail().withMessage('Invalid email format'),
+        body('phone').optional().isString().withMessage('Invalid phone number format'),
+        body('program').optional().isString().withMessage('Invalid program format'),
+        body('year').optional().isInt({ min: 1, max: 5 }).withMessage('Invalid year format'),
+        body('hosteler').optional().isBoolean().withMessage('Invalid hosteler format'),
+        body('hostel').optional().isString().withMessage('Invalid hostel format'),
+        body('socialLinks.*.platform')
+            .if(body('socialLinks').exists())
+            .notEmpty().withMessage('Platform is required')
+            .isString().withMessage('Platform must be a string'),
+        body('socialLinks.*.url')
+            .if(body('socialLinks').exists())
+            .notEmpty().withMessage('URL is required')
+            .isString().withMessage('URL must be a string')
+            .matches(/^https?:\/\/.*$/).withMessage('Invalid URL format'),
+        body('bio').optional().isString().withMessage('Invalid bio format')
     ]),
     updateProfile
 );
