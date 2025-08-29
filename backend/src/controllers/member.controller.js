@@ -163,12 +163,13 @@ const resetPassword = asyncHandler(async (req, res) => {
 // Update member profile
 const updateProfile = asyncHandler(async (req, res) => {
     const {
-        fullName,
         email,
+        phone,
         program,
         year,
-        linkedIn,
-        github,
+        hosteler,
+        hostel,
+        socialLinks,
         bio,
     } = req.body;
 
@@ -177,12 +178,13 @@ const updateProfile = asyncHandler(async (req, res) => {
         return res.status(404).json(new ApiResponse(404, null, 'Member not found'));
     }
 
-    member.fullName = fullName || member.fullName;
-    member.gmail = email || member.gmail;
+    member.email = email || member.email;
+    member.phone = phone || member.phone;
     member.program = program || member.program;
     member.year = year || member.year;
-    member.linkedIn = linkedIn || member.linkedIn;
-    member.github = github || member.github;
+    member.hosteler = hosteler || member.hosteler;
+    member.hostel = hostel || member.hostel;
+    member.socialLinks = socialLinks || member.socialLinks;
     member.bio = bio || member.bio;
 
     await member.save();
