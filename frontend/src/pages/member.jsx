@@ -1,460 +1,453 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
-	AcademicCapIcon,
-	BuildingOfficeIcon,
-	EnvelopeIcon,
-	LockClosedIcon,
-	GlobeAltIcon,
-	PencilIcon,
-	CameraIcon,
+    PencilIcon,
+    CameraIcon,
+    CheckIcon,
+    ExclamationTriangleIcon,
+    UserIcon,
+    EnvelopeIcon,
+    AcademicCapIcon,
+    GlobeAltIcon,
 } from '@heroicons/react/24/outline';
-import { useAuth } from '../context/AuthContext';
-import { memberService } from '../services/api';
+import {
+    useGetCurrentMember,
+    useUpdateProfile,
+    useUploadProfilePicture,
+    useResetPassword,
+} from '../hooks/useMembers.js';
 
 const MemberProfile = () => {
-	const { member, updateMember } = useAuth();
-	const [isEditing, setIsEditing] = useState(false);
-	const [formData, setFormData] = useState({
-		fullname: '',
-		email: '',
-		program: '',
-		year: '',
-		bio: '',
-		socialLinks: [],
-	});
-	const [loading, setLoading] = useState(false);
-	const [message, setMessage] = useState('');
+    // Custom hooks
+    const { getCurrentMember, member, loading: memberLoading, error: memberError } = useGetCurrentMember();
+    const { updateProfile, loading: updateLoading, error: updateError } = useUpdateProfile();
+    const { uploadProfilePicture, loading: uploadLoading, error: uploadError } = useUploadProfilePicture();
 
-	useEffect(() => {
-		if (member) {
-			setFormData({
-				fullname: member.fullname || '',
-				email: member.email || '',
-				program: member.program || '',
-				year: member.year || '',
-				bio: member.bio || '',
-				socialLinks: member.socialLinks || [],
-			});
-		}
-	}, [member]);
+    // Local state
+    const [isEditing, setIsEditing] = useState(false);
+    const [formData, setFormData] = useState({
+        email: "",
+        phone: "",
+        program: "",
+        year: "",
+        hosteler: false,
+        hostel: "",
+        socialLinks: [],
+        bio: "",
+    });
+    const [message, setMessage] = useState('');
+    const canvasRef = useRef(null);
 
-	const handleInputChange = (e) => {
-		const { name, value } = e.target;
-		setFormData((prev) => ({
-			...prev,
-			[name]: value,
-		}));
-	};
+    // Fetch current member on component mount
+    useEffect(() => {
+        getCurrentMember();
+    }, []);
 
-	const handleSocialLinkChange = (index, field, value) => {
-		const updatedLinks = [...formData.socialLinks];
-		updatedLinks[index][field] = value;
-		setFormData((prev) => ({
-			...prev,
-			socialLinks: updatedLinks,
-		}));
-	};
+    // Update form data when member data is loaded
+    useEffect(() => {
+        if (member) {
+            setFormData({
+                email: member.email || "",
+                phone: member.phone || "",
+                program: member.program || "",
+                year: member.year || "",
+                hosteler: member.hosteler || false,
+                hostel: member.hostel || "",
+                socialLinks: member.socialLinks || [],
+                bio: member.bio || "",
+            });
+        }
+    }, [member]);
 
-	const handleSubmit = async (e) => {
-		e.preventDefault();
-		setLoading(true);
-		try {
-			const updatedMember = await memberService.updateProfile(member._id, formData);
-			updateMember(updatedMember);
-			setMessage('Profile updated successfully!');
-			setIsEditing(false);
-			setTimeout(() => setMessage(''), 3000);
-		} catch (error) {
-			setMessage('Error updating profile');
-		}
-		setLoading(false);
-	};
+    // Handle errors
+    useEffect(() => {
+        if (memberError) {
+            setMessage(`Error loading profile: ${memberError}`);
+        } else if (updateError) {
+            setMessage(`Error updating profile: ${updateError}`);
+        } else if (uploadError) {
+            setMessage(`Error uploading image: ${uploadError}`);
+        }
+    }, [memberError, updateError, uploadError]);
 
-	const handleProfilePictureUpload = async (e) => {
-		const file = e.target.files[0];
-		if (!file) return;
+    // Enhanced Background Animation (keeping the same as before)
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
 
-		try {
-			setLoading(true);
-			const formData = new FormData();
-			formData.append('profilePicture', file);
+        const ctx = canvas.getContext('2d');
+        let animationFrameId;
+        let time = 0;
 
-			const updatedMember = await memberService.uploadProfilePicture(formData);
-			updateMember(updatedMember);
-			setMessage('Profile picture updated successfully!');
-			setTimeout(() => setMessage(''), 3000);
-		} catch (error) {
-			setMessage('Error uploading profile picture');
-		}
-		setLoading(false);
-	};
+        const resizeCanvas = () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        };
 
-	if (!member) {
-		return (
-			<div className="min-h-screen bg-gradient-to-br from-blue-900 via-gray-900 to-black flex items-center justify-center">
-				<div className="animate-pulse text-white text-xl">Loading...</div>
-			</div>
-		);
-	}
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
 
-	return (
-		<div className="min-h-screen bg-gradient-to-br from-blue-900 via-gray-900 to-black py-12 px-4 sm:px-6 lg:px-8">
-			<div className="max-w-5xl mx-auto">
-				{/* Status Messages */}
-				{message && (
-					<div className="mb-6 bg-blue-500/20 border border-blue-500/50 text-blue-200 px-4 py-3 rounded-lg backdrop-blur-sm">
-						{message}
-					</div>
-				)}
+        const particles = [];
+        const sparkles = [];
+        const orbs = [];
 
-				{/* Profile Header */}
-				<div className="bg-gray-800/40 backdrop-blur-md rounded-2xl p-6 mb-8 border border-white/10 shadow-2xl shadow-blue-500/10 animate-breathing">
-					<div className="flex flex-col md:flex-row items-center">
-						<div className="relative mb-4 md:mb-0 md:mr-6">
-							<div className="w-32 h-32 rounded-full bg-blue-900/50 border-4 border-blue-600/30 overflow-hidden">
-								{member.profilePicture?.url ? (
-									<img
-										src={member.profilePicture.url}
-										alt={member.fullname}
-										className="w-full h-full object-cover"
-									/>
-								) : (
-									<div className="w-full h-full flex items-center justify-center bg-blue-800/20">
-										<span className="text-4xl text-blue-400/60 font-bold">
-											{member.fullname?.charAt(0).toUpperCase()}
-										</span>
-									</div>
-								)}
-							</div>
-							<label
-								htmlFor="profilePicture"
-								className="absolute bottom-2 right-2 bg-blue-600 p-2 rounded-full cursor-pointer hover:bg-blue-500 transition-all"
-							>
-								<CameraIcon className="h-5 w-5 text-white" />
-								<input
-									id="profilePicture"
-									type="file"
-									accept="image/*"
-									className="hidden"
-									onChange={handleProfilePictureUpload}
-								/>
-							</label>
-						</div>
+        // Enhanced particle system
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 3 + 0.5;
+                this.speedX = (Math.random() - 0.5) * 1.5;
+                this.speedY = (Math.random() - 0.5) * 1.5;
+                this.opacity = Math.random() * 0.8 + 0.2;
+                this.color = `hsl(${Math.random() * 60 + 180}, 70%, 60%)`;
+                this.pulseSpeed = Math.random() * 0.02 + 0.01;
+                this.angle = Math.random() * Math.PI * 2;
+            }
 
-						<div className="text-center md:text-left flex-1">
-							<h1 className="text-3xl font-bold text-white mb-2">
-								{member.fullname}
-							</h1>
-							<div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-4">
-								<span className="bg-blue-600/20 text-blue-300 px-3 py-1 rounded-full text-sm flex items-center">
-									<BuildingOfficeIcon className="h-4 w-4 mr-1" />
-									{member.department}
-								</span>
-								<span className="bg-purple-600/20 text-purple-300 px-3 py-1 rounded-full text-sm flex items-center">
-									<AcademicCapIcon className="h-4 w-4 mr-1" />
-									{member.designation}
-								</span>
-								{member.status !== 'active' && (
-									<span className="bg-red-600/20 text-red-300 px-3 py-1 rounded-full text-sm">
-										{member.status.toUpperCase()}
-									</span>
-								)}
-							</div>
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.angle += this.pulseSpeed;
 
-							<div className="flex flex-wrap gap-4 text-gray-300">
-								<div className="flex items-center">
-									<EnvelopeIcon className="h-5 w-5 mr-1 text-blue-400" />
-									<span>{member.email || 'No email provided'}</span>
-								</div>
-								<div className="flex items-center">
-									<LockClosedIcon className="h-5 w-5 mr-1 text-blue-400" />
-									<span>{member.LpuId}</span>
-								</div>
-							</div>
-						</div>
+                if (this.x > canvas.width + 50) this.x = -50;
+                if (this.x < -50) this.x = canvas.width + 50;
+                if (this.y > canvas.height + 50) this.y = -50;
+                if (this.y < -50) this.y = canvas.height + 50;
 
-						<button
-							onClick={() => setIsEditing(!isEditing)}
-							className="mt-4 md:mt-0 flex items-center bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition-all"
-						>
-							<PencilIcon className="h-5 w-5 mr-2" />
-							{isEditing ? 'Cancel Editing' : 'Edit Profile'}
-						</button>
-					</div>
-				</div>
+                this.currentSize = this.size + Math.sin(this.angle) * 0.5;
+                this.currentOpacity = this.opacity + Math.sin(this.angle * 2) * 0.3;
+            }
 
-				{/* Main Content */}
-				<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-					{/* Personal Information */}
-					<div className="bg-gray-800/40 backdrop-blur-md rounded-2xl p-6 border border-white/10 shadow-lg">
-						<h2 className="text-xl font-semibold text-white mb-6 pb-2 border-b border-white/10">
-							Personal Information
-						</h2>
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.currentOpacity);
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = this.color;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.currentSize, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
 
-						{isEditing ? (
-							<form onSubmit={handleSubmit} className="space-y-4">
-								<div>
-									<label className="block text-gray-300 mb-2">Full Name</label>
-									<input
-										type="text"
-										name="fullname"
-										value={formData.fullname}
-										onChange={handleInputChange}
-										className="w-full bg-gray-700/50 border border-gray-600/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-									/>
-								</div>
+        // Floating orbs
+        class Orb {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.radius = Math.random() * 100 + 50;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.speedY = (Math.random() - 0.5) * 0.5;
+                this.opacity = Math.random() * 0.1 + 0.05;
+                this.color = `hsl(${Math.random() * 60 + 240}, 80%, 70%)`;
+                this.pulseSpeed = Math.random() * 0.01 + 0.005;
+                this.angle = Math.random() * Math.PI * 2;
+            }
 
-								<div>
-									<label className="block text-gray-300 mb-2">Email</label>
-									<input
-										type="email"
-										name="email"
-										value={formData.email}
-										onChange={handleInputChange}
-										className="w-full bg-gray-700/50 border border-gray-600/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-									/>
-								</div>
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.angle += this.pulseSpeed;
 
-								<div>
-									<label className="block text-gray-300 mb-2">Program</label>
-									<input
-										type="text"
-										name="program"
-										value={formData.program}
-										onChange={handleInputChange}
-										className="w-full bg-gray-700/50 border border-gray-600/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-									/>
-								</div>
+                if (this.x > canvas.width + this.radius) this.x = -this.radius;
+                if (this.x < -this.radius) this.x = canvas.width + this.radius;
+                if (this.y > canvas.height + this.radius) this.y = -this.radius;
+                if (this.y < -this.radius) this.y = canvas.height + this.radius;
 
-								<div>
-									<label className="block text-gray-300 mb-2">Year</label>
-									<select
-										name="year"
-										value={formData.year}
-										onChange={handleInputChange}
-										className="w-full bg-gray-700/50 border border-gray-600/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-									>
-										<option value="">Select Year</option>
-										<option value="1">First Year</option>
-										<option value="2">Second Year</option>
-										<option value="3">Third Year</option>
-										<option value="4">Fourth Year</option>
-									</select>
-								</div>
+                this.currentRadius = this.radius + Math.sin(this.angle) * 10;
+                this.currentOpacity = this.opacity + Math.sin(this.angle * 1.5) * 0.02;
+            }
 
-								<div>
-									<label className="block text-gray-300 mb-2">Bio</label>
-									<textarea
-										name="bio"
-										value={formData.bio}
-										onChange={handleInputChange}
-										rows="3"
-										className="w-full bg-gray-700/50 border border-gray-600/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-									/>
-								</div>
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.currentOpacity);
+                const gradient = ctx.createRadialGradient(
+                    this.x, this.y, 0,
+                    this.x, this.y, this.currentRadius
+                );
+                gradient.addColorStop(0, this.color);
+                gradient.addColorStop(1, 'transparent');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.currentRadius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
 
-								<div className="pt-4">
-									<button
-										type="submit"
-										disabled={loading}
-										className="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg transition-all flex items-center justify-center"
-									>
-										{loading ? 'Saving...' : 'Save Changes'}
-									</button>
-								</div>
-							</form>
-						) : (
-							<div className="space-y-4">
-								<div>
-									<span className="text-gray-400">Program:</span>
-									<p className="text-white">
-										{member.program || 'Not specified'}
-									</p>
-								</div>
+        // Sparkle effects
+        class Sparkle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 1;
+                this.speedX = (Math.random() - 0.5) * 2;
+                this.speedY = (Math.random() - 0.5) * 2;
+                this.life = 1;
+                this.decay = Math.random() * 0.02 + 0.01;
+                this.color = `hsl(${Math.random() * 60 + 45}, 100%, 80%)`;
+                this.twinkle = Math.random() * Math.PI * 2;
+            }
 
-								<div>
-									<span className="text-gray-400">Year:</span>
-									<p className="text-white">
-										{member.year ? `Year ${member.year}` : 'Not specified'}
-									</p>
-								</div>
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.life -= this.decay;
+                this.twinkle += 0.1;
+                
+                if (this.life <= 0) {
+                    this.reset();
+                }
+            }
 
-								<div>
-									<span className="text-gray-400">Hosteler:</span>
-									<p className="text-white">{member.hosteler ? 'Yes' : 'No'}</p>
-								</div>
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.life = 1;
+                this.size = Math.random() * 2 + 1;
+                this.speedX = (Math.random() - 0.5) * 2;
+                this.speedY = (Math.random() - 0.5) * 2;
+            }
 
-								{member.hosteler && member.hostel && (
-									<div>
-										<span className="text-gray-400">Hostel:</span>
-										<p className="text-white">{member.hostel}</p>
-									</div>
-								)}
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.life * (0.5 + Math.sin(this.twinkle) * 0.5);
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.color;
+                
+                const spikes = 4;
+                const outerRadius = this.size;
+                const innerRadius = this.size * 0.5;
+                
+                ctx.beginPath();
+                for (let i = 0; i < spikes * 2; i++) {
+                    const radius = i % 2 === 0 ? outerRadius : innerRadius;
+                    const angle = (i * Math.PI) / spikes;
+                    const x = this.x + Math.cos(angle) * radius;
+                    const y = this.y + Math.sin(angle) * radius;
+                    
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            }
+        }
 
-								<div>
-									<span className="text-gray-400">Bio:</span>
-									<p className="text-white mt-1">
-										{member.bio || 'No bio provided'}
-									</p>
-								</div>
+        // Initialize all elements
+        for (let i = 0; i < 80; i++) {
+            particles.push(new Particle());
+        }
+        
+        for (let i = 0; i < 8; i++) {
+            orbs.push(new Orb());
+        }
+        
+        for (let i = 0; i < 30; i++) {
+            sparkles.push(new Sparkle());
+        }
 
-								<div>
-									<span className="text-gray-400">Member Since:</span>
-									<p className="text-white">
-										{new Date(member.joinedAt).toLocaleDateString()}
-									</p>
-								</div>
-							</div>
-						)}
-					</div>
+        const animate = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            time += 0.01;
 
-					{/* Social Links & Additional Info */}
-					<div className="space-y-8">
-						{/* Social Links */}
-						<div className="bg-gray-800/40 backdrop-blur-md rounded-2xl p-6 border border-white/10 shadow-lg">
-							<h2 className="text-xl font-semibold text-white mb-6 pb-2 border-b border-white/10 flex items-center">
-								<GlobeAltIcon className="h-5 w-5 mr-2" />
-								Social Links
-							</h2>
+            // Draw orbs
+            orbs.forEach((orb) => {
+                orb.update();
+                orb.draw();
+            });
 
-							{isEditing ? (
-								<div className="space-y-4">
-									{formData.socialLinks.map((link, index) => (
-										<div key={index} className="flex space-x-2">
-											<input
-												type="text"
-												placeholder="Platform"
-												value={link.platform}
-												onChange={(e) =>
-													handleSocialLinkChange(
-														index,
-														'platform',
-														e.target.value
-													)
-												}
-												className="flex-1 bg-gray-700/50 border border-gray-600/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-											/>
-											<input
-												type="url"
-												placeholder="URL"
-												value={link.url}
-												onChange={(e) =>
-													handleSocialLinkChange(
-														index,
-														'url',
-														e.target.value
-													)
-												}
-												className="flex-1 bg-gray-700/50 border border-gray-600/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-											/>
-										</div>
-									))}
+            // Draw particles and connections
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
 
-									<button
-										type="button"
-										onClick={() =>
-											setFormData((prev) => ({
-												...prev,
-												socialLinks: [
-													...prev.socialLinks,
-													{ platform: '', url: '' },
-												],
-											}))
-										}
-										className="text-blue-400 hover:text-blue-300 text-sm"
-									>
-										+ Add Another Link
-									</button>
-								</div>
-							) : (
-								<div className="space-y-3">
-									{member.socialLinks && member.socialLinks.length > 0 ? (
-										member.socialLinks.map((link, index) => (
-											<div key={index} className="flex items-center">
-												<div className="w-8 h-8 rounded-full bg-blue-900/30 flex items-center justify-center mr-3">
-													<GlobeAltIcon className="h-4 w-4 text-blue-400" />
-												</div>
-												<div>
-													<p className="text-white font-medium">
-														{link.platform}
-													</p>
-													<a
-														href={link.url}
-														target="_blank"
-														rel="noopener noreferrer"
-														className="text-blue-400 hover:text-blue-300 text-sm"
-													>
-														{link.url}
-													</a>
-												</div>
-											</div>
-										))
-									) : (
-										<p className="text-gray-400">No social links added</p>
-									)}
-								</div>
-							)}
-						</div>
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
 
-						{/* Account Status */}
-						{member.status !== 'active' && (
-							<div className="bg-red-900/20 backdrop-blur-md rounded-2xl p-6 border border-red-500/30 shadow-lg">
-								<h2 className="text-xl font-semibold text-white mb-4">
-									Account Status
-								</h2>
-								<div className="space-y-3">
-									<p className="text-red-300">
-										Your account is currently{' '}
-										<span className="font-bold uppercase">{member.status}</span>
-									</p>
-									{member.restriction?.reason && (
-										<p className="text-red-200">
-											<span className="font-medium">Reason:</span>{' '}
-											{member.restriction.reason}
-										</p>
-									)}
-									{member.restriction?.time && (
-										<p className="text-red-200">
-											<span className="font-medium">Review Date:</span>{' '}
-											{new Date(member.restriction.time).toLocaleDateString()}
-										</p>
-									)}
-								</div>
-							</div>
-						)}
-					</div>
-				</div>
-			</div>
+                    if (distance < 120) {
+                        const opacity = (1 - distance / 120) * 0.15;
+                        ctx.save();
+                        ctx.globalAlpha = opacity;
+                        ctx.strokeStyle = 'rgba(96, 165, 250, 0.6)';
+                        ctx.lineWidth = 1;
+                        ctx.shadowBlur = 3;
+                        ctx.shadowColor = 'rgba(96, 165, 250, 0.3)';
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                }
+            }
 
-			{/* Global Styles for Breathing Animation */}
-			<style jsx global>{`
-				@keyframes breathing {
-					0% {
-						box-shadow:
-							0 0 5px rgba(59, 130, 246, 0.4),
-							0 0 10px rgba(59, 130, 246, 0.3),
-							0 0 15px rgba(59, 130, 246, 0.2);
-					}
-					50% {
-						box-shadow:
-							0 0 20px rgba(59, 130, 246, 0.6),
-							0 0 30px rgba(59, 130, 246, 0.4),
-							0 0 40px rgba(59, 130, 246, 0.3);
-					}
-					100% {
-						box-shadow:
-							0 0 5px rgba(59, 130, 246, 0.4),
-							0 0 10px rgba(59, 130, 246, 0.3),
-							0 0 15px rgba(59, 130, 246, 0.2);
-					}
-				}
+            // Draw sparkles
+            sparkles.forEach((sparkle) => {
+                sparkle.update();
+                sparkle.draw();
+            });
 
-				.animate-breathing {
-					animation: breathing 4s ease-in-out infinite;
-				}
-			`}</style>
-		</div>
-	);
+            // Add floating gradient shapes
+            ctx.save();
+            ctx.globalAlpha = 0.1;
+            const gradient1 = ctx.createRadialGradient(
+                canvas.width * 0.2 + Math.sin(time) * 100,
+                canvas.height * 0.3 + Math.cos(time * 1.2) * 100,
+                0,
+                canvas.width * 0.2 + Math.sin(time) * 100,
+                canvas.height * 0.3 + Math.cos(time * 1.2) * 100,
+                200
+            );
+            gradient1.addColorStop(0, 'rgba(139, 69, 193, 0.3)');
+            gradient1.addColorStop(1, 'transparent');
+            ctx.fillStyle = gradient1;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const gradient2 = ctx.createRadialGradient(
+                canvas.width * 0.8 + Math.sin(time * 1.5) * 120,
+                canvas.height * 0.7 + Math.cos(time * 0.8) * 80,
+                0,
+                canvas.width * 0.8 + Math.sin(time * 1.5) * 120,
+                canvas.height * 0.7 + Math.cos(time * 0.8) * 80,
+                250
+            );
+            gradient2.addColorStop(0, 'rgba(59, 130, 246, 0.3)');
+            gradient2.addColorStop(1, 'transparent');
+            ctx.fillStyle = gradient2;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.restore();
+
+            animationFrameId = requestAnimationFrame(animate);
+        };
+
+        animate();
+
+        return () => {
+            window.removeEventListener('resize', resizeCanvas);
+            cancelAnimationFrame(animationFrameId);
+        };
+    }, []);
+
+    const handleInputChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData((prev) => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value,
+        }));
+    };
+
+    const handleSocialLinkChange = (index, field, value) => {
+        const updatedLinks = [...formData.socialLinks];
+        updatedLinks[index][field] = value;
+        setFormData((prev) => ({
+            ...prev,
+            socialLinks: updatedLinks,
+        }));
+    };
+
+    const addSocialLink = () => {
+        setFormData((prev) => ({
+            ...prev,
+            socialLinks: [...prev.socialLinks, { platform: '', url: '' }],
+        }));
+    };
+
+    const removeSocialLink = (index) => {
+        setFormData((prev) => ({
+            ...prev,
+            socialLinks: prev.socialLinks.filter((_, i) => i !== index),
+        }));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const updatedMember = await updateProfile(member._id, formData);
+            setMessage('Profile updated successfully!');
+            setIsEditing(false);
+            // Refresh member data
+            getCurrentMember();
+            setTimeout(() => setMessage(''), 3000);
+        } catch (error) {
+            setMessage('Error updating profile');
+            setTimeout(() => setMessage(''), 3000);
+        }
+    };
+
+    const handleProfilePictureUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+            const formData = new FormData();
+            formData.append('profilePicture', file);
+
+            const updatedMember = await uploadProfilePicture(member._id, formData);
+            setMessage('Profile picture updated successfully!');
+            // Refresh member data
+            getCurrentMember();
+            setTimeout(() => setMessage(''), 3000);
+        } catch (error) {
+            setMessage('Error uploading profile picture');
+            setTimeout(() => setMessage(''), 3000);
+        }
+    };
+
+    // Loading state
+    if (memberLoading || !member) {
+        return (
+            <div className="min-h-screen relative overflow-hidden">
+                <div className="fixed inset-0 z-0">
+                    <div
+                        className="absolute inset-0"
+                        style={{
+                            background: `linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%)`,
+                        }}
+                    />
+                    <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+                </div>
+                <div className="relative z-10 flex items-center justify-center min-h-screen">
+                    <div className="text-center">
+                        <div className="w-16 h-16 bg-gradient-to-r from-cyan-400 to-purple-500 rounded-full mx-auto mb-4 animate-pulse"></div>
+                        <div className="text-white text-xl">Loading...</div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    const isLoading = updateLoading || uploadLoading;
+
+    return (
+        <div className="min-h-screen relative overflow-hidden">
+            {/* Background - Keep the same animated background */}
+            <div className="fixed inset-0 z-0">
+                <div
+                    className="absolute inset-0"
+                    style={{
+                        background: `
+                            linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%),
+                            radial-gradient(circle at 25% 25%, rgba(120, 119, 198, 0.2) 0%, transparent 50%),
+                            radial-gradient(circle at 75% 75%, rgba(255, 119, 198, 0.2) 0%, transparent 50%),
+                            radial-gradient(circle at 50% 50%, rgba(120, 219, 255, 0.1) 0%, transparent 50%)
+                        `,
+                    }}
+                />
+                <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+                <div className="absolute top-10 left-10 w-32 h-32 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+                <div className="absolute top-0 right-4 w-72 h-72 bg-gradient-to-r from-yellow-400 to-red-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+                <div className="absolute -bottom-8 left-20 w-72 h-72 bg-gradient-to-r from-green-400 to-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+            </div>
+
+            
+        </div>
+    );
 };
 
 export default MemberProfile;
