@@ -130,6 +130,25 @@ export const useUploadProfilePicture = () => {
     return { uploadProfilePicture, member, loading, error, reset };
 };
 
+// Upload Resume
+export const useUploadResume = () => {
+    const actionFn = async (id, formData) => {
+        const res = await apiClient.post(`api/members/${id}/resume`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        return res.data.data.member;
+    };
+    const {
+        action: uploadResume,
+        data: member,
+        loading,
+        error,
+        reset,
+    } = useMemberAction(actionFn);
+
+    return { uploadResume, member, loading, error, reset };
+};
+
 // Reset member password
 export const useResetPassword = () => {
     const actionFn = async (LpuId, newPassword) => {

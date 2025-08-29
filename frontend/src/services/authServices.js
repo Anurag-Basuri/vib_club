@@ -59,62 +59,6 @@ export const memberLogout = async () => {
 	}
 };
 
-export const getCurrentMember = async () => {
-	try {
-		const response = await apiClient.get('/api/members/me');
-		return response.data;
-	} catch (error) {
-		handleAuthError(error);
-		throw error;
-	}
-};
-
-export const updateProfile = async (data) => {
-	try {
-		const response = await apiClient.put(`/api/members/${data.id}/update`, data);
-		return response.data;
-	} catch (error) {
-		handleAuthError(error);
-		throw error;
-	}
-};
-
-export const uploadProfilePicture = async (file, id) => {
-	try {
-		const formData = new FormData();
-		formData.append('profilePictures', file);
-
-		const response = await apiClient.post(`/api/members/${id}/profile-picture`, formData, {
-			headers: { 'Content-Type': 'multipart/form-data' },
-		});
-
-		return response.data;
-	} catch (error) {
-		handleAuthError(error);
-		throw error;
-	}
-};
-
-export const resetPassword = async (data) => {
-	try {
-		const response = await apiClient.post('/api/members/reset-password', data);
-		return response.data;
-	} catch (error) {
-		handleAuthError(error);
-		throw error;
-	}
-};
-
-export const forgotPassword = async (data) => {
-	try {
-		const response = await publicClient.post('/api/members/send-reset-email', data);
-		return response.data;
-	} catch (error) {
-		handleAuthError(error);
-		throw error;
-	}
-};
-
 export const adminRegister = async (data) => {
 	try {
 		const response = await apiClient.post('/api/admin/register', data);
