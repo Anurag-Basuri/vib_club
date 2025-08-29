@@ -148,7 +148,7 @@ const ShowApplies = () => {
       return;
     }
     if (exportFormat === 'csv') {
-      const headers = ['Name', 'LPU ID', 'Email', 'Phone', 'Course', 'Status', 'Seen', 'Created At'];
+      const headers = ['Name', 'LPU ID', 'Email', 'Phone', 'Course', 'Domains', 'Bio', 'Status', 'Seen', 'Created At'];
       const rows = data.map((r) =>
         [
           `"${r.fullName || ''}"`,
@@ -156,6 +156,8 @@ const ShowApplies = () => {
           `"${r.email || ''}"`,
           `"${r.phone || ''}"`,
           `"${r.course || ''}"`,
+          `"${r.domains || ''}"`,
+          `"${r.bio || ''}"`,
           `"${r.status || ''}"`,
           `"${r.seen ? 'Yes' : 'No'}"`,
           `"${r.createdAt ? new Date(r.createdAt).toLocaleString() : ''}"`,
@@ -179,6 +181,8 @@ const ShowApplies = () => {
           email: r.email,
           phone: r.phone,
           course: r.course,
+          domains: r.domains,
+          bio: r.bio,
           status: r.status,
           seen: !!r.seen,
           createdAt: r.createdAt,
@@ -390,7 +394,6 @@ const ShowApplies = () => {
               <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 mb-2">
                 Job Applications
               </h1>
-              <p className="text-gray-400 text-lg">Manage and review submitted applications</p>
             </div>
 
             <div className="flex gap-3 w-full lg:w-auto">
