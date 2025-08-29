@@ -240,7 +240,7 @@ memberSchema.statics.findByLpuID = async function(lpuID) {
 
 memberSchema.methods.generateAuthToken = function() {
     return jwt.sign(
-        { id: this._id, memberID: this.memberID },
+        { id: this._id, memberID: this.memberID, role: this.designation },
         process.env.ACCESS_TOKEN_SECRET,
         process.env.ACCESS_TOKEN_EXPIRY ? { expiresIn: process.env.ACCESS_TOKEN_EXPIRY } : {}
     );
