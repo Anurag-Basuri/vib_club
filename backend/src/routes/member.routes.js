@@ -121,7 +121,7 @@ router.post(
     '/:id/profile-picture',
     authMiddleware.verifyToken,
     authMiddleware.isMember,
-    uploadFile('profilePictures'),
+    uploadFile('profilePicture'),
     validate([
         param('id').isMongoId().withMessage('Invalid member ID'),
         body('profilePicture').notEmpty().withMessage('Profile picture is required')
