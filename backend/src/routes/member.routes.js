@@ -7,6 +7,7 @@ import {
     updateProfile,
     updateMemberByAdmin,
     uploadProfilePicture,
+    uploadResume,
     getCurrentMember,
     getLeaders,
     sendResetPasswordEmail,
@@ -84,6 +85,7 @@ router.put(
         body('phone').optional().isString().withMessage('Invalid phone number format'),
         body('program').optional().isString().withMessage('Invalid program format'),
         body('year').optional().isInt({ min: 1, max: 5 }).withMessage('Invalid year format'),
+        body('skills').optional().isArray({ max: 10 }).withMessage('Skills must be an array with a maximum of 10 items'),
         body('hosteler').optional().isBoolean().withMessage('Invalid hosteler format'),
         body('hostel').optional().isString().withMessage('Invalid hostel format'),
         body('socialLinks.*.platform')
@@ -125,6 +127,19 @@ router.post(
         body('profilePicture').notEmpty().withMessage('Profile picture is required')
     ]),
     uploadProfilePicture
+);
+
+// Upload Resume
+router.post(
+    '/:id/resume',
+    authMiddleware.verifyToken,
+    authMiddleware.isMember,
+    uploadFile('resumes'),
+    validate([
+        param('id').isMongoId().withMessage('Invalid member ID'),
+        body('resume').notEmpty().withMessage('Resume is required')
+    ]),
+    uploadResume
 );
 
 // Get Current Member

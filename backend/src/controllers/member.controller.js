@@ -167,6 +167,7 @@ const updateProfile = asyncHandler(async (req, res) => {
         phone,
         program,
         year,
+        skills,
         hosteler,
         hostel,
         socialLinks,
@@ -182,6 +183,7 @@ const updateProfile = asyncHandler(async (req, res) => {
     member.phone = phone || member.phone;
     member.program = program || member.program;
     member.year = year || member.year;
+    member.skills = skills || member.skills;
     member.hosteler = hosteler || member.hosteler;
     member.hostel = hostel || member.hostel;
     member.socialLinks = socialLinks || member.socialLinks;
@@ -239,6 +241,40 @@ const uploadProfilePicture = asyncHandler(async (req, res) => {
     // Upload new profile picture to Cloudinary
     const uploadResponse = await uploadFile(file[0]);
     member.profilePicture = {
+        url: uploadResponse.url,
+        publicId: uploadResponse.publicId,
+    };
+    await member.save();
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, { member: member.toJSON() }, 'Profile picture uploaded successfully')
+        );
+});
+
+// Upload resume
+const uploadResume = asyncHandler(async (req, res) => {
+    const file = req.files;
+    if (!file || file.length === 0) {
+        return res.status(400).json(new ApiResponse(400, null, 'No files uploaded'));
+    }
+
+    const member = await Member.findById(req.id);
+    if (!member) {
+        return res
+            .status(404)
+            .json(new ApiResponse(404, null, 'Member not found'));
+    }
+
+    // Delete old resume from Cloudinary
+    if (member.resume) {
+        await deleteFile(member.resume.publicId);
+    }
+
+    // Upload new resume to Cloudinary
+    const uploadResponse = await uploadFile(file[0]);
+    member.resume = {
         url: uploadResponse.url,
         publicId: uploadResponse.publicId,
     };
@@ -330,6 +366,7 @@ export {
     updateProfile,
     updateMemberByAdmin,
     uploadProfilePicture,
+    uploadResume,
     getCurrentMember,
     getLeaders,
     sendResetPasswordEmail,

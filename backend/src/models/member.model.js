@@ -26,6 +26,21 @@ const memberSchema = new mongoose.Schema({
             type: String,
         }
     },
+    resume: {
+        url: {
+            type: String,
+            validate: {
+                validator: function(v) {
+                    return /^https?:\/\/.*\.(pdf|doc|docx)$/.test(v);
+                },
+                message: 'Resume must be a valid document URL'
+            }
+        },
+        publicId: {
+            type: String,
+        }
+    },
+
     fullname: {
         type: String,
         required: [true, 'Full name is required'],
@@ -69,6 +84,16 @@ const memberSchema = new mongoose.Schema({
             message: 'Year must be between 1 and 4'
         }
     },
+    skills: {
+        type: [String],
+        validate: {
+            validator: function(v) {
+                return v.length <= 10;
+            },
+            message: 'Skills array cannot exceed 10 items'
+        }
+    },
+
     hosteler: {
         type: Boolean,
         default: false
