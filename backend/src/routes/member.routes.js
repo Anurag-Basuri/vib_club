@@ -134,7 +134,7 @@ router.post(
     '/:id/resume',
     authMiddleware.verifyToken,
     authMiddleware.isMember,
-    uploadFile('resumes'),
+    uploadFile('resume'),
     validate([
         param('id').isMongoId().withMessage('Invalid member ID'),
         body('resume').notEmpty().withMessage('Resume is required')
