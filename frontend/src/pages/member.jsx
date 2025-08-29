@@ -1,13 +1,12 @@
-// components/Profile.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
-import axios from 'axios';
 
-const Profile = ({ memberId }) => {
+const EnhancedProfile = ({ memberId }) => {
 	const [member, setMember] = useState(null);
 	const [isEditing, setIsEditing] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
 	const [message, setMessage] = useState('');
+	const canvasRef = useRef(null);
 	const {
 		register,
 		handleSubmit,
@@ -33,10 +32,11 @@ const Profile = ({ memberId }) => {
 			socialLinks: [
 				{ platform: 'GitHub', url: 'https://github.com/alexjohnson' },
 				{ platform: 'LinkedIn', url: 'https://linkedin.com/in/alexjohnson' },
+				{ platform: 'Twitter', url: 'https://twitter.com/alexjohnson' },
 			],
 			department: 'Technical',
 			designation: 'Head',
-			bio: 'Passionate about technology and innovation. Currently working on AI projects.',
+			bio: 'Passionate about technology and innovation. Currently working on AI projects with a focus on machine learning and computer vision.',
 			joinedAt: '2022-01-15T00:00:00.000Z',
 			status: 'active',
 			restriction: {
@@ -51,10 +51,99 @@ const Profile = ({ memberId }) => {
 		setIsLoading(false);
 	}, [memberId, reset]);
 
+	useEffect(() => {
+		// Animated background using canvas
+		const canvas = canvasRef.current;
+		if (!canvas) return;
+
+		const ctx = canvas.getContext('2d');
+		let animationFrameId;
+
+		const resizeCanvas = () => {
+			canvas.width = window.innerWidth;
+			canvas.height = window.innerHeight;
+		};
+
+		window.addEventListener('resize', resizeCanvas);
+		resizeCanvas();
+
+		const particles = [];
+		const particleCount = 50;
+
+		class Particle {
+			constructor() {
+				this.x = Math.random() * canvas.width;
+				this.y = Math.random() * canvas.height;
+				this.size = Math.random() * 2 + 1;
+				this.speedX = Math.random() * 0.5 - 0.25;
+				this.speedY = Math.random() * 0.5 - 0.25;
+				this.color = `rgba(59, 130, 246, ${Math.random() * 0.3})`;
+			}
+
+			update() {
+				this.x += this.speedX;
+				this.y += this.speedY;
+
+				if (this.x > canvas.width || this.x < 0) {
+					this.speedX = -this.speedX;
+				}
+				if (this.y > canvas.height || this.y < 0) {
+					this.speedY = -this.speedY;
+				}
+			}
+
+			draw() {
+				ctx.fillStyle = this.color;
+				ctx.beginPath();
+				ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+				ctx.fill();
+			}
+		}
+
+		const init = () => {
+			for (let i = 0; i < particleCount; i++) {
+				particles.push(new Particle());
+			}
+		};
+
+		const animate = () => {
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+			for (let i = 0; i < particles.length; i++) {
+				particles[i].update();
+				particles[i].draw();
+
+				for (let j = i; j < particles.length; j++) {
+					const dx = particles[i].x - particles[j].x;
+					const dy = particles[i].y - particles[j].y;
+					const distance = Math.sqrt(dx * dx + dy * dy);
+
+					if (distance < 100) {
+						ctx.beginPath();
+						ctx.strokeStyle = `rgba(59, 130, 246, ${0.1 * (1 - distance / 100)})`;
+						ctx.lineWidth = 0.5;
+						ctx.moveTo(particles[i].x, particles[i].y);
+						ctx.lineTo(particles[j].x, particles[j].y);
+						ctx.stroke();
+					}
+				}
+			}
+
+			animationFrameId = requestAnimationFrame(animate);
+		};
+
+		init();
+		animate();
+
+		return () => {
+			cancelAnimationFrame(animationFrameId);
+			window.removeEventListener('resize', resizeCanvas);
+		};
+	}, []);
+
 	const onSubmit = async (data) => {
 		try {
 			// In a real app, you would make an API call here
-			// const response = await axios.put(`/api/members/${memberId}`, data);
 			setMember(data);
 			setIsEditing(false);
 			setMessage('Profile updated successfully!');
@@ -67,204 +156,226 @@ const Profile = ({ memberId }) => {
 
 	if (isLoading) {
 		return (
-			<div className="min-h-screen bg-gradient-to-br from-slate-900 to-blue-900 flex items-center justify-center">
-				<div className="text-white text-xl">Loading profile...</div>
+			<div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
+				<div className="flex flex-col items-center">
+					<div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+					<div className="text-white text-xl">Loading profile...</div>
+				</div>
 			</div>
 		);
 	}
 
 	if (!member) {
 		return (
-			<div className="min-h-screen bg-gradient-to-br from-slate-900 to-blue-900 flex items-center justify-center">
+			<div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
 				<div className="text-white text-xl">Profile not found</div>
 			</div>
 		);
 	}
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-slate-900 to-blue-900 py-8 px-4 sm:px-6 lg:px-8">
-			<div className="max-w-6xl mx-auto bg-slate-800 bg-opacity-50 backdrop-blur-lg rounded-3xl overflow-hidden shadow-2xl border border-slate-700">
-				{/* Cover Photo */}
-				<div className="h-48 sm:h-64 relative overflow-hidden">
-					<img
-						src="https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&auto=format&fit=crop&w=1500&q=80"
-						alt="Cover"
-						className="w-full h-full object-cover"
-					/>
-					<div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-900"></div>
-				</div>
+		<div className="min-h-screen relative overflow-hidden">
+			{/* Animated Background */}
+			<canvas
+				ref={canvasRef}
+				className="fixed top-0 left-0 w-full h-full bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 z-0"
+			/>
 
-				{/* Profile Header */}
-				<div className="px-6 sm:px-8 flex flex-col sm:flex-row items-start sm:items-end relative -mt-16 sm:-mt-20">
-					<div className="relative group transition-transform duration-300 hover:scale-105">
+			{/* Content */}
+			<div className="relative z-10 py-8 px-4 sm:px-6 lg:px-8">
+				<div className="max-w-6xl mx-auto bg-slate-800/70 backdrop-blur-xl rounded-3xl overflow-hidden shadow-2xl border border-slate-700/50 transform transition-all duration-500 hover:shadow-blue-500/10">
+					{/* Cover Photo with Parallax Effect */}
+					<div className="h-48 sm:h-64 relative overflow-hidden">
+						<div className="absolute inset-0 bg-gradient-to-r from-blue-900/70 to-slate-900/70 z-10"></div>
 						<img
-							src={member.profilePicture?.url || '/default-avatar.png'}
-							alt={member.fullname}
-							className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-slate-800 bg-slate-800 object-cover shadow-lg"
+							src="https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&auto=format&fit=crop&w=1500&q=80"
+							alt="Cover"
+							className="w-full h-full object-cover transform transition-transform duration-700 hover:scale-105"
 						/>
-						{isEditing && (
-							<div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-								<span className="text-white text-sm font-medium flex items-center">
+						<div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-900 z-20"></div>
+					</div>
+
+					{/* Profile Header */}
+					<div className="px-6 sm:px-8 flex flex-col sm:flex-row items-start sm:items-end relative -mt-16 sm:-mt-20">
+						<div className="relative group transition-transform duration-300 hover:scale-105">
+							<div className="absolute -inset-2 bg-blue-500/20 rounded-full blur-lg group-hover:opacity-75 transition duration-300 opacity-0"></div>
+							<img
+								src={member.profilePicture?.url || '/default-avatar.png'}
+								alt={member.fullname}
+								className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-slate-800 bg-slate-800 object-cover shadow-xl relative z-10"
+							/>
+							{isEditing && (
+								<div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-20">
+									<span className="text-white text-sm font-medium flex items-center">
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											className="h-5 w-5 mr-1"
+											viewBox="0 0 20 20"
+											fill="currentColor"
+										>
+											<path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+										</svg>
+										Change
+									</span>
+								</div>
+							)}
+						</div>
+
+						<div className="mt-4 sm:mt-0 sm:ml-6 flex-1">
+							<h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-white">
+								{member.fullname}
+							</h1>
+							<p className="text-slate-300 mt-1 italic">
+								{member.bio || 'No bio provided'}
+							</p>
+							<div className="flex items-center mt-2 flex-wrap gap-2">
+								<span className="bg-blue-600/30 text-blue-300 px-3 py-1 rounded-full text-sm font-medium backdrop-blur-sm">
+									{member.designation}
+								</span>
+								<span className="mx-2 text-slate-400">•</span>
+								<span className="bg-indigo-600/30 text-indigo-300 px-3 py-1 rounded-full text-sm font-medium backdrop-blur-sm">
+									{member.department}
+								</span>
+								<span className="mx-2 text-slate-400">•</span>
+								<span className="bg-emerald-600/30 text-emerald-300 px-3 py-1 rounded-full text-sm font-medium backdrop-blur-sm">
+									Member since {new Date(member.joinedAt).getFullYear()}
+								</span>
+							</div>
+						</div>
+
+						{!isEditing ? (
+							<button
+								className="mt-4 sm:mt-0 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 rounded-lg transition-all duration-300 transform hover:-translate-y-1 shadow-lg hover:shadow-blue-500/30 font-medium flex items-center group"
+								onClick={() => setIsEditing(true)}
+							>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									className="h-5 w-5 mr-2 transition-transform group-hover:rotate-12"
+									viewBox="0 0 20 20"
+									fill="currentColor"
+								>
+									<path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+								</svg>
+								Edit Profile
+							</button>
+						) : (
+							<div className="flex space-x-2 mt-4 sm:mt-0">
+								<button
+									className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 rounded-lg transition-all duration-300 shadow-lg hover:shadow-blue-500/30 font-medium flex items-center group"
+									onClick={handleSubmit(onSubmit)}
+								>
 									<svg
 										xmlns="http://www.w3.org/2000/svg"
-										className="h-5 w-5 mr-1"
+										className="h-5 w-5 mr-2 transition-transform group-hover:scale-110"
 										viewBox="0 0 20 20"
 										fill="currentColor"
 									>
-										<path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+										<path
+											fillRule="evenodd"
+											d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+											clipRule="evenodd"
+										/>
 									</svg>
-									Change
-								</span>
+									Save Changes
+								</button>
+								<button
+									className="bg-slate-600/50 hover:bg-slate-700/50 text-white px-4 py-2 rounded-lg transition-all duration-300 shadow-lg hover:shadow-slate-500/30 font-medium flex items-center backdrop-blur-sm"
+									onClick={() => {
+										setIsEditing(false);
+										reset(member);
+									}}
+								>
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										className="h-5 w-5 mr-2"
+										viewBox="0 0 20 20"
+										fill="currentColor"
+									>
+										<path
+											fillRule="evenodd"
+											d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+											clipRule="evenodd"
+										/>
+									</svg>
+									Cancel
+								</button>
 							</div>
 						)}
 					</div>
 
-					<div className="mt-4 sm:mt-0 sm:ml-6 flex-1">
-						<h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-							{member.fullname}
-						</h1>
-						<p className="text-slate-300 mt-1 italic">
-							{member.bio || 'No bio provided'}
-						</p>
-						<div className="flex items-center mt-2">
-							<span className="bg-blue-600/30 text-blue-300 px-3 py-1 rounded-full text-sm font-medium">
-								{member.designation}
-							</span>
-							<span className="mx-2 text-slate-400">•</span>
-							<span className="bg-indigo-600/30 text-indigo-300 px-3 py-1 rounded-full text-sm font-medium">
-								{member.department}
-							</span>
+					{/* Profile Content */}
+					<div className="p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+						{/* Main Content */}
+						<div className="lg:col-span-2 space-y-6">
+							<PersonalInfo
+								member={member}
+								isEditing={isEditing}
+								register={register}
+								errors={errors}
+							/>
+
+							<AcademicInfo
+								member={member}
+								isEditing={isEditing}
+								register={register}
+								errors={errors}
+							/>
+
+							<SocialLinks
+								member={member}
+								isEditing={isEditing}
+								register={register}
+							/>
+						</div>
+
+						{/* Sidebar */}
+						<div className="space-y-6">
+							<DepartmentCard member={member} />
+							<StatusCard member={member} />
 						</div>
 					</div>
 
-					{!isEditing ? (
-						<button
-							className="mt-4 sm:mt-0 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all duration-300 transform hover:-translate-y-1 shadow-lg hover:shadow-blue-500/30 font-medium flex items-center"
-							onClick={() => setIsEditing(true)}
-						>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								className="h-5 w-5 mr-2"
-								viewBox="0 0 20 20"
-								fill="currentColor"
+					{message && (
+						<div className="px-6 sm:px-8 pb-6">
+							<div
+								className={`p-4 rounded-lg flex items-center shadow-lg transition-all duration-500 animate-fadeIn ${
+									message.includes('success')
+										? 'bg-green-900/50 text-green-200 border border-green-700/50'
+										: 'bg-red-900/50 text-red-200 border border-red-700/50'
+								} backdrop-blur-sm`}
 							>
-								<path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-							</svg>
-							Edit Profile
-						</button>
-					) : (
-						<div className="flex space-x-2 mt-4 sm:mt-0">
-							<button
-								className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all duration-300 shadow-lg hover:shadow-blue-500/30 font-medium flex items-center"
-								onClick={handleSubmit(onSubmit)}
-							>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									className="h-5 w-5 mr-2"
-									viewBox="0 0 20 20"
-									fill="currentColor"
-								>
-									<path
-										fillRule="evenodd"
-										d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-										clipRule="evenodd"
-									/>
-								</svg>
-								Save
-							</button>
-							<button
-								className="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg transition-all duration-300 shadow-lg hover:shadow-slate-500/30 font-medium flex items-center"
-								onClick={() => {
-									setIsEditing(false);
-									reset(member);
-								}}
-							>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									className="h-5 w-5 mr-2"
-									viewBox="0 0 20 20"
-									fill="currentColor"
-								>
-									<path
-										fillRule="evenodd"
-										d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-										clipRule="evenodd"
-									/>
-								</svg>
-								Cancel
-							</button>
+								{message.includes('success') ? (
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										className="h-5 w-5 mr-2 text-green-400"
+										viewBox="0 0 20 20"
+										fill="currentColor"
+									>
+										<path
+											fillRule="evenodd"
+											d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+											clipRule="evenodd"
+										/>
+									</svg>
+								) : (
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										className="h-5 w-5 mr-2 text-red-400"
+										viewBox="0 0 20 20"
+										fill="currentColor"
+									>
+										<path
+											fillRule="evenodd"
+											d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+											clipRule="evenodd"
+										/>
+									</svg>
+								)}
+								{message}
+							</div>
 						</div>
 					)}
 				</div>
-
-				{/* Profile Content */}
-				<div className="p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
-					{/* Main Content */}
-					<div className="lg:col-span-2 space-y-6">
-						<PersonalInfo
-							member={member}
-							isEditing={isEditing}
-							register={register}
-							errors={errors}
-						/>
-
-						<AcademicInfo
-							member={member}
-							isEditing={isEditing}
-							register={register}
-							errors={errors}
-						/>
-
-						<SocialLinks member={member} isEditing={isEditing} register={register} />
-					</div>
-
-					{/* Sidebar */}
-					<div className="space-y-6">
-						<DepartmentCard member={member} />
-						<StatusCard member={member} />
-					</div>
-				</div>
-
-				{message && (
-					<div className="px-6 sm:px-8 pb-6">
-						<div
-							className={`p-4 rounded-lg flex items-center shadow-lg transition-all duration-500 animate-fadeIn ${
-								message.includes('success')
-									? 'bg-green-900/50 text-green-200 border border-green-700/50'
-									: 'bg-red-900/50 text-red-200 border border-red-700/50'
-							}`}
-						>
-							{message.includes('success') ? (
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									className="h-5 w-5 mr-2 text-green-400"
-									viewBox="0 0 20 20"
-									fill="currentColor"
-								>
-									<path
-										fillRule="evenodd"
-										d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-										clipRule="evenodd"
-									/>
-								</svg>
-							) : (
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									className="h-5 w-5 mr-2 text-red-400"
-									viewBox="0 0 20 20"
-									fill="currentColor"
-								>
-									<path
-										fillRule="evenodd"
-										d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-										clipRule="evenodd"
-									/>
-								</svg>
-							)}
-							{message}
-						</div>
-					</div>
-				)}
 			</div>
 		</div>
 	);
@@ -272,7 +383,7 @@ const Profile = ({ memberId }) => {
 
 // Sub-components
 const PersonalInfo = ({ member, isEditing, register, errors }) => (
-	<div className="bg-slate-800 bg-opacity-50 backdrop-blur-sm rounded-xl p-6 border border-slate-700 shadow-xl transition-all duration-300 hover:border-slate-600">
+	<div className="bg-slate-800/50 backdrop-blur-md rounded-xl p-6 border border-slate-700/50 shadow-xl transition-all duration-300 hover:border-slate-600/50 hover:shadow-blue-500/5">
 		<h2 className="text-xl font-semibold text-white mb-4 flex items-center">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
@@ -307,7 +418,7 @@ const PersonalInfo = ({ member, isEditing, register, errors }) => (
 						<input
 							type="email"
 							defaultValue={member.email}
-							className="w-full bg-slate-700 border border-slate-600 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+							className="w-full bg-slate-700/50 border border-slate-600/50 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 backdrop-blur-sm"
 							{...register('email', {
 								required: 'Email is required',
 								pattern: {
@@ -323,7 +434,7 @@ const PersonalInfo = ({ member, isEditing, register, errors }) => (
 						)}
 					</div>
 				) : (
-					<p className="text-white bg-slate-700/50 py-2 px-4 rounded-lg">
+					<p className="text-white bg-slate-700/30 py-2 px-4 rounded-lg backdrop-blur-sm">
 						{member.email}
 					</p>
 				)}
@@ -350,7 +461,7 @@ const PersonalInfo = ({ member, isEditing, register, errors }) => (
 						<input
 							type="text"
 							defaultValue={member.LpuId}
-							className="w-full bg-slate-700 border border-slate-600 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+							className="w-full bg-slate-700/50 border border-slate-600/50 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 backdrop-blur-sm"
 							{...register('LpuId', {
 								required: 'LPU ID is required',
 								pattern: {
@@ -366,7 +477,7 @@ const PersonalInfo = ({ member, isEditing, register, errors }) => (
 						)}
 					</div>
 				) : (
-					<p className="text-white bg-slate-700/50 py-2 px-4 rounded-lg">
+					<p className="text-white bg-slate-700/30 py-2 px-4 rounded-lg backdrop-blur-sm">
 						{member.LpuId}
 					</p>
 				)}
@@ -388,7 +499,7 @@ const PersonalInfo = ({ member, isEditing, register, errors }) => (
 						</div>
 						<select
 							defaultValue={member.hosteler}
-							className="w-full bg-slate-700 border border-slate-600 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 appearance-none"
+							className="w-full bg-slate-700/50 border border-slate-600/50 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 appearance-none backdrop-blur-sm"
 							{...register('hosteler')}
 						>
 							<option value={true}>Yes</option>
@@ -405,7 +516,7 @@ const PersonalInfo = ({ member, isEditing, register, errors }) => (
 						</div>
 					</div>
 				) : (
-					<p className="text-white bg-slate-700/50 py-2 px-4 rounded-lg">
+					<p className="text-white bg-slate-700/30 py-2 px-4 rounded-lg backdrop-blur-sm">
 						{member.hosteler ? 'Yes' : 'No'}
 					</p>
 				)}
@@ -428,7 +539,7 @@ const PersonalInfo = ({ member, isEditing, register, errors }) => (
 							</div>
 							<select
 								defaultValue={member.hostel}
-								className="w-full bg-slate-700 border border-slate-600 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 appearance-none"
+								className="w-full bg-slate-700/50 border border-slate-600/50 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 appearance-none backdrop-blur-sm"
 								{...register('hostel')}
 							>
 								<option value="">Select Hostel</option>
@@ -456,7 +567,7 @@ const PersonalInfo = ({ member, isEditing, register, errors }) => (
 							</div>
 						</div>
 					) : (
-						<p className="text-white bg-slate-700/50 py-2 px-4 rounded-lg">
+						<p className="text-white bg-slate-700/30 py-2 px-4 rounded-lg backdrop-blur-sm">
 							{member.hostel}
 						</p>
 					)}
@@ -467,39 +578,76 @@ const PersonalInfo = ({ member, isEditing, register, errors }) => (
 );
 
 const AcademicInfo = ({ member, isEditing, register, errors }) => (
-	<div className="bg-slate-800 bg-opacity-50 backdrop-blur-sm rounded-xl p-6 border border-slate-700">
-		<h2 className="text-xl font-semibold text-white mb-4">Academic Information</h2>
-		<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-			<div>
-				<label className="block text-slate-400 text-sm mb-1">Program</label>
+	<div className="bg-slate-800/50 backdrop-blur-md rounded-xl p-6 border border-slate-700/50 shadow-xl transition-all duration-300 hover:border-slate-600/50 hover:shadow-blue-500/5">
+		<h2 className="text-xl font-semibold text-white mb-4 flex items-center">
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				className="h-5 w-5 mr-2 text-blue-400"
+				viewBox="0 0 20 20"
+				fill="currentColor"
+			>
+				<path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
+			</svg>
+			Academic Information
+		</h2>
+		<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+			<div className="space-y-1">
+				<label className="block text-slate-400 text-sm font-medium">Program</label>
 				{isEditing ? (
 					<input
 						type="text"
 						defaultValue={member.program}
-						className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+						className="w-full bg-slate-700/50 border border-slate-600/50 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 backdrop-blur-sm"
 						{...register('program')}
 					/>
 				) : (
-					<p className="text-white">{member.program || 'Not specified'}</p>
+					<p className="text-white bg-slate-700/30 py-2 px-4 rounded-lg backdrop-blur-sm">
+						{member.program || 'Not specified'}
+					</p>
 				)}
 			</div>
 
-			<div>
-				<label className="block text-slate-400 text-sm mb-1">Year</label>
+			<div className="space-y-1">
+				<label className="block text-slate-400 text-sm font-medium">Year</label>
 				{isEditing ? (
-					<select
-						defaultValue={member.year}
-						className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-						{...register('year')}
-					>
-						<option value="">Select Year</option>
-						<option value="1">1st Year</option>
-						<option value="2">2nd Year</option>
-						<option value="3">3rd Year</option>
-						<option value="4">4th Year</option>
-					</select>
+					<div className="relative">
+						<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								className="h-5 w-5 text-slate-400"
+								viewBox="0 0 20 20"
+								fill="currentColor"
+							>
+								<path
+									fillRule="evenodd"
+									d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+									clipRule="evenodd"
+								/>
+							</svg>
+						</div>
+						<select
+							defaultValue={member.year}
+							className="w-full bg-slate-700/50 border border-slate-600/50 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 appearance-none backdrop-blur-sm"
+							{...register('year')}
+						>
+							<option value="">Select Year</option>
+							<option value="1">1st Year</option>
+							<option value="2">2nd Year</option>
+							<option value="3">3rd Year</option>
+							<option value="4">4th Year</option>
+						</select>
+						<div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+							<svg
+								className="fill-current h-4 w-4"
+								xmlns="http://www.w3.org/2000/svg"
+								viewBox="0 0 20 20"
+							>
+								<path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+							</svg>
+						</div>
+					</div>
 				) : (
-					<p className="text-white">
+					<p className="text-white bg-slate-700/30 py-2 px-4 rounded-lg backdrop-blur-sm">
 						{member.year ? `${member.year} Year` : 'Not specified'}
 					</p>
 				)}
@@ -509,7 +657,7 @@ const AcademicInfo = ({ member, isEditing, register, errors }) => (
 );
 
 const SocialLinks = ({ member, isEditing, register }) => (
-	<div className="bg-slate-800 bg-opacity-50 backdrop-blur-sm rounded-xl p-6 border border-slate-700 shadow-xl transition-all duration-300 hover:border-slate-600">
+	<div className="bg-slate-800/50 backdrop-blur-md rounded-xl p-6 border border-slate-700/50 shadow-xl transition-all duration-300 hover:border-slate-600/50 hover:shadow-blue-500/5">
 		<h2 className="text-xl font-semibold text-white mb-4 flex items-center">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
@@ -517,7 +665,7 @@ const SocialLinks = ({ member, isEditing, register }) => (
 				viewBox="0 0 20 20"
 				fill="currentColor"
 			>
-				<path d="M5.5 16a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 16h-8z" />
+				<path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
 			</svg>
 			Social Links
 		</h2>
@@ -548,7 +696,7 @@ const SocialLinks = ({ member, isEditing, register }) => (
 									type="text"
 									placeholder="Platform (e.g., GitHub)"
 									defaultValue={link.platform}
-									className="flex-1 w-full bg-slate-700 border border-slate-600 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+									className="flex-1 w-full bg-slate-700/50 border border-slate-600/50 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 backdrop-blur-sm"
 									{...register(`socialLinks[${index}].platform`)}
 								/>
 							</div>
@@ -571,7 +719,7 @@ const SocialLinks = ({ member, isEditing, register }) => (
 									type="url"
 									placeholder="URL"
 									defaultValue={link.url}
-									className="flex-1 w-full bg-slate-700 border border-slate-600 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+									className="flex-1 w-full bg-slate-700/50 border border-slate-600/50 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 backdrop-blur-sm"
 									{...register(`socialLinks[${index}].url`)}
 								/>
 							</div>
@@ -579,7 +727,7 @@ const SocialLinks = ({ member, isEditing, register }) => (
 					))}
 				<button
 					type="button"
-					className="text-blue-400 hover:text-blue-300 text-sm flex items-center mt-3 py-2 px-3 rounded-lg hover:bg-blue-900/30 transition-colors"
+					className="text-blue-400 hover:text-blue-300 text-sm flex items-center mt-3 py-2 px-3 rounded-lg hover:bg-blue-900/30 transition-colors duration-300"
 				>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
@@ -605,10 +753,12 @@ const SocialLinks = ({ member, isEditing, register }) => (
 							href={link.url}
 							target="_blank"
 							rel="noopener noreferrer"
-							className="bg-slate-700 hover:bg-slate-600 text-blue-400 px-4 py-2 rounded-lg transition-all duration-300 transform hover:-translate-y-1 flex items-center"
+							className="bg-slate-700/50 hover:bg-slate-600/50 text-blue-400 px-4 py-2 rounded-lg transition-all duration-300 transform hover:-translate-y-1 flex items-center backdrop-blur-sm group"
 						>
 							{getSocialIcon(link.platform)}
-							<span className="ml-2">{link.platform}</span>
+							<span className="ml-2 group-hover:text-blue-300 transition-colors">
+								{link.platform}
+							</span>
 						</a>
 					))
 				) : (
@@ -659,7 +809,7 @@ const getSocialIcon = (platform) => {
 };
 
 const DepartmentCard = ({ member }) => (
-	<div className="bg-slate-800 bg-opacity-50 backdrop-blur-sm rounded-xl p-6 border border-slate-700 shadow-xl transition-all duration-300 hover:border-slate-600">
+	<div className="bg-slate-800/50 backdrop-blur-md rounded-xl p-6 border border-slate-700/50 shadow-xl transition-all duration-300 hover:border-slate-600/50 hover:shadow-blue-500/5">
 		<h3 className="text-lg font-semibold text-white mb-4 flex items-center">
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
@@ -676,7 +826,7 @@ const DepartmentCard = ({ member }) => (
 			<div>
 				<div className="text-slate-400 text-sm">Department</div>
 				<div className="mt-1 flex items-center">
-					<div className="bg-indigo-900/50 text-indigo-300 border border-indigo-700/30 px-4 py-2 rounded-lg text-sm font-medium flex items-center">
+					<div className="bg-indigo-900/50 text-indigo-300 border border-indigo-700/30 px-4 py-2 rounded-lg text-sm font-medium flex items-center backdrop-blur-sm">
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
 							className="h-5 w-5 mr-2"
@@ -693,7 +843,7 @@ const DepartmentCard = ({ member }) => (
 			<div>
 				<div className="text-slate-400 text-sm">Designation</div>
 				<div className="mt-1 flex items-center">
-					<div className="bg-blue-900/50 text-blue-300 border border-blue-700/30 px-4 py-2 rounded-lg text-sm font-medium flex items-center">
+					<div className="bg-blue-900/50 text-blue-300 border border-blue-700/30 px-4 py-2 rounded-lg text-sm font-medium flex items-center backdrop-blur-sm">
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
 							className="h-5 w-5 mr-2"
@@ -713,7 +863,7 @@ const DepartmentCard = ({ member }) => (
 			</div>
 
 			{member.bio && (
-				<div className="mt-4 pt-4 border-t border-slate-700">
+				<div className="mt-4 pt-4 border-t border-slate-700/50">
 					<div className="text-slate-400 text-sm mb-2">About</div>
 					<p className="text-white text-sm italic">{member.bio}</p>
 				</div>
@@ -724,8 +874,10 @@ const DepartmentCard = ({ member }) => (
 
 const StatusCard = ({ member }) => (
 	<div
-		className={`bg-slate-800 bg-opacity-50 backdrop-blur-sm rounded-xl p-6 border shadow-xl transition-all duration-300 hover:border-slate-600 ${
-			member.status === 'active' ? 'border-green-700/50' : 'border-red-700/50'
+		className={`bg-slate-800/50 backdrop-blur-md rounded-xl p-6 border shadow-xl transition-all duration-300 hover:shadow-blue-500/5 ${
+			member.status === 'active'
+				? 'border-green-700/50 hover:border-green-600/50'
+				: 'border-red-700/50 hover:border-red-600/50'
 		}`}
 	>
 		<h3 className="text-lg font-semibold text-white mb-4 flex items-center">
@@ -744,7 +896,7 @@ const StatusCard = ({ member }) => (
 			Status
 		</h3>
 		<div
-			className={`inline-block px-3 py-1 rounded-full text-sm font-medium mb-3 ${
+			className={`inline-block px-3 py-1 rounded-full text-sm font-medium mb-3 backdrop-blur-sm ${
 				member.status === 'active'
 					? 'bg-green-900/50 text-green-300 border border-green-700/50'
 					: 'bg-red-900/50 text-red-300 border border-red-700/50'
@@ -753,7 +905,7 @@ const StatusCard = ({ member }) => (
 			{member.status.toUpperCase()}
 		</div>
 
-		<div className="mt-3 pt-3 border-t border-slate-700">
+		<div className="mt-3 pt-3 border-t border-slate-700/50">
 			<div className="flex items-center text-slate-300 mb-2">
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
@@ -796,18 +948,41 @@ const StatusCard = ({ member }) => (
 					<strong>Restriction</strong>
 				</div>
 				<p className="text-red-300 ml-7">
-					<strong>Reason:</strong> {member.restriction.reason}
+					<strong>Reason:</strong> {member.restriction.reason || 'Not specified'}
 				</p>
-				<p className="text-red-300 ml-7 mt-1">
-					<strong>Until:</strong>{' '}
-					{new Date(member.restriction.time).toLocaleDateString('en-US', {
-						year: 'numeric',
-						month: 'long',
-						day: 'numeric',
-					})}
-				</p>
+				{member.restriction.time && (
+					<p className="text-red-300 ml-7 mt-1">
+						<strong>Until:</strong>{' '}
+						{new Date(member.restriction.time).toLocaleDateString('en-US', {
+							year: 'numeric',
+							month: 'long',
+							day: 'numeric',
+						})}
+					</p>
+				)}
 			</div>
 		)}
 	</div>
 );
-export default Profile;
+
+// Add keyframes for fadeIn animation to your CSS
+const styleSheet = document.styleSheets[0];
+const keyframes = `
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-in-out;
+}
+`;
+
+if (!document.querySelector('style#custom-animations')) {
+	const styleElement = document.createElement('style');
+	styleElement.id = 'custom-animations';
+	styleElement.textContent = keyframes;
+	document.head.appendChild(styleElement);
+}
+
+// Export the component for use in other files
+export default EnhancedProfile;
