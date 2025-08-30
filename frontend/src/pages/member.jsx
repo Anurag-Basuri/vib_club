@@ -10,10 +10,10 @@ import {
 import ImageEditor from '../components/member/ImageEditor.jsx';
 import UploadProgress from '../components/member/UploadProgress.jsx';
 import ProfileHeader from '../components/member/ProfileHeader.jsx';
-import ProfileForm from '../components/member/ProfileForm';
-import ProfileDisplay from '../components/member/ProfileDisplay';
-import PasswordResetModal from '../components/member/PasswordResetModal';
-import MessageNotification from '../components/member/MessageNotification';
+import ProfileForm from '../components/member/ProfileForm.jsx';
+import ProfileDisplay from '../components/member/ProfileDisplay.jsx';
+import PasswordResetModal from '../components/member/PasswordResetModal.jsx';
+import MessageNotification from '../components/member/MessageNotification.jsx';
 import { validateFile, simulateProgress } from './utils';
 
 const MemberProfile = () => {
