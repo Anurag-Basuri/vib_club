@@ -9,7 +9,6 @@ import {
 	Upload,
 	Save,
 	Edit3,
-	Crop,
 	FlipHorizontal,
 	FlipVertical,
 	Sun,
@@ -56,7 +55,9 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 	const [saturation, setSaturation] = useState(100);
 	const [activeTab, setActiveTab] = useState('transform'); // 'transform', 'adjust', 'filters'
 	const [filterIndex, setFilterIndex] = useState(0);
-	const [cropShape, setCropShape] = useState('circle'); // 'circle' | 'square'
+
+	// Only rectangle crop for profile header
+	const cropShape = 'rectangle';
 
 	// Responsive canvas sizing
 	useEffect(() => {
@@ -76,7 +77,7 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 		return () => window.removeEventListener('resize', updateSize);
 	}, []);
 
-	// Load image
+	// Load image and auto-fit to crop area
 	useEffect(() => {
 		if (!image) return;
 		setImageLoaded(false);
@@ -84,25 +85,34 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 		img.onload = () => {
 			imageRef.current = img;
 			setImageLoaded(true);
-			// Auto-fit image
-			const maxDim = Math.max(img.width, img.height);
-			const autoScale = (canvasSize * 0.7) / maxDim;
-			setTransform((prev) => ({
-				...prev,
+
+			// Auto-fit image to crop rectangle (centered, scaled to cover)
+			const cropW = canvasSize * 0.7;
+			const cropH = canvasSize * 0.7;
+			const scaleX = cropW / img.width;
+			const scaleY = cropH / img.height;
+			const autoScale = Math.max(scaleX, scaleY);
+
+			setTransform({
 				scale: autoScale,
 				x: 0,
 				y: 0,
 				rotation: 0,
 				flipX: false,
 				flipY: false,
-			}));
+			});
 			setBrightness(100);
 			setContrast(100);
 			setSaturation(100);
 			setFilterIndex(0);
-			setCropShape('circle');
+
+			// If not editing, immediately save the cropped image (for auto-crop on upload)
+			if (!isEditing && onSave) {
+				setTimeout(() => handleSave(img, autoScale), 100); // slight delay to ensure canvas is ready
+			}
 		};
 		img.src = image;
+		// eslint-disable-next-line
 	}, [image, canvasSize]);
 
 	// Draw on canvas
@@ -114,8 +124,8 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 		const ctx = canvas.getContext('2d');
 		const { scale, rotation, x, y, flipX, flipY } = transform;
 		const center = canvasSize / 2;
-		const cropRadius = canvasSize * 0.35;
-		const cropSize = canvasSize * 0.7;
+		const cropW = canvasSize * 0.7;
+		const cropH = canvasSize * 0.7;
 
 		// Clear and setup
 		ctx.clearRect(0, 0, canvasSize, canvasSize);
@@ -141,11 +151,7 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 
 		ctx.globalCompositeOperation = 'destination-out';
 		ctx.beginPath();
-		if (cropShape === 'circle') {
-			ctx.arc(center, center, cropRadius, 0, 2 * Math.PI);
-		} else {
-			ctx.rect(center - cropSize / 2, center - cropSize / 2, cropSize, cropSize);
-		}
+		ctx.rect(center - cropW / 2, center - cropH / 2, cropW, cropH);
 		ctx.fill();
 		ctx.restore();
 
@@ -153,11 +159,7 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 		ctx.strokeStyle = '#3b82f6';
 		ctx.lineWidth = 3;
 		ctx.beginPath();
-		if (cropShape === 'circle') {
-			ctx.arc(center, center, cropRadius, 0, 2 * Math.PI);
-		} else {
-			ctx.rect(center - cropSize / 2, center - cropSize / 2, cropSize, cropSize);
-		}
+		ctx.rect(center - cropW / 2, center - cropH / 2, cropW, cropH);
 		ctx.stroke();
 
 		// Grid lines for better alignment
@@ -165,17 +167,10 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 		ctx.lineWidth = 1;
 		ctx.setLineDash([5, 5]);
 		ctx.beginPath();
-		if (cropShape === 'circle') {
-			ctx.moveTo(center, center - cropRadius);
-			ctx.lineTo(center, center + cropRadius);
-			ctx.moveTo(center - cropRadius, center);
-			ctx.lineTo(center + cropRadius, center);
-		} else {
-			ctx.moveTo(center, center - cropSize / 2);
-			ctx.lineTo(center, center + cropSize / 2);
-			ctx.moveTo(center - cropSize / 2, center);
-			ctx.lineTo(center + cropSize / 2, center);
-		}
+		ctx.moveTo(center, center - cropH / 2);
+		ctx.lineTo(center, center + cropH / 2);
+		ctx.moveTo(center - cropW / 2, center);
+		ctx.lineTo(center + cropW / 2, center);
 		ctx.stroke();
 		ctx.setLineDash([]);
 	}, [
@@ -186,7 +181,6 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 		contrast,
 		saturation,
 		filterIndex,
-		cropShape,
 	]);
 
 	useEffect(() => {
@@ -250,14 +244,16 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 		setContrast(100);
 		setSaturation(100);
 		setFilterIndex(0);
-		setCropShape('circle');
 	};
 
 	const fitImage = () => {
 		if (!imageRef.current) return;
 		const img = imageRef.current;
-		const maxDim = Math.max(img.width, img.height);
-		const autoScale = (canvasSize * 0.7) / maxDim;
+		const cropW = canvasSize * 0.7;
+		const cropH = canvasSize * 0.7;
+		const scaleX = cropW / img.width;
+		const scaleY = cropH / img.height;
+		const autoScale = Math.max(scaleX, scaleY);
 		setTransform({
 			scale: autoScale,
 			rotation: 0,
@@ -270,48 +266,43 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 		setContrast(100);
 		setSaturation(100);
 		setFilterIndex(0);
-		setCropShape('circle');
 	};
 
-	// Save cropped image
-	const handleSave = () => {
-		if (!canvasRef.current || !imageRef.current) return;
+	// Save cropped image (rectangle only)
+	const handleSave = (imgOverride, scaleOverride) => {
+		const img = imgOverride || imageRef.current;
+		if (!canvasRef.current || !img) return;
 
-		const outputSize = 400;
+		const outputW = 400;
+		const outputH = 400;
 		const outputCanvas = document.createElement('canvas');
 		const outputCtx = outputCanvas.getContext('2d');
 
-		outputCanvas.width = outputSize;
-		outputCanvas.height = outputSize;
+		outputCanvas.width = outputW;
+		outputCanvas.height = outputH;
 
 		const { scale, rotation, x, y, flipX, flipY } = transform;
-		const center = outputSize / 2;
-		const cropRadius = outputSize / 2;
-		const cropSize = outputSize;
-		const scaleFactor = outputSize / canvasSize;
-
-		// Create crop shape
-		outputCtx.beginPath();
-		if (cropShape === 'circle') {
-			outputCtx.arc(center, center, cropRadius, 0, 2 * Math.PI);
-		} else {
-			outputCtx.rect(center - cropSize / 2, center - cropSize / 2, cropSize, cropSize);
-		}
-		outputCtx.clip();
+		const center = canvasSize / 2;
+		const cropW = canvasSize * 0.7;
+		const cropH = canvasSize * 0.7;
+		const scaleFactor = outputW / cropW;
 
 		// Apply filters
 		outputCtx.filter = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%)`;
 		FILTERS[filterIndex].fn(outputCtx);
 
-		// Draw transformed image
+		// Draw transformed image, centered and scaled to crop
 		outputCtx.save();
-		outputCtx.translate(center + x * scaleFactor, center + y * scaleFactor);
+		outputCtx.translate(outputW / 2, outputH / 2);
 		outputCtx.rotate((rotation * Math.PI) / 180);
-		outputCtx.scale(scale * (flipX ? -1 : 1), scale * (flipY ? -1 : 1));
+		outputCtx.scale(
+			(scaleOverride !== undefined ? scaleOverride : scale) * (flipX ? -1 : 1) * scaleFactor,
+			(scaleOverride !== undefined ? scaleOverride : scale) * (flipY ? -1 : 1) * scaleFactor
+		);
 		outputCtx.drawImage(
-			imageRef.current,
-			-imageRef.current.width / 2,
-			-imageRef.current.height / 2
+			img,
+			-img.width / 2 + (x * outputW) / cropW,
+			-img.height / 2 + (y * outputH) / cropH
 		);
 		outputCtx.restore();
 
@@ -445,40 +436,6 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 						type="button"
 					>
 						<Upload size={18} className="rotate-90" />
-					</button>
-				</div>
-			</div>
-			{/* Crop Shape */}
-			<div>
-				<div className="flex items-center justify-between mb-1">
-					<span className="font-medium text-gray-700 dark:text-gray-200">Crop Shape</span>
-				</div>
-				<div className="flex gap-2">
-					<button
-						className={
-							CONTROL_BTN +
-							(cropShape === 'circle'
-								? ' bg-blue-500 text-white'
-								: '')
-						}
-						onClick={() => setCropShape('circle')}
-						aria-label="Circle Crop"
-						type="button"
-					>
-						<Crop size={18} className="rounded-full" />
-					</button>
-					<button
-						className={
-							CONTROL_BTN +
-							(cropShape === 'square'
-								? ' bg-blue-500 text-white'
-								: '')
-						}
-						onClick={() => setCropShape('square')}
-						aria-label="Square Crop"
-						type="button"
-					>
-						<Crop size={18} className="rounded-none" />
 					</button>
 				</div>
 			</div>
@@ -731,7 +688,7 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 							</button>
 							{isEditing && (
 								<button
-									onClick={handleSave}
+									onClick={() => handleSave()}
 									disabled={!imageLoaded}
 									className="flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl disabled:cursor-not-allowed transition-all text-sm sm:text-base"
 									type="button"
