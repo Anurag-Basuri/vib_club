@@ -15,19 +15,19 @@ import {
     Settings,
     ZoomIn,
 } from 'lucide-react';
-import ProfilePictureView from './ProfilePictureView.jsx';
 import { getDesignationColor, getDepartmentIcon, getStatusColor } from '../../utils/fileUtils.js';
 
 const ProfileHeader = ({
     member,
     onEditToggle,
     onPasswordReset,
-    onImageSelect,
-    onResumeUpload,
+    onProfilePictureClick, // <-- only this needed now
     uploadLoading,
     uploadResumeLoading,
     isEditing,
-    fileInputRef, // <-- add this
+    fileInputRef,
+    onImageSelect,
+    onResumeUpload,
 }) => {
     const resumeInputRef = useRef(null);
     const [showProfilePicture, setShowProfilePicture] = useState(false);
@@ -65,7 +65,7 @@ const ProfileHeader = ({
                     {/* Profile Picture */}
                     <div className="relative group flex-shrink-0 -mt-8 sm:-mt-12 md:-mt-16 lg:-mt-20 self-center lg:self-start">
                         <div
-                            onClick={() => member.profilePicture?.url ? setShowProfilePicture(true) : fileInputRef.current?.click()}
+                            onClick={() => onProfilePictureClick(member.profilePicture?.url)}
                             className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-32 lg:h-32 rounded-xl sm:rounded-2xl overflow-hidden border-3 sm:border-4 border-white dark:border-gray-800 shadow-xl bg-white dark:bg-gray-800 cursor-pointer"
                         >
                             {member.profilePicture?.url ? (
@@ -73,6 +73,7 @@ const ProfileHeader = ({
                                     src={member.profilePicture.url}
                                     alt={member.fullname}
                                     className="w-full h-full object-cover"
+                                    style={{ cursor: 'pointer' }}
                                 />
                             ) : (
                                 <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
