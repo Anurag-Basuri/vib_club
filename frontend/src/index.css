@@ -153,3 +153,17 @@ textarea:focus-visible {
   outline: 2px solid rgba(59, 130, 246, 0.6);
   outline-offset: 2px;
 }
+
+/* Add this to your CSS file if you're using it */
+
+@layer utilities {
+  .xs\:hidden {
+    display: none;
+  }
+  .xs\:inline {
+    display: inline;
+  }
+  .xs\:block {
+    display: block;
+  }
+}
