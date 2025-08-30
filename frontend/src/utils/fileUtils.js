@@ -2,14 +2,14 @@ import {
     Users,
     Settings,
     Award,
-    Home,
+    Building,
     FileText,
     Calendar,
     Camera,
     Edit3,
     User,
     Mail
-} from 'react-feather';
+} from 'lucide-react';
 
 export const getDesignationColor = (designation) => {
     const colors = {
@@ -19,7 +19,7 @@ export const getDesignationColor = (designation) => {
         CMO: 'bg-gradient-to-r from-orange-500 to-red-500',
         COO: 'bg-gradient-to-r from-indigo-500 to-purple-500',
         Head: 'bg-gradient-to-r from-yellow-500 to-orange-500',
-        member: 'bg-gradient-to-r from-gray-500 to-slate-500',
+        member: 'bg-gradient-to-r from-slate-500 to-slate-600',
     };
     return colors[designation] || colors['member'];
 };
@@ -29,7 +29,7 @@ export const getDepartmentIcon = (department) => {
         HR: Users,
         Technical: Settings,
         Marketing: Award,
-        Management: Home,
+        Management: Building,
         'Content Writing': FileText,
         'Event Management': Calendar,
         Media: Camera,
@@ -42,10 +42,9 @@ export const getDepartmentIcon = (department) => {
 
 export const getStatusColor = (status) => {
     const colors = {
-        active: 'text-green-600 bg-green-100 dark:bg-green-500/20 border border-green-200 dark:border-green-500/30',
-        banned: 'text-red-600 bg-red-100 dark:bg-red-500/20 border border-red-200 dark:border-red-500/30',
-        removed:
-            'text-gray-600 bg-gray-100 dark:bg-gray-500/20 border border-gray-200 dark:border-gray-500/30',
+        active: 'text-green-700 bg-green-100 dark:bg-green-500/20 border border-green-200 dark:border-green-500/30',
+        banned: 'text-red-700 bg-red-100 dark:bg-red-500/20 border border-red-200 dark:border-red-500/30',
+        removed: 'text-slate-700 bg-slate-100 dark:bg-slate-500/20 border border-slate-200 dark:border-slate-500/30',
     };
     return colors[status] || colors['active'];
 };
@@ -100,13 +99,13 @@ export const simulateProgress = (onProgress) => {
     let progress = 0;
     
     const interval = setInterval(() => {
-        progress += Math.random() * 15;
+        progress += Math.random() * 15 + 5; // Faster progress
         if (progress >= 95) {
             progress = 95;
             clearInterval(interval);
         }
         onProgress(Math.min(progress, 95));
-    }, 200);
+    }, 150);
 
     return interval;
 };
@@ -146,7 +145,7 @@ export const createThumbnail = (file) => {
                 // Draw thumbnail
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 
-                canvas.toBlob(resolve, 'image/jpeg', 0.7);
+                canvas.toBlob(resolve, 'image/jpeg', 0.8);
             };
             img.src = e.target.result;
         };
