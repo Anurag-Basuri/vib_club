@@ -9,6 +9,12 @@ import {
 	Upload,
 	Save,
 	Edit3,
+	Crop,
+	FlipHorizontal,
+	FlipVertical,
+	Sun,
+	Contrast,
+	Palette,
 } from 'lucide-react';
 
 const CONTROL_BTN =
@@ -21,6 +27,13 @@ const TAB_BTN_ACTIVE = 'bg-blue-600 text-white shadow';
 const TAB_BTN_INACTIVE =
 	'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-700';
 
+const FILTERS = [
+	{ name: 'None', fn: (ctx) => ctx },
+	{ name: 'Grayscale', fn: (ctx) => (ctx.filter += ' grayscale(100%)') },
+	{ name: 'Sepia', fn: (ctx) => (ctx.filter += ' sepia(100%)') },
+	{ name: 'Invert', fn: (ctx) => (ctx.filter += ' invert(100%)') },
+];
+
 const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEditingImage }) => {
 	const canvasRef = useRef(null);
 	const imageRef = useRef(null);
@@ -31,6 +44,8 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 		rotation: 0,
 		x: 0,
 		y: 0,
+		flipX: false,
+		flipY: false,
 	});
 	const [isDragging, setIsDragging] = useState(false);
 	const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -38,7 +53,10 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 	const [canvasSize, setCanvasSize] = useState(320);
 	const [brightness, setBrightness] = useState(100);
 	const [contrast, setContrast] = useState(100);
-	const [activeTab, setActiveTab] = useState('transform'); // 'transform', 'adjust'
+	const [saturation, setSaturation] = useState(100);
+	const [activeTab, setActiveTab] = useState('transform'); // 'transform', 'adjust', 'filters'
+	const [filterIndex, setFilterIndex] = useState(0);
+	const [cropShape, setCropShape] = useState('circle'); // 'circle' | 'square'
 
 	// Responsive canvas sizing
 	useEffect(() => {
@@ -75,9 +93,14 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 				x: 0,
 				y: 0,
 				rotation: 0,
+				flipX: false,
+				flipY: false,
 			}));
 			setBrightness(100);
 			setContrast(100);
+			setSaturation(100);
+			setFilterIndex(0);
+			setCropShape('circle');
 		};
 		img.src = image;
 	}, [image, canvasSize]);
@@ -89,9 +112,10 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 		if (!canvas || !img || !imageLoaded) return;
 
 		const ctx = canvas.getContext('2d');
-		const { scale, rotation, x, y } = transform;
+		const { scale, rotation, x, y, flipX, flipY } = transform;
 		const center = canvasSize / 2;
 		const cropRadius = canvasSize * 0.35;
+		const cropSize = canvasSize * 0.7;
 
 		// Clear and setup
 		ctx.clearRect(0, 0, canvasSize, canvasSize);
@@ -104,8 +128,9 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 		ctx.save();
 		ctx.translate(center + x, center + y);
 		ctx.rotate((rotation * Math.PI) / 180);
-		ctx.scale(scale, scale);
-		ctx.filter = `brightness(${brightness}%) contrast(${contrast}%)`;
+		ctx.scale(scale * (flipX ? -1 : 1), scale * (flipY ? -1 : 1));
+		ctx.filter = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%)`;
+		FILTERS[filterIndex].fn(ctx);
 		ctx.drawImage(img, -img.width / 2, -img.height / 2);
 		ctx.restore();
 
@@ -116,7 +141,11 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 
 		ctx.globalCompositeOperation = 'destination-out';
 		ctx.beginPath();
-		ctx.arc(center, center, cropRadius, 0, 2 * Math.PI);
+		if (cropShape === 'circle') {
+			ctx.arc(center, center, cropRadius, 0, 2 * Math.PI);
+		} else {
+			ctx.rect(center - cropSize / 2, center - cropSize / 2, cropSize, cropSize);
+		}
 		ctx.fill();
 		ctx.restore();
 
@@ -124,7 +153,11 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 		ctx.strokeStyle = '#3b82f6';
 		ctx.lineWidth = 3;
 		ctx.beginPath();
-		ctx.arc(center, center, cropRadius, 0, 2 * Math.PI);
+		if (cropShape === 'circle') {
+			ctx.arc(center, center, cropRadius, 0, 2 * Math.PI);
+		} else {
+			ctx.rect(center - cropSize / 2, center - cropSize / 2, cropSize, cropSize);
+		}
 		ctx.stroke();
 
 		// Grid lines for better alignment
@@ -132,13 +165,29 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 		ctx.lineWidth = 1;
 		ctx.setLineDash([5, 5]);
 		ctx.beginPath();
-		ctx.moveTo(center, center - cropRadius);
-		ctx.lineTo(center, center + cropRadius);
-		ctx.moveTo(center - cropRadius, center);
-		ctx.lineTo(center + cropRadius, center);
+		if (cropShape === 'circle') {
+			ctx.moveTo(center, center - cropRadius);
+			ctx.lineTo(center, center + cropRadius);
+			ctx.moveTo(center - cropRadius, center);
+			ctx.lineTo(center + cropRadius, center);
+		} else {
+			ctx.moveTo(center, center - cropSize / 2);
+			ctx.lineTo(center, center + cropSize / 2);
+			ctx.moveTo(center - cropSize / 2, center);
+			ctx.lineTo(center + cropSize / 2, center);
+		}
 		ctx.stroke();
 		ctx.setLineDash([]);
-	}, [transform, imageLoaded, canvasSize, brightness, contrast]);
+	}, [
+		transform,
+		imageLoaded,
+		canvasSize,
+		brightness,
+		contrast,
+		saturation,
+		filterIndex,
+		cropShape,
+	]);
 
 	useEffect(() => {
 		draw();
@@ -194,9 +243,14 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 			rotation: 0,
 			x: 0,
 			y: 0,
+			flipX: false,
+			flipY: false,
 		}));
 		setBrightness(100);
 		setContrast(100);
+		setSaturation(100);
+		setFilterIndex(0);
+		setCropShape('circle');
 	};
 
 	const fitImage = () => {
@@ -204,9 +258,19 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 		const img = imageRef.current;
 		const maxDim = Math.max(img.width, img.height);
 		const autoScale = (canvasSize * 0.7) / maxDim;
-		setTransform({ scale: autoScale, rotation: 0, x: 0, y: 0 });
+		setTransform({
+			scale: autoScale,
+			rotation: 0,
+			x: 0,
+			y: 0,
+			flipX: false,
+			flipY: false,
+		});
 		setBrightness(100);
 		setContrast(100);
+		setSaturation(100);
+		setFilterIndex(0);
+		setCropShape('circle');
 	};
 
 	// Save cropped image
@@ -220,24 +284,30 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 		outputCanvas.width = outputSize;
 		outputCanvas.height = outputSize;
 
-		const { scale, rotation, x, y } = transform;
+		const { scale, rotation, x, y, flipX, flipY } = transform;
 		const center = outputSize / 2;
 		const cropRadius = outputSize / 2;
+		const cropSize = outputSize;
 		const scaleFactor = outputSize / canvasSize;
 
-		// Create circular clip
+		// Create crop shape
 		outputCtx.beginPath();
-		outputCtx.arc(center, center, cropRadius, 0, 2 * Math.PI);
+		if (cropShape === 'circle') {
+			outputCtx.arc(center, center, cropRadius, 0, 2 * Math.PI);
+		} else {
+			outputCtx.rect(center - cropSize / 2, center - cropSize / 2, cropSize, cropSize);
+		}
 		outputCtx.clip();
 
 		// Apply filters
-		outputCtx.filter = `brightness(${brightness}%) contrast(${contrast}%)`;
+		outputCtx.filter = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%)`;
+		FILTERS[filterIndex].fn(outputCtx);
 
 		// Draw transformed image
 		outputCtx.save();
 		outputCtx.translate(center + x * scaleFactor, center + y * scaleFactor);
 		outputCtx.rotate((rotation * Math.PI) / 180);
-		outputCtx.scale(scale, scale);
+		outputCtx.scale(scale * (flipX ? -1 : 1), scale * (flipY ? -1 : 1));
 		outputCtx.drawImage(
 			imageRef.current,
 			-imageRef.current.width / 2,
@@ -329,6 +399,30 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 					</button>
 				</div>
 			</div>
+			{/* Flip */}
+			<div>
+				<div className="flex items-center justify-between mb-1">
+					<span className="font-medium text-gray-700 dark:text-gray-200">Flip</span>
+				</div>
+				<div className="flex gap-2">
+					<button
+						className={CONTROL_BTN}
+						onClick={() => updateTransform({ flipX: !transform.flipX })}
+						aria-label="Flip Horizontal"
+						type="button"
+					>
+						<FlipHorizontal size={18} />
+					</button>
+					<button
+						className={CONTROL_BTN}
+						onClick={() => updateTransform({ flipY: !transform.flipY })}
+						aria-label="Flip Vertical"
+						type="button"
+					>
+						<FlipVertical size={18} />
+					</button>
+				</div>
+			</div>
 			{/* Position */}
 			<div>
 				<div className="flex items-center justify-between mb-1">
@@ -351,6 +445,40 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 						type="button"
 					>
 						<Upload size={18} className="rotate-90" />
+					</button>
+				</div>
+			</div>
+			{/* Crop Shape */}
+			<div>
+				<div className="flex items-center justify-between mb-1">
+					<span className="font-medium text-gray-700 dark:text-gray-200">Crop Shape</span>
+				</div>
+				<div className="flex gap-2">
+					<button
+						className={
+							CONTROL_BTN +
+							(cropShape === 'circle'
+								? ' bg-blue-500 text-white'
+								: '')
+						}
+						onClick={() => setCropShape('circle')}
+						aria-label="Circle Crop"
+						type="button"
+					>
+						<Crop size={18} className="rounded-full" />
+					</button>
+					<button
+						className={
+							CONTROL_BTN +
+							(cropShape === 'square'
+								? ' bg-blue-500 text-white'
+								: '')
+						}
+						onClick={() => setCropShape('square')}
+						aria-label="Square Crop"
+						type="button"
+					>
+						<Crop size={18} className="rounded-none" />
 					</button>
 				</div>
 			</div>
@@ -391,6 +519,22 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 					className={SLIDER}
 				/>
 			</div>
+			{/* Saturation */}
+			<div>
+				<div className="flex items-center justify-between mb-1">
+					<span className="font-medium text-gray-700 dark:text-gray-200">Saturation</span>
+					<span className="text-xs text-gray-500">{saturation}%</span>
+				</div>
+				<input
+					type="range"
+					min={0}
+					max={200}
+					step={1}
+					value={saturation}
+					onChange={(e) => setSaturation(Number(e.target.value))}
+					className={SLIDER}
+				/>
+			</div>
 			{/* Reset */}
 			<div className="flex gap-2 mt-4">
 				<button
@@ -401,6 +545,37 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 				>
 					<RefreshCw size={18} />
 				</button>
+			</div>
+		</div>
+	);
+
+	const renderFilterControls = () => (
+		<div className="space-y-6">
+			<div>
+				<div className="flex items-center justify-between mb-1">
+					<span className="font-medium text-gray-700 dark:text-gray-200">Filters</span>
+				</div>
+				<div className="flex flex-wrap gap-2">
+					{FILTERS.map((f, idx) => (
+						<button
+							key={f.name}
+							className={
+								CONTROL_BTN +
+								(filterIndex === idx
+									? ' bg-blue-500 text-white'
+									: '')
+							}
+							onClick={() => setFilterIndex(idx)}
+							aria-label={f.name}
+							type="button"
+						>
+							{f.name === 'Grayscale' && <Palette size={18} />}
+							{f.name === 'Sepia' && <Sun size={18} />}
+							{f.name === 'Invert' && <Contrast size={18} />}
+							{f.name === 'None' && <X size={18} />}
+						</button>
+					))}
+				</div>
 			</div>
 		</div>
 	);
@@ -500,10 +675,25 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 									>
 										Adjust
 									</button>
+									<button
+										className={
+											TAB_BTN +
+											' ' +
+											(activeTab === 'filters'
+												? TAB_BTN_ACTIVE
+												: TAB_BTN_INACTIVE)
+										}
+										onClick={() => setActiveTab('filters')}
+										type="button"
+									>
+										Filters
+									</button>
 								</div>
 								{activeTab === 'transform'
 									? renderTransformControls()
-									: renderAdjustControls()}
+									: activeTab === 'adjust'
+									? renderAdjustControls()
+									: renderFilterControls()}
 							</div>
 						)}
 					</div>
