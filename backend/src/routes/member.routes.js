@@ -85,7 +85,7 @@ router.put(
         body('phone').optional().isString().withMessage('Invalid phone number format'),
         body('program').optional().isString().withMessage('Invalid program format'),
         body('year').optional().isInt({ min: 1, max: 5 }).withMessage('Invalid year format'),
-        body('skills').optional().isArray({ max: 10 }).withMessage('Skills must be an array with a maximum of 10 items'),
+        body('skills').optional().isArray({ max: 15 }).withMessage('Skills must be an array with a maximum of 15 items'),
         body('hosteler').optional().isBoolean().withMessage('Invalid hosteler format'),
         body('hostel').optional().isString().withMessage('Invalid hostel format'),
         body('socialLinks.*.platform')

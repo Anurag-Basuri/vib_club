@@ -88,9 +88,9 @@ const memberSchema = new mongoose.Schema({
         type: [String],
         validate: {
             validator: function(v) {
-                return v.length <= 10;
+                return v.length <= 15;
             },
-            message: 'Skills array cannot exceed 10 items'
+            message: 'Skills array cannot exceed 15 items'
         }
     },
 
