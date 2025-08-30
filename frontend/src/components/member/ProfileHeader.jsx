@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     User,
@@ -21,7 +21,7 @@ const ProfileHeader = ({
     member,
     onEditToggle,
     onPasswordReset,
-    onProfilePictureClick, // <-- only this needed now
+    onProfilePictureClick,
     uploadLoading,
     uploadResumeLoading,
     isEditing,
@@ -36,6 +36,14 @@ const ProfileHeader = ({
     // Modern SVG cover image with abstract shapes, gradients, and subtle geometric accents
     const defaultCoverImage =
         "https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80";
+
+    const handleProfilePictureClick = useCallback(
+        (imageUrl) => {
+            if (!imageUrl) return;
+            onProfilePictureClick(imageUrl);
+        },
+        [onProfilePictureClick]
+    );
 
     return (
         <motion.div
@@ -65,7 +73,7 @@ const ProfileHeader = ({
                     {/* Profile Picture */}
                     <div className="relative group flex-shrink-0 -mt-8 sm:-mt-12 md:-mt-16 lg:-mt-20 self-center lg:self-start">
                         <div
-                            onClick={() => onProfilePictureClick(member.profilePicture?.url)}
+                            onClick={() => handleProfilePictureClick(member.profilePicture?.url)}
                             className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-32 lg:h-32 rounded-xl sm:rounded-2xl overflow-hidden border-3 sm:border-4 border-white dark:border-gray-800 shadow-xl bg-white dark:bg-gray-800 cursor-pointer"
                         >
                             {member.profilePicture?.url ? (
@@ -81,21 +89,6 @@ const ProfileHeader = ({
                                 </div>
                             )}
                         </div>
-
-                        {/* Hover action indicator only visible if image exists */}
-                        {member.profilePicture?.url && (
-                            <div className="absolute inset-0 bg-black/60 rounded-xl sm:rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                <ZoomIn className="w-6 h-6 text-white" />
-                            </div>
-                        )}
-
-                        {/* Upload Status Indicator */}
-                        {uploadLoading && (
-                            <div className="absolute -bottom-0.5 -right-0.5 sm:-bottom-1 sm:-right-1 w-4 h-4 sm:w-6 sm:h-6 bg-blue-600 rounded-full flex items-center justify-center border-2 border-white dark:border-gray-800">
-                                <div className="w-2 h-2 sm:w-3 sm:h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                            </div>
-                        )}
-
                         <input
                             ref={fileInputRef}
                             type="file"
@@ -362,13 +355,13 @@ const ProfileHeader = ({
 
             {/* Profile Picture Viewer */}
             <AnimatePresence>
-                {showProfilePicture && member.profilePicture?.url && (
-                    <ProfilePictureView 
+                {showProfilePicture && member?.profilePicture?.url && (
+                    <ProfilePictureView
                         image={member.profilePicture.url}
                         onClose={() => setShowProfilePicture(false)}
                         onUploadNew={() => {
                             setShowProfilePicture(false);
-                            setTimeout(() => fileInputRef.current?.click(), 200); // Give time for modal to close
+                            setTimeout(() => fileInputRef.current?.click(), 200);
                         }}
                     />
                 )}

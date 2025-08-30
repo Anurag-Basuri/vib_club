@@ -15,7 +15,7 @@ import {
   Filter,
 } from "lucide-react";
 
-const ImageEditor = ({ image, onSave, onCancel, isEditing }) => {
+const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew }) => {
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
   const containerRef = useRef(null);
@@ -286,6 +286,14 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing }) => {
           >
             {isEditing ? "Cancel" : "Close"}
           </button>
+          {!isEditing && onUploadNew && (
+            <button
+              onClick={onUploadNew}
+              className="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-all font-semibold"
+            >
+              Upload New
+            </button>
+          )}
           {isEditing && (
             <button
               onClick={handleSave}
