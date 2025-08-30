@@ -136,9 +136,6 @@ const ProfileHeader = ({
                                         </span>
                                     )}
                                 </div>
-                                <p className="text-gray-600 dark:text-gray-400 text-lg">
-                                    {member.designation} • {member.department}
-                                </p>
                             </div>
 
                             {/* Action Buttons */}
