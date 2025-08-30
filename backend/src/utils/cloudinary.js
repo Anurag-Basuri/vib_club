@@ -96,7 +96,7 @@ const deleteFile = async ({ public_id, resource_type }) => {
     } catch (error) {
         throw ApiError.internal(
             `Failed to delete file "${public_id}" from Cloudinary`,
-            [error.message]
+            [error]
         );
     }
 };
