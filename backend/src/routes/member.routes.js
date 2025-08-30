@@ -126,6 +126,7 @@ router.post(
         if (!req.file) {
             return res.status(400).json({ message: 'Profile picture is the issue' });
         }
+        console.log('Profile picture reached', req.file);
         next();
     },
     validate([
