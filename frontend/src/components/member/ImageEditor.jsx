@@ -1,312 +1,524 @@
-import React, { useRef, useState, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
+import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Save,
-  X,
-  RotateCw,
-  ZoomIn,
-  ZoomOut,
-  Move,
-  RefreshCw,
-  Maximize2,
-  Crop,
-  SunMedium,
-  Contrast,
-  Filter,
-} from "lucide-react";
+	RotateCw,
+	ZoomIn,
+	ZoomOut,
+	RefreshCw,
+	SunMedium,
+	Contrast,
+	X,
+	Upload,
+	Save,
+} from 'lucide-react';
+
+const CONTROL_BTN =
+	'inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-blue-100 dark:hover:bg-blue-700 transition-colors text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400';
+
+const SLIDER = 'w-full accent-blue-500 h-2 rounded-lg appearance-none bg-gray-200 dark:bg-gray-700';
+
+const TAB_BTN = 'px-4 py-2 rounded-lg font-semibold transition-colors text-sm focus:outline-none';
+const TAB_BTN_ACTIVE = 'bg-blue-600 text-white shadow';
+const TAB_BTN_INACTIVE =
+	'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-700';
 
 const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew }) => {
-  const canvasRef = useRef(null);
-  const imageRef = useRef(null);
-  const containerRef = useRef(null);
+	const canvasRef = useRef(null);
+	const imageRef = useRef(null);
+	const containerRef = useRef(null);
 
-  const [transform, setTransform] = useState({
-    scale: 1,
-    rotation: 0,
-    x: 0,
-    y: 0,
-  });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [canvasSize, setCanvasSize] = useState(400);
-  const [filter, setFilter] = useState("none");
-  const [brightness, setBrightness] = useState(100);
-  const [contrast, setContrast] = useState(100);
-  const [activeTab, setActiveTab] = useState("transform"); // 'transform', 'adjust', 'filters'
+	const [transform, setTransform] = useState({
+		scale: 1,
+		rotation: 0,
+		x: 0,
+		y: 0,
+	});
+	const [isDragging, setIsDragging] = useState(false);
+	const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+	const [imageLoaded, setImageLoaded] = useState(false);
+	const [canvasSize, setCanvasSize] = useState(400);
+	const [brightness, setBrightness] = useState(100);
+	const [contrast, setContrast] = useState(100);
+	const [activeTab, setActiveTab] = useState('transform'); // 'transform', 'adjust'
 
-  // Responsive canvas sizing
-  useEffect(() => {
-    const updateSize = () => {
-      if (containerRef.current) {
-        const container = containerRef.current;
-        const maxSize = Math.min(
-          container.offsetWidth - 40,
-          window.innerHeight * 0.5,
-          500
-        );
-        setCanvasSize(Math.max(300, maxSize));
-      }
-    };
+	// Responsive canvas sizing
+	useEffect(() => {
+		const updateSize = () => {
+			if (containerRef.current) {
+				const container = containerRef.current;
+				const maxSize = Math.min(container.offsetWidth - 32, window.innerHeight * 0.5, 480);
+				setCanvasSize(Math.max(240, maxSize));
+			}
+		};
+		updateSize();
+		window.addEventListener('resize', updateSize);
+		return () => window.removeEventListener('resize', updateSize);
+	}, []);
 
-    updateSize();
-    window.addEventListener("resize", updateSize);
-    return () => window.removeEventListener("resize", updateSize);
-  }, []);
+	// Load image
+	useEffect(() => {
+		if (!image) return;
+		setImageLoaded(false);
+		const img = new window.Image();
+		img.onload = () => {
+			imageRef.current = img;
+			setImageLoaded(true);
+			// Auto-fit image
+			const maxDim = Math.max(img.width, img.height);
+			const autoScale = (canvasSize * 0.7) / maxDim;
+			setTransform((prev) => ({ ...prev, scale: autoScale, x: 0, y: 0, rotation: 0 }));
+			setBrightness(100);
+			setContrast(100);
+		};
+		img.src = image;
+	}, [image, canvasSize]);
 
-  // Load image
-  useEffect(() => {
-    if (!image) return;
+	// Draw on canvas
+	const draw = useCallback(() => {
+		const canvas = canvasRef.current;
+		const img = imageRef.current;
+		if (!canvas || !img || !imageLoaded) return;
 
-    const img = new Image();
-    img.onload = () => {
-      imageRef.current = img;
-      setImageLoaded(true);
+		const ctx = canvas.getContext('2d');
+		const { scale, rotation, x, y } = transform;
+		const center = canvasSize / 2;
+		const cropRadius = canvasSize * 0.35;
 
-      // Auto-fit image
-      const maxDim = Math.max(img.width, img.height);
-      const autoScale = (canvasSize * 0.7) / maxDim;
-      setTransform((prev) => ({ ...prev, scale: autoScale }));
-    };
-    img.src = image;
-  }, [image, canvasSize]);
+		// Clear and setup
+		ctx.clearRect(0, 0, canvasSize, canvasSize);
 
-  // Draw on canvas
-  const draw = useCallback(() => {
-    const canvas = canvasRef.current;
-    const img = imageRef.current;
-    if (!canvas || !img || !imageLoaded) return;
+		// Background
+		ctx.fillStyle = '#f8fafc';
+		ctx.fillRect(0, 0, canvasSize, canvasSize);
 
-    const ctx = canvas.getContext("2d");
-    const { scale, rotation, x, y } = transform;
-    const center = canvasSize / 2;
-    const cropRadius = canvasSize * 0.35;
+		// Draw image with transforms and filters
+		ctx.save();
+		ctx.translate(center + x, center + y);
+		ctx.rotate((rotation * Math.PI) / 180);
+		ctx.scale(scale, scale);
+		ctx.filter = `brightness(${brightness}%) contrast(${contrast}%)`;
+		ctx.drawImage(img, -img.width / 2, -img.height / 2);
+		ctx.restore();
 
-    // Clear and setup
-    ctx.clearRect(0, 0, canvasSize, canvasSize);
+		// Crop overlay
+		ctx.save();
+		ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+		ctx.fillRect(0, 0, canvasSize, canvasSize);
 
-    // Background
-    ctx.fillStyle = "#f8fafc";
-    ctx.fillRect(0, 0, canvasSize, canvasSize);
+		ctx.globalCompositeOperation = 'destination-out';
+		ctx.beginPath();
+		ctx.arc(center, center, cropRadius, 0, 2 * Math.PI);
+		ctx.fill();
+		ctx.restore();
 
-    // Draw image with transforms
-    ctx.save();
-    ctx.translate(center + x, center + y);
-    ctx.rotate((rotation * Math.PI) / 180);
-    ctx.scale(scale, scale);
-    ctx.drawImage(img, -img.width / 2, -img.height / 2);
-    ctx.restore();
+		// Crop border
+		ctx.strokeStyle = '#3b82f6';
+		ctx.lineWidth = 3;
+		ctx.beginPath();
+		ctx.arc(center, center, cropRadius, 0, 2 * Math.PI);
+		ctx.stroke();
 
-    // Crop overlay
-    ctx.save();
-    ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
-    ctx.fillRect(0, 0, canvasSize, canvasSize);
+		// Grid lines for better alignment
+		ctx.strokeStyle = 'rgba(59, 130, 246, 0.25)';
+		ctx.lineWidth = 1;
+		ctx.setLineDash([5, 5]);
+		ctx.beginPath();
+		ctx.moveTo(center, center - cropRadius);
+		ctx.lineTo(center, center + cropRadius);
+		ctx.moveTo(center - cropRadius, center);
+		ctx.lineTo(center + cropRadius, center);
+		ctx.stroke();
+		ctx.setLineDash([]);
+	}, [transform, imageLoaded, canvasSize, brightness, contrast]);
 
-    ctx.globalCompositeOperation = "destination-out";
-    ctx.beginPath();
-    ctx.arc(center, center, cropRadius, 0, 2 * Math.PI);
-    ctx.fill();
-    ctx.restore();
+	useEffect(() => {
+		draw();
+	}, [draw]);
 
-    // Crop border
-    ctx.strokeStyle = "#3b82f6";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(center, center, cropRadius, 0, 2 * Math.PI);
-    ctx.stroke();
+	// Mouse/Touch handlers
+	const getEventPos = (e) => {
+		const rect = canvasRef.current.getBoundingClientRect();
+		const clientX = e.touches?.[0]?.clientX ?? e.clientX;
+		const clientY = e.touches?.[0]?.clientY ?? e.clientY;
+		return {
+			x: clientX - rect.left,
+			y: clientY - rect.top,
+		};
+	};
 
-    // Grid lines for better alignment
-    ctx.strokeStyle = "rgba(59, 130, 246, 0.3)";
-    ctx.lineWidth = 1;
-    ctx.setLineDash([5, 5]);
+	const handleStart = (e) => {
+		e.preventDefault();
+		if (!isEditing) return;
+		const pos = getEventPos(e);
+		setIsDragging(true);
+		setDragStart({
+			x: pos.x - transform.x,
+			y: pos.y - transform.y,
+		});
+	};
 
-    // Vertical and horizontal center lines
-    ctx.beginPath();
-    ctx.moveTo(center, center - cropRadius);
-    ctx.lineTo(center, center + cropRadius);
-    ctx.moveTo(center - cropRadius, center);
-    ctx.lineTo(center + cropRadius, center);
-    ctx.stroke();
+	const handleMove = (e) => {
+		if (!isDragging) return;
+		e.preventDefault();
+		const pos = getEventPos(e);
+		setTransform((prev) => ({
+			...prev,
+			x: pos.x - dragStart.x,
+			y: pos.y - dragStart.y,
+		}));
+	};
 
-    ctx.setLineDash([]);
-  }, [transform, imageLoaded, canvasSize]);
+	const handleEnd = (e) => {
+		e.preventDefault();
+		setIsDragging(false);
+	};
 
-  useEffect(() => {
-    draw();
-  }, [draw]);
+	// Control functions
+	const updateTransform = (updates) => {
+		setTransform((prev) => ({ ...prev, ...updates }));
+	};
 
-  // Mouse/Touch handlers
-  const getEventPos = (e) => {
-    const rect = canvasRef.current.getBoundingClientRect();
-    const clientX = e.clientX || e.touches?.[0]?.clientX;
-    const clientY = e.clientY || e.touches?.[0]?.clientY;
-    return {
-      x: clientX - rect.left,
-      y: clientY - rect.top,
-    };
-  };
+	const resetImage = () => {
+		setTransform((prev) => ({ ...prev, scale: 1, rotation: 0, x: 0, y: 0 }));
+		setBrightness(100);
+		setContrast(100);
+	};
 
-  const handleStart = (e) => {
-    e.preventDefault();
-    const pos = getEventPos(e);
-    setIsDragging(true);
-    setDragStart({
-      x: pos.x - transform.x,
-      y: pos.y - transform.y,
-    });
-  };
+	const fitImage = () => {
+		if (!imageRef.current) return;
+		const img = imageRef.current;
+		const maxDim = Math.max(img.width, img.height);
+		const autoScale = (canvasSize * 0.7) / maxDim;
+		setTransform({ scale: autoScale, rotation: 0, x: 0, y: 0 });
+		setBrightness(100);
+		setContrast(100);
+	};
 
-  const handleMove = (e) => {
-    if (!isDragging) return;
-    e.preventDefault();
+	// Save cropped image
+	const handleSave = () => {
+		if (!canvasRef.current || !imageRef.current) return;
 
-    const pos = getEventPos(e);
-    setTransform((prev) => ({
-      ...prev,
-      x: pos.x - dragStart.x,
-      y: pos.y - dragStart.y,
-    }));
-  };
+		const outputSize = 400;
+		const outputCanvas = document.createElement('canvas');
+		const outputCtx = outputCanvas.getContext('2d');
 
-  const handleEnd = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
+		outputCanvas.width = outputSize;
+		outputCanvas.height = outputSize;
 
-  // Control functions
-  const updateTransform = (updates) => {
-    setTransform((prev) => ({ ...prev, ...updates }));
-  };
+		const { scale, rotation, x, y } = transform;
+		const center = outputSize / 2;
+		const cropRadius = outputSize / 2;
+		const scaleFactor = outputSize / canvasSize;
 
-  const resetImage = () => {
-    setTransform({ scale: 1, rotation: 0, x: 0, y: 0 });
-  };
+		// Create circular clip
+		outputCtx.beginPath();
+		outputCtx.arc(center, center, cropRadius, 0, 2 * Math.PI);
+		outputCtx.clip();
 
-  const fitImage = () => {
-    if (!imageRef.current) return;
-    const img = imageRef.current;
-    const maxDim = Math.max(img.width, img.height);
-    const autoScale = (canvasSize * 0.7) / maxDim;
-    setTransform({ scale: autoScale, rotation: 0, x: 0, y: 0 });
-  };
+		// Apply filters
+		outputCtx.filter = `brightness(${brightness}%) contrast(${contrast}%)`;
 
-  // Save cropped image
-  const handleSave = () => {
-    if (!canvasRef.current || !imageRef.current) return;
+		// Draw transformed image
+		outputCtx.save();
+		outputCtx.translate(center + x * scaleFactor, center + y * scaleFactor);
+		outputCtx.rotate((rotation * Math.PI) / 180);
+		outputCtx.scale(scale, scale);
+		outputCtx.drawImage(
+			imageRef.current,
+			-imageRef.current.width / 2,
+			-imageRef.current.height / 2
+		);
+		outputCtx.restore();
 
-    const outputSize = 400;
-    const outputCanvas = document.createElement("canvas");
-    const outputCtx = outputCanvas.getContext("2d");
+		outputCanvas.toBlob(onSave, 'image/jpeg', 0.92);
+	};
 
-    outputCanvas.width = outputSize;
-    outputCanvas.height = outputSize;
+	// Controls UI
+	const renderTransformControls = () => (
+		<div className="space-y-6">
+			{/* Zoom */}
+			<div>
+				<div className="flex items-center justify-between mb-1">
+					<span className="font-medium text-gray-700 dark:text-gray-200">Zoom</span>
+					<span className="text-xs text-gray-500">
+						{Math.round(transform.scale * 100)}%
+					</span>
+				</div>
+				<div className="flex items-center gap-2">
+					<button
+						className={CONTROL_BTN}
+						onClick={() =>
+							updateTransform({ scale: Math.max(0.2, transform.scale - 0.1) })
+						}
+						aria-label="Zoom Out"
+						type="button"
+					>
+						<ZoomOut size={18} />
+					</button>
+					<input
+						type="range"
+						min={20}
+						max={300}
+						step={1}
+						value={Math.round(transform.scale * 100)}
+						onChange={(e) => updateTransform({ scale: Number(e.target.value) / 100 })}
+						className={SLIDER}
+					/>
+					<button
+						className={CONTROL_BTN}
+						onClick={() =>
+							updateTransform({ scale: Math.min(3, transform.scale + 0.1) })
+						}
+						aria-label="Zoom In"
+						type="button"
+					>
+						<ZoomIn size={18} />
+					</button>
+				</div>
+			</div>
+			{/* Rotate */}
+			<div>
+				<div className="flex items-center justify-between mb-1">
+					<span className="font-medium text-gray-700 dark:text-gray-200">Rotate</span>
+					<span className="text-xs text-gray-500">{transform.rotation}°</span>
+				</div>
+				<div className="flex items-center gap-2">
+					<button
+						className={CONTROL_BTN}
+						onClick={() =>
+							updateTransform({ rotation: (transform.rotation + 270) % 360 })
+						}
+						aria-label="Rotate Left"
+						type="button"
+					>
+						<RotateCw size={18} className="rotate-180" />
+					</button>
+					<input
+						type="range"
+						min={0}
+						max={359}
+						step={1}
+						value={transform.rotation}
+						onChange={(e) => updateTransform({ rotation: Number(e.target.value) })}
+						className={SLIDER}
+					/>
+					<button
+						className={CONTROL_BTN}
+						onClick={() =>
+							updateTransform({ rotation: (transform.rotation + 90) % 360 })
+						}
+						aria-label="Rotate Right"
+						type="button"
+					>
+						<RotateCw size={18} />
+					</button>
+				</div>
+			</div>
+			{/* Position */}
+			<div>
+				<div className="flex items-center justify-between mb-1">
+					<span className="font-medium text-gray-700 dark:text-gray-200">Move</span>
+					<span className="text-xs text-gray-500">Drag image</span>
+				</div>
+				<div className="flex gap-2">
+					<button
+						className={CONTROL_BTN}
+						onClick={() => updateTransform({ x: 0, y: 0 })}
+						aria-label="Center"
+						type="button"
+					>
+						<RefreshCw size={18} />
+					</button>
+					<button
+						className={CONTROL_BTN}
+						onClick={fitImage}
+						aria-label="Fit"
+						type="button"
+					>
+						<Upload size={18} className="rotate-90" />
+					</button>
+				</div>
+			</div>
+		</div>
+	);
 
-    const { scale, rotation, x, y } = transform;
-    const center = outputSize / 2;
-    const cropRadius = outputSize / 2;
-    const scaleFactor = outputSize / canvasSize;
+	const renderAdjustControls = () => (
+		<div className="space-y-6">
+			{/* Brightness */}
+			<div>
+				<div className="flex items-center justify-between mb-1">
+					<span className="font-medium text-gray-700 dark:text-gray-200">Brightness</span>
+					<span className="text-xs text-gray-500">{brightness}%</span>
+				</div>
+				<input
+					type="range"
+					min={50}
+					max={150}
+					step={1}
+					value={brightness}
+					onChange={(e) => setBrightness(Number(e.target.value))}
+					className={SLIDER}
+				/>
+			</div>
+			{/* Contrast */}
+			<div>
+				<div className="flex items-center justify-between mb-1">
+					<span className="font-medium text-gray-700 dark:text-gray-200">Contrast</span>
+					<span className="text-xs text-gray-500">{contrast}%</span>
+				</div>
+				<input
+					type="range"
+					min={50}
+					max={150}
+					step={1}
+					value={contrast}
+					onChange={(e) => setContrast(Number(e.target.value))}
+					className={SLIDER}
+				/>
+			</div>
+			{/* Reset */}
+			<div className="flex gap-2 mt-4">
+				<button
+					className={CONTROL_BTN}
+					onClick={resetImage}
+					aria-label="Reset All"
+					type="button"
+				>
+					<RefreshCw size={18} />
+				</button>
+			</div>
+		</div>
+	);
 
-    // Create circular clip
-    outputCtx.beginPath();
-    outputCtx.arc(center, center, cropRadius, 0, 2 * Math.PI);
-    outputCtx.clip();
-
-    // Apply filters
-    outputCtx.filter = getImageFilters();
-
-    // Draw transformed image
-    outputCtx.save();
-    outputCtx.translate(center + x * scaleFactor, center + y * scaleFactor);
-    outputCtx.rotate((rotation * Math.PI) / 180);
-    outputCtx.scale(scale, scale);
-    outputCtx.drawImage(imageRef.current, -imageRef.current.width / 2, -imageRef.current.height / 2);
-    outputCtx.restore();
-
-    outputCanvas.toBlob(onSave, "image/jpeg", 0.92);
-  };
-
-  const controls = [
-    {
-      label: "Zoom",
-      value: Math.round(transform.scale * 100),
-      unit: "%",
-      min: 10,
-      max: 300,
-      step: 5,
-      onChange: (value) => updateTransform({ scale: value / 100 }),
-      buttons: [
-        { icon: ZoomOut, action: () => updateTransform({ scale: Math.max(0.1, transform.scale - 0.1) }) },
-        { icon: ZoomIn, action: () => updateTransform({ scale: Math.min(3, transform.scale + 0.1) }) }
-      ]
-    },
-    {
-      label: "Rotate",
-      value: transform.rotation,
-      unit: "°",
-      min: 0,
-      max: 360,
-      step: 1,
-      onChange: (value) => updateTransform({ rotation: value }),
-      buttons: [
-        { icon: RotateCw, action: () => updateTransform({ rotation: (transform.rotation + 90) % 360 }) }
-      ]
-    }
-  ];
-
-  const getImageFilters = () => {
-    return `brightness(${brightness}%) contrast(${contrast}%) ${filter !== 'none' ? `filter(${filter})` : ''}`;
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-3xl w-full p-6">
-        <div className="flex flex-col xl:flex-row gap-8">
-          {/* Canvas */}
-          <div className="flex-1 flex flex-col items-center">
-            <canvas
-              ref={canvasRef}
-              width={canvasSize}
-              height={canvasSize}
-              className="rounded-xl shadow-lg border border-gray-200 dark:border-gray-700"
-              style={{ background: "#222" }}
-            />
-          </div>
-          {/* Controls */}
-          {isEditing && (
-            <div className="w-full xl:w-80 space-y-6">
-              {/* ...your controls for zoom, rotate, filters, etc... */}
-            </div>
-          )}
-        </div>
-        {/* Action Buttons */}
-        <div className="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-200 dark:border-gray-600">
-          <button
-            onClick={onCancel}
-            className="px-8 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all font-semibold"
-          >
-            {isEditing ? "Cancel" : "Close"}
-          </button>
-          {!isEditing && onUploadNew && (
-            <button
-              onClick={onUploadNew}
-              className="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition-all font-semibold"
-            >
-              Upload New
-            </button>
-          )}
-          {isEditing && (
-            <button
-              onClick={handleSave}
-              disabled={!imageLoaded}
-              className="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-xl transition-all font-semibold flex items-center gap-2 shadow-lg hover:shadow-xl disabled:cursor-not-allowed"
-            >
-              Save Picture
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+	return (
+		<AnimatePresence>
+			<motion.div
+				initial={{ opacity: 0, scale: 0.98 }}
+				animate={{ opacity: 1, scale: 1 }}
+				exit={{ opacity: 0, scale: 0.98 }}
+				className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60"
+			>
+				<div
+					ref={containerRef}
+					className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-3xl mx-auto p-0 sm:p-6 flex flex-col"
+					style={{ maxHeight: '95vh' }}
+				>
+					{/* Header */}
+					<div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+						<div className="flex items-center gap-2">
+							<span className="font-semibold text-lg text-gray-800 dark:text-white">
+								{isEditing ? 'Edit Profile Picture' : 'Profile Picture'}
+							</span>
+						</div>
+						<button
+							onClick={onCancel}
+							className={CONTROL_BTN + ' ml-2'}
+							aria-label="Close"
+							type="button"
+						>
+							<X size={20} />
+						</button>
+					</div>
+					{/* Main */}
+					<div className="flex-1 flex flex-col xl:flex-row gap-6 xl:gap-8 p-4 sm:p-6 overflow-y-auto">
+						{/* Canvas */}
+						<div className="flex-1 flex flex-col items-center justify-center min-w-[240px]">
+							<canvas
+								ref={canvasRef}
+								width={canvasSize}
+								height={canvasSize}
+								className="rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 touch-none cursor-move"
+								style={{ background: '#222', maxWidth: '100%', height: 'auto' }}
+								onMouseDown={handleStart}
+								onMouseMove={handleMove}
+								onMouseUp={handleEnd}
+								onMouseLeave={handleEnd}
+								onTouchStart={handleStart}
+								onTouchMove={handleMove}
+								onTouchEnd={handleEnd}
+								draggable={false}
+							/>
+							<div className="text-xs text-gray-500 mt-2 text-center">
+								{isEditing
+									? 'Drag to move. Use controls to zoom/rotate/adjust.'
+									: 'Preview'}
+							</div>
+						</div>
+						{/* Controls */}
+						{isEditing && (
+							<div className="w-full xl:w-80 space-y-6">
+								{/* Tabs */}
+								<div className="flex gap-2 mb-2">
+									<button
+										className={
+											TAB_BTN +
+											' ' +
+											(activeTab === 'transform'
+												? TAB_BTN_ACTIVE
+												: TAB_BTN_INACTIVE)
+										}
+										onClick={() => setActiveTab('transform')}
+										type="button"
+									>
+										Transform
+									</button>
+									<button
+										className={
+											TAB_BTN +
+											' ' +
+											(activeTab === 'adjust'
+												? TAB_BTN_ACTIVE
+												: TAB_BTN_INACTIVE)
+										}
+										onClick={() => setActiveTab('adjust')}
+										type="button"
+									>
+										Adjust
+									</button>
+								</div>
+								{activeTab === 'transform'
+									? renderTransformControls()
+									: renderAdjustControls()}
+							</div>
+						)}
+					</div>
+					{/* Action Buttons */}
+					<div className="flex flex-col sm:flex-row justify-end gap-3 mt-4 px-4 pb-4 border-t border-gray-200 dark:border-gray-700">
+						<div className="flex-1 flex items-center gap-2">
+							{!isEditing && onUploadNew && (
+								<button
+									onClick={onUploadNew}
+									className="flex items-center gap-2 px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold transition-all"
+									type="button"
+								>
+									<Upload size={18} /> Upload New
+								</button>
+							)}
+						</div>
+						<div className="flex gap-2">
+							<button
+								onClick={onCancel}
+								className="px-5 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all font-semibold"
+								type="button"
+							>
+								{isEditing ? 'Cancel' : 'Close'}
+							</button>
+							{isEditing && (
+								<button
+									onClick={handleSave}
+									disabled={!imageLoaded}
+									className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl disabled:cursor-not-allowed transition-all"
+									type="button"
+								>
+									<Save size={18} /> Save Picture
+								</button>
+							)}
+						</div>
+					</div>
+				</div>
+			</motion.div>
+		</AnimatePresence>
+	);
 };
 
 export default ImageEditor;
