@@ -113,7 +113,7 @@ export const useUpdateProfile = () => {
 export const useUploadProfilePicture = () => {
     const actionFn = async (id, formData) => {
         const res = await apiClient.post(`api/members/${id}/profile-picture`, formData, {
-            headers: { 
+            headers: {
                 'Content-Type': 'multipart/form-data'
             },
         });
@@ -134,7 +134,9 @@ export const useUploadProfilePicture = () => {
 export const useUploadResume = () => {
     const actionFn = async (id, formData) => {
         const res = await apiClient.post(`api/members/${id}/resume`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            },
         });
         return res.data.data.member;
     };
