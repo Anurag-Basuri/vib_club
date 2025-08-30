@@ -28,7 +28,8 @@ const MessageNotification = ({ message, onClose }) => {
         if (isSuccess) {
             return {
                 container: 'bg-green-50/95 dark:bg-green-900/95 border-green-200 dark:border-green-700',
-                icon: 'bg-green-100 dark:bg-green-800 text-green-600 dark:text-green-400',
+                iconBg: 'bg-green-100 dark:bg-green-800',
+                iconColor: 'text-green-600 dark:text-green-400',
                 title: 'text-green-800 dark:text-green-200',
                 message: 'text-green-700 dark:text-green-300',
                 close: 'text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200',

@@ -343,9 +343,6 @@ const MemberProfile = () => {
         }
     }, [member?.LpuId, newPassword, confirmPassword, resetPassword]);
 
-    // --- RENDER LOGIC ---
-    const memoizedMember = useMemo(() => member, [member?._id]);
-
     // Now your early returns come after all hooks are defined
     if (memberLoading && !member) {
         return (
@@ -424,6 +421,7 @@ const MemberProfile = () => {
                             onResumeUpload={handleResumeUpload}
                             uploadLoading={uploadLoading}
                             uploadResumeLoading={uploadResumeLoading}
+                            fileInputRef={fileInputRef}
                         />
 
                         <AnimatePresence mode="wait">

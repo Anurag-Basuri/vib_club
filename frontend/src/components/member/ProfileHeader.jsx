@@ -27,8 +27,8 @@ const ProfileHeader = ({
     uploadLoading,
     uploadResumeLoading,
     isEditing,
+    fileInputRef, // <-- add this
 }) => {
-    const fileInputRef = useRef(null);
     const resumeInputRef = useRef(null);
     const [showProfilePicture, setShowProfilePicture] = useState(false);
     const DepartmentIcon = getDepartmentIcon(member.department);
@@ -367,7 +367,7 @@ const ProfileHeader = ({
                         onClose={() => setShowProfilePicture(false)}
                         onUploadNew={() => {
                             setShowProfilePicture(false);
-                            fileInputRef.current?.click();
+                            setTimeout(() => fileInputRef.current?.click(), 200); // Give time for modal to close
                         }}
                     />
                 )}
