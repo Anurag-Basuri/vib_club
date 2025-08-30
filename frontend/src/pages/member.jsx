@@ -87,7 +87,16 @@ const MemberProfile = () => {
 
     // Fetch current member on component mount
     useEffect(() => {
-        getCurrentMember();
+        const fetchMember = async () => {
+            try {
+                await getCurrentMember();
+            } catch (error) {
+                console.error('Error fetching member:', error);
+                setMessage('Failed to load member data. Please refresh the page.');
+            }
+        };
+        
+        fetchMember();
     }, []);
 
     // Update form data when member data is loaded
@@ -180,6 +189,7 @@ const MemberProfile = () => {
             await getCurrentMember();
         } catch (error) {
             setMessage('Failed to update profile. Please try again.');
+            console.error('Profile update error:', error);
         }
     };
 
@@ -187,10 +197,8 @@ const MemberProfile = () => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Reset file input
         e.target.value = '';
 
-        // Validate file
         const validation = validateFile(file, 'image');
         if (!validation.isValid) {
             setMessage(validation.errors[0]);
@@ -198,13 +206,13 @@ const MemberProfile = () => {
         }
 
         try {
-            // Store original file and create preview
             setOriginalFile(file);
             const imageUrl = URL.createObjectURL(file);
             setSelectedImage(imageUrl);
             setShowImageEditor(true);
         } catch (error) {
             setMessage('Failed to process image. Please try again.');
+            console.error('Image processing error:', error);
         }
     };
 
@@ -212,13 +220,11 @@ const MemberProfile = () => {
         try {
             setShowImageEditor(false);
             
-            // Cleanup image URL
             if (selectedImage) {
                 URL.revokeObjectURL(selectedImage);
                 setSelectedImage(null);
             }
 
-            // Start upload progress simulation
             setUploadProgress({
                 fileName: originalFile?.name || 'profile-picture.jpg',
                 progress: 0,
@@ -229,17 +235,18 @@ const MemberProfile = () => {
                 setUploadProgress((prev) => prev ? { ...prev, progress } : null);
             });
 
-            // Create FormData with proper field name
-            const formData = new FormData();
-            formData.append('profilePicture', croppedBlob, originalFile?.name || 'profile-picture.jpg');
+            const formDataToUpload = new FormData();
+            formDataToUpload.append('profilePicture', croppedBlob, originalFile?.name || 'profile-picture.jpg');
 
-            // Upload using the hook
-            await uploadProfilePicture(member._id, formData);
+            await uploadProfilePicture(member._id, formDataToUpload);
 
-            // Complete progress and cleanup
             clearInterval(progressInterval);
-            setUploadProgress(null);
-            setOriginalFile(null);
+            setUploadProgress((prev) => prev ? { ...prev, progress: 100 } : null);
+            
+            setTimeout(() => {
+                setUploadProgress(null);
+                setOriginalFile(null);
+            }, 1000);
             
             setMessage('Profile picture updated successfully!');
             await getCurrentMember();
@@ -255,10 +262,8 @@ const MemberProfile = () => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Reset file input
         e.target.value = '';
 
-        // Validate file
         const validation = validateFile(file, 'document');
         if (!validation.isValid) {
             setMessage(validation.errors[0]);
@@ -266,7 +271,6 @@ const MemberProfile = () => {
         }
 
         try {
-            // Start upload progress
             setUploadProgress({
                 fileName: file.name,
                 progress: 0,
@@ -277,16 +281,17 @@ const MemberProfile = () => {
                 setUploadProgress((prev) => prev ? { ...prev, progress } : null);
             });
 
-            // Create FormData with proper field name
-            const formData = new FormData();
-            formData.append('resume', file);
+            const formDataToUpload = new FormData();
+            formDataToUpload.append('resume', file);
 
-            // Upload using the hook
-            await uploadResume(member._id, formData);
+            await uploadResume(member._id, formDataToUpload);
 
-            // Complete progress and cleanup
             clearInterval(progressInterval);
-            setUploadProgress(null);
+            setUploadProgress((prev) => prev ? { ...prev, progress: 100 } : null);
+            
+            setTimeout(() => {
+                setUploadProgress(null);
+            }, 1000);
             
             setMessage('Resume uploaded successfully!');
             await getCurrentMember();
@@ -319,6 +324,7 @@ const MemberProfile = () => {
             setConfirmPassword('');
         } catch (error) {
             setMessage('Failed to reset password');
+            console.error('Password reset error:', error);
         }
     };
 
@@ -331,117 +337,161 @@ const MemberProfile = () => {
         setOriginalFile(null);
     };
 
-    // Loading state with modern design
-    if (memberLoading || !member) {
+    // Loading state
+    if (memberLoading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900 flex items-center justify-center">
+            <div className="min-h-screen pt-16 bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="text-center"
+                    className="text-center bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700"
                 >
-                    <div className="relative">
-                        <div className="w-16 h-16 border-4 border-blue-200 dark:border-blue-800 rounded-full"></div>
-                        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
+                    <div className="relative mb-6">
+                        <div className="w-20 h-20 border-4 border-blue-100 dark:border-blue-900 rounded-full mx-auto"></div>
+                        <div className="w-20 h-20 border-4 border-blue-500 border-t-transparent rounded-full animate-spin absolute top-0 left-1/2 transform -translate-x-1/2"></div>
                     </div>
-                    <p className="text-slate-600 dark:text-slate-400 mt-4 font-medium">Loading your profile...</p>
+                    <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">Loading Profile</h2>
+                    <p className="text-gray-600 dark:text-gray-400">Please wait while we fetch your information...</p>
+                </motion.div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (!member && !memberLoading) {
+        return (
+            <div className="min-h-screen pt-16 bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="text-center max-w-md mx-auto bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700"
+                >
+                    <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-6 mx-auto">
+                        <svg className="w-10 h-10 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-3">
+                        Profile Not Found
+                    </h2>
+                    <p className="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
+                        {memberError || 'We encountered an issue loading your profile. Please try refreshing the page.'}
+                    </p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-semibold shadow-lg"
+                    >
+                        Reload Page
+                    </button>
                 </motion.div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900">
-            {/* Subtle background pattern */}
-            <div
-                className="absolute inset-0 opacity-40"
-                style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%236366f1' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-                }}
-            ></div>
+        <div className="min-h-screen pt-16 bg-gray-50 dark:bg-gray-900">
+            {/* Page Header */}
+            <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-center"
+                    >
+                        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3">
+                            Member Profile
+                        </h1>
+                        <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto text-lg">
+                            Manage your profile information, upload documents, and keep your details up to date.
+                        </p>
+                    </motion.div>
+                </div>
+            </div>
             
-            <div className="relative z-10 py-8 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-4xl mx-auto">
-                    <MessageNotification message={message} onClose={() => setMessage('')} />
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <MessageNotification message={message} onClose={() => setMessage('')} />
 
-                    <AnimatePresence>
-                        {uploadProgress && (
-                            <UploadProgress
-                                progress={uploadProgress.progress}
-                                fileName={uploadProgress.fileName}
-                                type={uploadProgress.type}
-                                onCancel={() => setUploadProgress(null)}
-                            />
-                        )}
-                    </AnimatePresence>
-
-                    <ProfileHeader
-                        member={member}
-                        onEditToggle={() => setIsEditing(!isEditing)}
-                        onPasswordReset={() => setShowPasswordReset(true)}
-                        onImageSelect={handleImageSelect}
-                        onResumeUpload={handleResumeUpload}
-                        uploadLoading={uploadLoading}
-                        uploadResumeLoading={uploadResumeLoading}
-                        fileInputRef={fileInputRef}
-                        resumeInputRef={resumeInputRef}
-                        isEditing={isEditing}
-                    />
-
-                    <AnimatePresence>
-                        {isEditing && (
-                            <ProfileForm
-                                formData={formData}
-                                onInputChange={handleInputChange}
-                                onSocialLinkChange={handleSocialLinkChange}
-                                onAddSocialLink={addSocialLink}
-                                onRemoveSocialLink={removeSocialLink}
-                                onAddSkill={addSkill}
-                                onRemoveSkill={removeSkill}
-                                newSkill={newSkill}
-                                setNewSkill={setNewSkill}
-                                onSubmit={handleSubmit}
-                                onCancel={() => setIsEditing(false)}
-                                isLoading={updateLoading}
-                            />
-                        )}
-                    </AnimatePresence>
-
-                    {!isEditing && (
-                        <ProfileDisplay
-                            member={member}
-                            onEditToggle={() => setIsEditing(true)}
-                            onResumeUpload={handleResumeUpload}
-                            uploadResumeLoading={uploadResumeLoading}
-                            resumeInputRef={resumeInputRef}
+                <AnimatePresence>
+                    {uploadProgress && (
+                        <UploadProgress
+                            progress={uploadProgress.progress}
+                            fileName={uploadProgress.fileName}
+                            type={uploadProgress.type}
+                            onCancel={() => setUploadProgress(null)}
                         />
                     )}
+                </AnimatePresence>
 
-                    <PasswordResetModal
-                        isOpen={showPasswordReset}
-                        onClose={() => setShowPasswordReset(false)}
-                        newPassword={newPassword}
-                        setNewPassword={setNewPassword}
-                        confirmPassword={confirmPassword}
-                        setConfirmPassword={setConfirmPassword}
-                        showPassword={showPassword}
-                        setShowPassword={setShowPassword}
-                        showConfirmPassword={showConfirmPassword}
-                        setShowConfirmPassword={setShowConfirmPassword}
-                        onSubmit={handlePasswordReset}
-                        isLoading={resetLoading}
-                    />
+                {member && (
+                    <div className="space-y-8">
+                        <ProfileHeader
+                            member={member}
+                            onEditToggle={() => setIsEditing(!isEditing)}
+                            onPasswordReset={() => setShowPasswordReset(true)}
+                            onImageSelect={handleImageSelect}
+                            onResumeUpload={handleResumeUpload}
+                            uploadLoading={uploadLoading}
+                            uploadResumeLoading={uploadResumeLoading}
+                            fileInputRef={fileInputRef}
+                            resumeInputRef={resumeInputRef}
+                            isEditing={isEditing}
+                        />
 
-                    <AnimatePresence>
-                        {showImageEditor && selectedImage && (
-                            <ImageEditor
-                                image={selectedImage}
-                                onSave={handleImageSave}
-                                onCancel={handleImageEditorCancel}
+                        <AnimatePresence>
+                            {isEditing && (
+                                <ProfileForm
+                                    formData={formData}
+                                    onInputChange={handleInputChange}
+                                    onSocialLinkChange={handleSocialLinkChange}
+                                    onAddSocialLink={addSocialLink}
+                                    onRemoveSocialLink={removeSocialLink}
+                                    onAddSkill={addSkill}
+                                    onRemoveSkill={removeSkill}
+                                    newSkill={newSkill}
+                                    setNewSkill={setNewSkill}
+                                    onSubmit={handleSubmit}
+                                    onCancel={() => setIsEditing(false)}
+                                    isLoading={updateLoading}
+                                />
+                            )}
+                        </AnimatePresence>
+
+                        {!isEditing && (
+                            <ProfileDisplay
+                                member={member}
+                                onEditToggle={() => setIsEditing(true)}
+                                onResumeUpload={handleResumeUpload}
+                                uploadResumeLoading={uploadResumeLoading}
+                                resumeInputRef={resumeInputRef}
                             />
                         )}
-                    </AnimatePresence>
-                </div>
+
+                        <PasswordResetModal
+                            isOpen={showPasswordReset}
+                            onClose={() => setShowPasswordReset(false)}
+                            newPassword={newPassword}
+                            setNewPassword={setNewPassword}
+                            confirmPassword={confirmPassword}
+                            setConfirmPassword={setConfirmPassword}
+                            showPassword={showPassword}
+                            setShowPassword={setShowPassword}
+                            showConfirmPassword={showConfirmPassword}
+                            setShowConfirmPassword={setShowConfirmPassword}
+                            onSubmit={handlePasswordReset}
+                            isLoading={resetLoading}
+                        />
+                    </div>
+                )}
+
+                <AnimatePresence>
+                    {showImageEditor && selectedImage && (
+                        <ImageEditor
+                            image={selectedImage}
+                            onSave={handleImageSave}
+                            onCancel={handleImageEditorCancel}
+                        />
+                    )}
+                </AnimatePresence>
             </div>
         </div>
     );
