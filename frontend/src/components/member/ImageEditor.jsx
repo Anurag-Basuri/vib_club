@@ -9,7 +9,10 @@ import {
     Move,
     RefreshCw,
     Maximize2,
-    Crop
+    Crop,
+    SunMedium,
+    Contrast,
+    Filter
 } from 'lucide-react';
 
 const ImageEditor = ({ image, onSave, onCancel }) => {
@@ -27,6 +30,10 @@ const ImageEditor = ({ image, onSave, onCancel }) => {
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
     const [imageLoaded, setImageLoaded] = useState(false);
     const [canvasSize, setCanvasSize] = useState(400);
+    const [filter, setFilter] = useState('none');
+    const [brightness, setBrightness] = useState(100);
+    const [contrast, setContrast] = useState(100);
+    const [activeTab, setActiveTab] = useState('transform'); // 'transform', 'adjust', 'filters'
 
     // Responsive canvas sizing
     useEffect(() => {
@@ -204,6 +211,9 @@ const ImageEditor = ({ image, onSave, onCancel }) => {
         outputCtx.arc(center, center, cropRadius, 0, 2 * Math.PI);
         outputCtx.clip();
 
+        // Apply filters
+        outputCtx.filter = getImageFilters();
+
         // Draw transformed image
         outputCtx.save();
         outputCtx.translate(center + (x * scaleFactor), center + (y * scaleFactor));
@@ -246,6 +256,10 @@ const ImageEditor = ({ image, onSave, onCancel }) => {
             ]
         }
     ];
+
+    const getImageFilters = () => {
+        return `brightness(${brightness}%) contrast(${contrast}%) ${filter !== 'none' ? `filter(${filter})` : ''}`;
+    };
 
     return (
         <motion.div
@@ -314,67 +328,221 @@ const ImageEditor = ({ image, onSave, onCancel }) => {
 
                         {/* Controls */}
                         <div className="w-full xl:w-80 space-y-6">
-                            {controls.map((control) => (
-                                <div key={control.label} className="space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                            {control.label}
-                                        </label>
-                                        <span className="text-sm font-mono text-gray-500 dark:text-gray-400">
-                                            {control.value}{control.unit}
-                                        </span>
-                                    </div>
-                                    
-                                    <div className="flex items-center gap-3">
-                                        <input
-                                            type="range"
-                                            min={control.min}
-                                            max={control.max}
-                                            step={control.step}
-                                            value={control.value}
-                                            onChange={(e) => control.onChange(Number(e.target.value))}
-                                            className="flex-1 h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-500 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-lg"
-                                        />
-                                        
-                                        <div className="flex gap-1">
-                                            {control.buttons.map((button, idx) => (
-                                                <button
-                                                    key={idx}
-                                                    onClick={button.action}
-                                                    className="p-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                                                >
-                                                    <button.icon className="w-4 h-4" />
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-
-                            {/* Quick Actions */}
-                            <div className="space-y-3">
-                                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                    Quick Actions
-                                </label>
-                                
-                                <div className="grid grid-cols-2 gap-3">
+                            {/* Tabs */}
+                            <div className="mb-6 border-b border-gray-200 dark:border-gray-600">
+                                <div className="flex space-x-1 mb-4">
                                     <button
-                                        onClick={resetImage}
-                                        className="flex items-center justify-center gap-2 py-3 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all font-medium"
+                                        onClick={() => setActiveTab('transform')}
+                                        className={`px-4 py-2 rounded-t-lg text-sm font-medium ${
+                                            activeTab === 'transform' 
+                                                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-b-2 border-blue-500' 
+                                                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                        }`}
                                     >
-                                        <RefreshCw className="w-4 h-4" />
-                                        Reset
+                                        Transform
                                     </button>
-                                    
                                     <button
-                                        onClick={fitImage}
-                                        className="flex items-center justify-center gap-2 py-3 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all font-medium"
+                                        onClick={() => setActiveTab('adjust')}
+                                        className={`px-4 py-2 rounded-t-lg text-sm font-medium ${
+                                            activeTab === 'adjust' 
+                                                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-b-2 border-blue-500' 
+                                                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                        }`}
                                     >
-                                        <Maximize2 className="w-4 h-4" />
-                                        Fit
+                                        Adjust
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveTab('filters')}
+                                        className={`px-4 py-2 rounded-t-lg text-sm font-medium ${
+                                            activeTab === 'filters' 
+                                                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-b-2 border-blue-500' 
+                                                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                        }`}
+                                    >
+                                        Filters
                                     </button>
                                 </div>
                             </div>
+
+                            {/* Controls based on active tab */}
+                            {activeTab === 'transform' && (
+                                <>
+                                    {controls.map((control) => (
+                                        <div key={control.label} className="space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                                    {control.label}
+                                                </label>
+                                                <span className="text-sm font-mono text-gray-500 dark:text-gray-400">
+                                                    {control.value}{control.unit}
+                                                </span>
+                                            </div>
+                                            
+                                            <div className="flex items-center gap-3">
+                                                <input
+                                                    type="range"
+                                                    min={control.min}
+                                                    max={control.max}
+                                                    step={control.step}
+                                                    value={control.value}
+                                                    onChange={(e) => control.onChange(Number(e.target.value))}
+                                                    className="flex-1 h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-500 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-lg"
+                                                />
+                                                
+                                                <div className="flex gap-1">
+                                                    {control.buttons.map((button, idx) => (
+                                                        <button
+                                                            key={idx}
+                                                            onClick={button.action}
+                                                            className="p-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                                                        >
+                                                            <button.icon className="w-4 h-4" />
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                    {/* Quick Actions */}
+                                    <div className="space-y-3">
+                                        <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                            Quick Actions
+                                        </label>
+                                        
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <button
+                                                onClick={resetImage}
+                                                className="flex items-center justify-center gap-2 py-3 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all font-medium"
+                                            >
+                                                <RefreshCw className="w-4 h-4" />
+                                                Reset
+                                            </button>
+                                            
+                                            <button
+                                                onClick={fitImage}
+                                                className="flex items-center justify-center gap-2 py-3 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all font-medium"
+                                            >
+                                                <Maximize2 className="w-4 h-4" />
+                                                Fit
+                                            </button>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+
+                            {activeTab === 'adjust' && (
+                                <>
+                                    <div className="space-y-6">
+                                        {/* Brightness */}
+                                        <div className="space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                                                    <SunMedium className="w-4 h-4" />
+                                                    Brightness
+                                                </label>
+                                                <span className="text-sm font-mono text-gray-500 dark:text-gray-400">
+                                                    {brightness}%
+                                                </span>
+                                            </div>
+                                            <input
+                                                type="range"
+                                                min="50"
+                                                max="150"
+                                                step="1"
+                                                value={brightness}
+                                                onChange={(e) => setBrightness(Number(e.target.value))}
+                                                className="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-500 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-lg"
+                                            />
+                                        </div>
+                                        
+                                        {/* Contrast */}
+                                        <div className="space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                                                    <Contrast className="w-4 h-4" />
+                                                    Contrast
+                                                </label>
+                                                <span className="text-sm font-mono text-gray-500 dark:text-gray-400">
+                                                    {contrast}%
+                                                </span>
+                                            </div>
+                                            <input
+                                                type="range"
+                                                min="50"
+                                                max="150"
+                                                step="1"
+                                                value={contrast}
+                                                onChange={(e) => setContrast(Number(e.target.value))}
+                                                className="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-500 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-lg"
+                                            />
+                                        </div>
+                                        
+                                        <button
+                                            onClick={() => {
+                                                setBrightness(100);
+                                                setContrast(100);
+                                            }}
+                                            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all font-medium"
+                                        >
+                                            <RefreshCw className="w-4 h-4" />
+                                            Reset Adjustments
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+
+                            {activeTab === 'filters' && (
+                                <div>
+                                    <div className="grid grid-cols-3 gap-3 mb-4">
+                                        <button
+                                            onClick={() => setFilter('none')}
+                                            className={`p-3 rounded-xl ${filter === 'none' ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'bg-gray-100 dark:bg-gray-700'}`}
+                                        >
+                                            <div className="aspect-square rounded-lg overflow-hidden mb-2">
+                                                <img 
+                                                    src={image} 
+                                                    alt="Normal" 
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                            <p className="text-xs font-medium text-center text-gray-700 dark:text-gray-300">Normal</p>
+                                        </button>
+                                        
+                                        <button
+                                            onClick={() => setFilter('grayscale(1)')}
+                                            className={`p-3 rounded-xl ${filter === 'grayscale(1)' ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'bg-gray-100 dark:bg-gray-700'}`}
+                                        >
+                                            <div className="aspect-square rounded-lg overflow-hidden mb-2">
+                                                <img 
+                                                    src={image} 
+                                                    alt="B&W" 
+                                                    className="w-full h-full object-cover filter grayscale"
+                                                />
+                                            </div>
+                                            <p className="text-xs font-medium text-center text-gray-700 dark:text-gray-300">B&W</p>
+                                        </button>
+                                        
+                                        <button
+                                            onClick={() => setFilter('sepia(0.7)')}
+                                            className={`p-3 rounded-xl ${filter === 'sepia(0.7)' ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'bg-gray-100 dark:bg-gray-700'}`}
+                                        >
+                                            <div className="aspect-square rounded-lg overflow-hidden mb-2">
+                                                <img 
+                                                    src={image} 
+                                                    alt="Sepia" 
+                                                    className="w-full h-full object-cover filter sepia"
+                                                />
+                                            </div>
+                                            <p className="text-xs font-medium text-center text-gray-700 dark:text-gray-300">Sepia</p>
+                                        </button>
+                                    </div>
+                                    
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                                        Select a filter to enhance your profile picture
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
 

@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { motion } from 'framer-motion';
+import React, { useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
     User,
     Camera,
@@ -13,7 +13,9 @@ import {
     CheckCircle2,
     Clock,
     Settings,
+    ZoomIn,
 } from 'lucide-react';
+import ProfilePictureView from './ProfilePictureView.jsx';
 import { getDesignationColor, getDepartmentIcon, getStatusColor } from '../../utils/fileUtils.js';
 
 const ProfileHeader = ({
@@ -28,6 +30,7 @@ const ProfileHeader = ({
 }) => {
     const fileInputRef = useRef(null);
     const resumeInputRef = useRef(null);
+    const [showProfilePicture, setShowProfilePicture] = useState(false);
     const DepartmentIcon = getDepartmentIcon(member.department);
 
     // Modern SVG cover image with abstract shapes, gradients, and subtle geometric accents
@@ -61,7 +64,10 @@ const ProfileHeader = ({
                 <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 lg:gap-8">
                     {/* Profile Picture */}
                     <div className="relative group flex-shrink-0 -mt-8 sm:-mt-12 md:-mt-16 lg:-mt-20 self-center lg:self-start">
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-32 lg:h-32 rounded-xl sm:rounded-2xl overflow-hidden border-3 sm:border-4 border-white dark:border-gray-800 shadow-xl bg-white dark:bg-gray-800">
+                        <div
+                            onClick={() => member.profilePicture?.url ? setShowProfilePicture(true) : fileInputRef.current?.click()}
+                            className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-32 lg:h-32 rounded-xl sm:rounded-2xl overflow-hidden border-3 sm:border-4 border-white dark:border-gray-800 shadow-xl bg-white dark:bg-gray-800 cursor-pointer"
+                        >
                             {member.profilePicture?.url ? (
                                 <img
                                     src={member.profilePicture.url}
@@ -75,21 +81,12 @@ const ProfileHeader = ({
                             )}
                         </div>
 
-                        {/* Upload Overlay */}
-                        <div className="absolute inset-0 bg-black/60 rounded-xl sm:rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-                            <button
-                                onClick={() => fileInputRef.current?.click()}
-                                disabled={uploadLoading}
-                                className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white p-1.5 sm:p-2 rounded-lg sm:rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                                title="Upload new profile picture"
-                            >
-                                {uploadLoading ? (
-                                    <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                ) : (
-                                    <Camera className="w-3 h-3 sm:w-4 sm:h-4" />
-                                )}
-                            </button>
-                        </div>
+                        {/* Hover action indicator only visible if image exists */}
+                        {member.profilePicture?.url && (
+                            <div className="absolute inset-0 bg-black/60 rounded-xl sm:rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                <ZoomIn className="w-6 h-6 text-white" />
+                            </div>
+                        )}
 
                         {/* Upload Status Indicator */}
                         {uploadLoading && (
@@ -361,6 +358,20 @@ const ProfileHeader = ({
                     </motion.div>
                 )}
             </div>
+
+            {/* Profile Picture Viewer */}
+            <AnimatePresence>
+                {showProfilePicture && member.profilePicture?.url && (
+                    <ProfilePictureView 
+                        image={member.profilePicture.url}
+                        onClose={() => setShowProfilePicture(false)}
+                        onUploadNew={() => {
+                            setShowProfilePicture(false);
+                            fileInputRef.current?.click();
+                        }}
+                    />
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 };
