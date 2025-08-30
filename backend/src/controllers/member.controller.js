@@ -173,6 +173,7 @@ const updateProfile = asyncHandler(async (req, res) => {
         socialLinks,
         bio,
     } = req.body;
+    console.log(req.body);
 
     const member = await Member.findById(req.params.id);
     if (!member) {
