@@ -14,7 +14,7 @@ import ProfileForm from '../components/member/ProfileForm.jsx';
 import ProfileDisplay from '../components/member/ProfileDisplay.jsx';
 import PasswordResetModal from '../components/member/PasswordResetModal.jsx';
 import MessageNotification from '../components/member/MessageNotification.jsx';
-import { validateFile, simulateProgress } from './utils';
+import { validateFile, simulateProgress } from '../components/member/utils.jsx';
 
 const MemberProfile = () => {
 	// Custom hooks
