@@ -295,9 +295,13 @@ const MemberProfile = () => {
         }));
     }, []);
 
-    // Add a new skill
-    const addSkill = useCallback(() => {
-        const skill = newSkill.trim();
+    // Add a new skill (handles both string and object)
+    const addSkill = useCallback((skillValue) => {
+        let skill = skillValue !== undefined ? skillValue : newSkill;
+        if (typeof skill === 'object' && skill !== null) {
+            skill = skill.label || skill.value || '';
+        }
+        skill = (skill || '').trim();
         if (skill && !formData.skills.includes(skill)) {
             setFormData(prev => ({
                 ...prev,
