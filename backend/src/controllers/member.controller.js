@@ -232,7 +232,7 @@ const uploadProfilePicture = asyncHandler(async (req, res) => {
         return res.status(400).json(new ApiResponse(400, null, 'No files uploaded'));
     }
 
-    const member = await Member.findById(req.id);
+    const member = await Member.findById(req._id);
     if (!member) {
         return res
             .status(404)

@@ -122,7 +122,7 @@ router.post(
     authMiddleware.verifyToken,
     authMiddleware.isMember,
     (req, res, next) => {
-        console.log(req.id);
+        console.log(req._id);
         next();
     },
     uploadFile('profilePicture'),
