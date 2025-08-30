@@ -280,7 +280,7 @@ const uploadResume = asyncHandler(async (req, res) => {
     if (member.resume && member.resume.publicId) {
         await deleteFile({
             public_id: member.resume.publicId,
-            resource_type: 'auto'
+            resource_type: 'raw'
         });
     }
 
