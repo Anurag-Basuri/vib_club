@@ -81,7 +81,7 @@ const MemberProfile = () => {
                 skills: member.skills || [],
             });
         }
-    }, [member?._id]); // Only depend on member ID to prevent unnecessary updates
+    }, [member]);
 
     // Fix 3: Better error handling
     useEffect(() => {
@@ -157,11 +157,17 @@ const MemberProfile = () => {
     }, []);
 
     // Fix 4: Add safety checks for formData
-    const addSkill = useCallback(() => {
-        if (newSkill.trim() && formData?.skills && formData.skills.length < 10 && !formData.skills.includes(newSkill.trim())) {
-            setFormData(prev => ({ 
-                ...prev, 
-                skills: [...(prev.skills || []), newSkill.trim()] 
+    const addSkill = useCallback((skillArg) => {
+        const skill = (typeof skillArg === 'string' ? skillArg : newSkill).trim();
+        if (
+            skill &&
+            formData?.skills &&
+            formData.skills.length < 15 &&
+            !formData.skills.some(s => s.trim().toLowerCase() === skill.toLowerCase())
+        ) {
+            setFormData(prev => ({
+                ...prev,
+                skills: [...(prev.skills || []), skill]
             }));
             setNewSkill('');
         }
@@ -410,7 +416,7 @@ const MemberProfile = () => {
                 {member && (
                     <div className="space-y-8">
                         <ProfileHeader
-                            member={memoizedMember}
+                            member={member}
                             isEditing={isEditing}
                             onEditToggle={handleEditToggle}
                             onPasswordReset={handlePasswordResetOpen}
@@ -440,7 +446,7 @@ const MemberProfile = () => {
                             ) : (
                                 <ProfileDisplay
                                     key="profile-display"
-                                    member={memoizedMember}
+                                    member={member}
                                     onEditToggle={handleEditToggle}
                                 />
                             )}
