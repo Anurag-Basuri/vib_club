@@ -241,7 +241,10 @@ const uploadProfilePicture = asyncHandler(async (req, res) => {
 
     // Delete old profile picture from Cloudinary
     if (member.profilePicture && member.profilePicture.publicId) {
-        await deleteFile(member.profilePicture.publicId, 'image');
+        await deleteFile({
+            public_id: member.profilePicture.publicId,
+            resource_type: 'image'
+        });
     }
 
     // Upload new profile picture to Cloudinary
@@ -275,7 +278,10 @@ const uploadResume = asyncHandler(async (req, res) => {
 
     // Delete old resume from Cloudinary
     if (member.resume && member.resume.publicId) {
-        await deleteFile(member.resume.publicId, 'auto');
+        await deleteFile({
+            public_id: member.resume.publicId,
+            resource_type: 'auto'
+        });
     }
 
     // Upload new resume to Cloudinary
