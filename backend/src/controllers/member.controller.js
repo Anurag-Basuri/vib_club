@@ -266,7 +266,7 @@ const uploadResume = asyncHandler(async (req, res) => {
         return res.status(400).json(new ApiResponse(400, null, 'No files uploaded'));
     }
 
-    const member = await Member.findById(req.id);
+    const member = await Member.findById(req.user.id);
     if (!member) {
         return res
             .status(404)
@@ -274,7 +274,7 @@ const uploadResume = asyncHandler(async (req, res) => {
     }
 
     // Delete old resume from Cloudinary
-    if (member.resume) {
+    if (member.resume && member.resume.publicId) {
         await deleteFile(member.resume.publicId);
     }
 
