@@ -127,6 +127,19 @@ const MemberProfile = () => {
         setShowProfilePictureView(true);
     }, []);
 
+    // Open image editor for viewing (from clicking profile picture)
+    const handleProfilePictureClick = useCallback((imageUrl, hasImage) => {
+        if (!hasImage) {
+            // No image, open file picker directly
+            fileInputRef.current?.click();
+            return;
+        }
+        // Has image, open editor in view mode
+        setEditorImage(imageUrl);
+        setIsEditingImage(false);
+        setShowImageEditor(true);
+    }, []);
+
     // Open image editor for cropping (from file input)
     const handleImageSelect = useCallback((e) => {
         const file = e.target.files[0];
@@ -138,17 +151,9 @@ const MemberProfile = () => {
         const url = URL.createObjectURL(file);
         setOriginalFile(file);
         setEditorImage(url);
-        setIsEditingImage(true);
+        setIsEditingImage(true); // Always edit mode when uploading new
         setShowImageEditor(true);
     }, [editorImage]);
-
-    // Open image editor for viewing (from clicking profile picture)
-    const handleProfilePictureClick = useCallback((imageUrl) => {
-        if (!imageUrl) return;
-        setEditorImage(imageUrl);
-        setIsEditingImage(false);
-        setShowImageEditor(true);
-    }, []);
 
     // Save/crop/upload
     const handleImageSave = useCallback(async (croppedBlob) => {

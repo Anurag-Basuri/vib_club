@@ -22,7 +22,7 @@ const TAB_BTN_ACTIVE = 'bg-blue-600 text-white shadow';
 const TAB_BTN_INACTIVE =
 	'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-700';
 
-const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew }) => {
+const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEditingImage }) => {
 	const canvasRef = useRef(null);
 	const imageRef = useRef(null);
 	const containerRef = useRef(null);
@@ -486,13 +486,22 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew }) => {
 					<div className="flex flex-col sm:flex-row justify-end gap-3 mt-4 px-4 pb-4 border-t border-gray-200 dark:border-gray-700">
 						<div className="flex-1 flex items-center gap-2">
 							{!isEditing && onUploadNew && (
-								<button
-									onClick={onUploadNew}
-									className="flex items-center gap-2 px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold transition-all"
-									type="button"
-								>
-									<Upload size={18} /> Upload New
-								</button>
+								<>
+									<button
+										onClick={onUploadNew}
+										className="flex items-center gap-2 px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold transition-all"
+										type="button"
+									>
+										<Upload size={18} /> Upload New
+									</button>
+									<button
+										onClick={() => setIsEditingImage && setIsEditingImage(true)}
+										className="flex items-center gap-2 px-5 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-semibold transition-all"
+										type="button"
+									>
+										<Edit3 size={18} /> Edit
+									</button>
+								</>
 							)}
 						</div>
 						<div className="flex gap-2">

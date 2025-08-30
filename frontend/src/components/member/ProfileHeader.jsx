@@ -73,7 +73,13 @@ const ProfileHeader = ({
                     {/* Profile Picture */}
                     <div className="relative group flex-shrink-0 -mt-8 sm:-mt-12 md:-mt-16 lg:-mt-20 self-center lg:self-start">
                         <div
-                            onClick={() => handleProfilePictureClick(member.profilePicture?.url)}
+                            onClick={() => {
+                                if (member.profilePicture?.url) {
+                                    onProfilePictureClick(member.profilePicture.url, true); // true = has image
+                                } else {
+                                    fileInputRef.current?.click(); // No image, open file picker directly
+                                }
+                            }}
                             className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-32 lg:h-32 rounded-xl sm:rounded-2xl overflow-hidden border-3 sm:border-4 border-white dark:border-gray-800 shadow-xl bg-white dark:bg-gray-800 cursor-pointer"
                         >
                             {member.profilePicture?.url ? (
