@@ -240,6 +240,8 @@ const uploadProfilePicture = asyncHandler(async (req, res) => {
     }
 
     // Delete old profile picture from Cloudinary
+    console.log('Current member:', member);
+    console.log('Deleting old profile picture:', member.profilePicture);
     if (member.profilePicture) {
         await deleteFile(member.profilePicture.publicId);
     }

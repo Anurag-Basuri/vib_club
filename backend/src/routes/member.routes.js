@@ -121,10 +121,6 @@ router.post(
     '/:id/profile-picture',
     authMiddleware.verifyToken,
     authMiddleware.isMember,
-    (req, res, next) => {
-        console.log(req._id);
-        next();
-    },
     uploadFile('profilePicture'),
     validate([
         param('id').isMongoId().withMessage('Invalid member ID')
