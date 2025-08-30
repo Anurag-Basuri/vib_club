@@ -6,7 +6,7 @@ import {
 	useUploadProfilePicture,
 	useUploadResume,
 	useResetPassword,
-} from '../../hooks/useMembers';
+} from '../hooks/useMembers.js';
 import ImageEditor from '../components/member/ImageEditor.jsx';
 import UploadProgress from '../components/member/UploadProgress.jsx';
 import ProfileHeader from '../components/member/ProfileHeader.jsx';

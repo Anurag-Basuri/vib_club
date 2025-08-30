@@ -1,14 +1,14 @@
 import {
-    Users,
-    Settings,
-    Award,
-    Building,
-    FileText,
-    Calendar,
-    Camera,
-    Edit3,
-    User,
-    Mail
+	Users,
+	Settings,
+	Award,
+	Home,
+	FileText,
+	Calendar,
+	Camera,
+	Edit3,
+	User,
+	Mail
 } from 'react-feather';
 
 export const getDesignationColor = (designation) => {
@@ -29,7 +29,7 @@ export const getDepartmentIcon = (department) => {
 		HR: Users,
 		Technical: Settings,
 		Marketing: Award,
-		Management: Building,
+		Management: Home,
 		'Content Writing': FileText,
 		'Event Management': Calendar,
 		Media: Camera,
