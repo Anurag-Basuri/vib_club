@@ -1,6 +1,7 @@
 import Member from '../models/member.model.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
+import { ApiError } from '../utils/ApiError.js';
 import { uploadFile, deleteFile } from '../utils/cloudinary.js';
 import { sendPasswordResetEmail } from '../services/email.service.js';
 
@@ -188,6 +189,11 @@ const updateProfile = asyncHandler(async (req, res) => {
     member.hostel = hosteler === false ? '' : (hostel || member.hostel);
     member.socialLinks = socialLinks || member.socialLinks;
     member.bio = bio || member.bio;
+
+    // Validation: if hosteler is true, hostel cannot be empty
+    if (member.hosteler === true && (!member.hostel || member.hostel.trim() === '')) {
+        return res.status(400).json(new ApiResponse(400, null, 'Hostel name is required when hosteler is true'));
+    }
 
     await member.save();
 
