@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     useGetCurrentMember,
@@ -17,36 +17,16 @@ import MessageNotification from '../components/member/MessageNotification.jsx';
 import { validateFile, simulateProgress } from '../utils/fileUtils.js';
 
 const MemberProfile = () => {
-    // Custom hooks
-    const {
-        getCurrentMember,
-        member,
-        loading: memberLoading,
-        error: memberError,
-    } = useGetCurrentMember();
-    const { 
-        updateProfile,
-        loading: updateLoading,
-        error: updateError
-    } = useUpdateProfile();
-    const {
-        uploadProfilePicture,
-        loading: uploadLoading,
-        error: uploadError,
-    } = useUploadProfilePicture();
-    const {
-        uploadResume,
-        loading: uploadResumeLoading,
-        error: uploadResumeError,
-    } = useUploadResume();
-    const {
-        resetPassword,
-        loading: resetLoading,
-        error: resetError
-    } = useResetPassword();
+    // --- HOOKS ---
+    const { getCurrentMember, member, loading: memberLoading, error: memberError } = useGetCurrentMember();
+    const { updateProfile, loading: updateLoading, error: updateError } = useUpdateProfile();
+    const { uploadProfilePicture, loading: uploadLoading, error: uploadError } = useUploadProfilePicture();
+    const { uploadResume, loading: uploadResumeLoading, error: uploadResumeError } = useUploadResume();
+    const { resetPassword, loading: resetLoading, error: resetError } = useResetPassword();
 
-    // Local state
+    // --- STATE ---
     const [isEditing, setIsEditing] = useState(false);
+    const [hasInitiallyFetched, setHasInitiallyFetched] = useState(false);
     const [formData, setFormData] = useState({
         email: '',
         phone: '',
@@ -65,43 +45,30 @@ const MemberProfile = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [newSkill, setNewSkill] = useState('');
-
-    // Image editing state
     const [showImageEditor, setShowImageEditor] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
     const [originalFile, setOriginalFile] = useState(null);
-
-    // Upload progress state
     const [uploadProgress, setUploadProgress] = useState(null);
 
+    // --- REFS ---
     const fileInputRef = useRef(null);
     const resumeInputRef = useRef(null);
 
-    // Auto-clear message after 5 seconds
+    // --- DATA FETCHING & STATE SYNC ---
+    // Fix 1: Prevent infinite loading by using hasInitiallyFetched flag
     useEffect(() => {
-        if (message) {
-            const timer = setTimeout(() => setMessage(''), 5000);
-            return () => clearTimeout(timer);
+        if (!hasInitiallyFetched) {
+            setHasInitiallyFetched(true);
+            getCurrentMember().catch((err) => {
+                console.error("Failed to fetch member data:", err);
+                setMessage('Failed to load member data. Please try again.');
+            });
         }
-    }, [message]);
+    }, [getCurrentMember, hasInitiallyFetched]);
 
-    // Fetch current member on component mount
+    // Fix 2: Only update formData when member ID changes, not on every member update
     useEffect(() => {
-        const fetchMember = async () => {
-            try {
-                await getCurrentMember();
-            } catch (error) {
-                console.error('Error fetching member:', error);
-                setMessage('Failed to load member data. Please refresh the page.');
-            }
-        };
-        
-        fetchMember();
-    }, []);
-
-    // Update form data when member data is loaded
-    useEffect(() => {
-        if (member) {
+        if (member?._id) {
             setFormData({
                 email: member.email || '',
                 phone: member.phone || '',
@@ -114,134 +81,160 @@ const MemberProfile = () => {
                 skills: member.skills || [],
             });
         }
-    }, [member]);
+    }, [member?._id]); // Only depend on member ID to prevent unnecessary updates
 
-    // Handle errors and success messages
+    // Fix 3: Better error handling
     useEffect(() => {
-        if (memberError || updateError || uploadError || uploadResumeError || resetError) {
-            setMessage(
-                memberError || updateError || uploadError || uploadResumeError || resetError
-            );
+        const errors = [memberError, updateError, uploadError, uploadResumeError, resetError].filter(Boolean);
+        if (errors.length > 0) {
+            setMessage(errors[0]); // Show first error
         }
     }, [memberError, updateError, uploadError, uploadResumeError, resetError]);
 
-    const handleInputChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : value,
-        }));
-    };
-
-    const handleSocialLinkChange = (index, field, value) => {
-        const updatedLinks = [...formData.socialLinks];
-        updatedLinks[index][field] = value;
-        setFormData((prev) => ({
-            ...prev,
-            socialLinks: updatedLinks,
-        }));
-    };
-
-    const addSocialLink = () => {
-        if (formData.socialLinks.length < 5) {
-            setFormData((prev) => ({
-                ...prev,
-                socialLinks: [...prev.socialLinks, { platform: '', url: '' }],
-            }));
+    // Auto-clear messages
+    useEffect(() => {
+        if (message) {
+            const timer = setTimeout(() => setMessage(''), 5000);
+            return () => clearTimeout(timer);
         }
-    };
+    }, [message]);
 
-    const removeSocialLink = (index) => {
-        setFormData((prev) => ({
-            ...prev,
-            socialLinks: prev.socialLinks.filter((_, i) => i !== index),
+    // --- MEMOIZED CALLBACKS ---
+    const handleEditToggle = useCallback(() => setIsEditing(prev => !prev), []);
+    const handleCancelEdit = useCallback(() => setIsEditing(false), []);
+    const handlePasswordResetOpen = useCallback(() => setShowPasswordReset(true), []);
+    const handlePasswordResetClose = useCallback(() => setShowPasswordReset(false), []);
+    const handleMessageClose = useCallback(() => setMessage(''), []);
+    const handleUploadProgressCancel = useCallback(() => setUploadProgress(null), []);
+    
+    const handleImageEditorCancel = useCallback(() => {
+        setShowImageEditor(false);
+        if (selectedImage) {
+            URL.revokeObjectURL(selectedImage);
+            setSelectedImage(null);
+        }
+        setOriginalFile(null);
+    }, [selectedImage]);
+
+    const handleInputChange = useCallback((e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({ 
+            ...prev, 
+            [name]: type === 'checkbox' ? checked : value 
         }));
-    };
+    }, []);
 
-    const addSkill = () => {
-        if (
-            newSkill.trim() &&
-            formData.skills.length < 10 &&
-            !formData.skills.includes(newSkill.trim())
-        ) {
-            setFormData((prev) => ({
-                ...prev,
-                skills: [...prev.skills, newSkill.trim()],
+    const handleSocialLinkChange = useCallback((index, field, value) => {
+        setFormData(prev => {
+            const updatedLinks = [...prev.socialLinks];
+            updatedLinks[index] = { ...updatedLinks[index], [field]: value };
+            return { ...prev, socialLinks: updatedLinks };
+        });
+    }, []);
+
+    const addSocialLink = useCallback(() => {
+        setFormData(prev => {
+            if (prev.socialLinks.length >= 5) return prev; // Prevent adding too many links
+            return { ...prev, socialLinks: [...prev.socialLinks, { platform: '', url: '' }] };
+        });
+    }, []);
+
+    const removeSocialLink = useCallback((index) => {
+        setFormData(prev => ({ 
+            ...prev, 
+            socialLinks: prev.socialLinks.filter((_, i) => i !== index) 
+        }));
+    }, []);
+
+    // Fix 4: Add safety checks for formData
+    const addSkill = useCallback(() => {
+        if (newSkill.trim() && formData?.skills && formData.skills.length < 10 && !formData.skills.includes(newSkill.trim())) {
+            setFormData(prev => ({ 
+                ...prev, 
+                skills: [...(prev.skills || []), newSkill.trim()] 
             }));
             setNewSkill('');
         }
-    };
+    }, [newSkill, formData?.skills]);
 
-    const removeSkill = (index) => {
-        setFormData((prev) => ({
-            ...prev,
-            skills: prev.skills.filter((_, i) => i !== index),
+    const removeSkill = useCallback((index) => {
+        setFormData(prev => ({ 
+            ...prev, 
+            skills: (prev.skills || []).filter((_, i) => i !== index) 
         }));
-    };
+    }, []);
 
-    const handleSubmit = async (e) => {
+    // Fix 5: Better error handling in async functions
+    const handleSubmit = useCallback(async (e) => {
         e.preventDefault();
-
+        if (!member?._id || !formData) {
+            setMessage('Unable to update profile. Please refresh and try again.');
+            return;
+        }
+        
         try {
             await updateProfile(member._id, formData);
             setMessage('Profile updated successfully!');
             setIsEditing(false);
             await getCurrentMember();
         } catch (error) {
-            setMessage('Failed to update profile. Please try again.');
             console.error('Profile update error:', error);
+            setMessage('Failed to update profile. Please try again.');
         }
-    };
+    }, [member?._id, formData, updateProfile, getCurrentMember]);
 
-    const handleImageSelect = async (e) => {
+    const handleImageSelect = useCallback((e) => {
         const file = e.target.files[0];
         if (!file) return;
-
+        
+        // Clear the input
         e.target.value = '';
-
+        
         const validation = validateFile(file, 'image');
         if (!validation.isValid) {
             setMessage(validation.errors[0]);
             return;
         }
-
+        
         try {
             setOriginalFile(file);
-            const imageUrl = URL.createObjectURL(file);
-            setSelectedImage(imageUrl);
+            setSelectedImage(URL.createObjectURL(file));
             setShowImageEditor(true);
         } catch (error) {
-            setMessage('Failed to process image. Please try again.');
             console.error('Image processing error:', error);
+            setMessage('Failed to process image. Please try again.');
         }
-    };
+    }, []);
 
-    const handleImageSave = async (croppedBlob) => {
+    const handleImageSave = useCallback(async (croppedBlob) => {
+        if (!member?._id) {
+            setMessage('Unable to upload image. Please refresh and try again.');
+            return;
+        }
+
         try {
             setShowImageEditor(false);
-            
             if (selectedImage) {
                 URL.revokeObjectURL(selectedImage);
                 setSelectedImage(null);
             }
 
-            setUploadProgress({
-                fileName: originalFile?.name || 'profile-picture.jpg',
-                progress: 0,
-                type: 'image'
+            setUploadProgress({ 
+                fileName: originalFile?.name || 'profile.jpg', 
+                progress: 0, 
+                type: 'image' 
             });
 
-            const progressInterval = simulateProgress((progress) => {
-                setUploadProgress((prev) => prev ? { ...prev, progress } : null);
-            });
+            const progressInterval = simulateProgress(p => 
+                setUploadProgress(prev => prev ? { ...prev, progress: p } : null)
+            );
 
             const formDataToUpload = new FormData();
-            formDataToUpload.append('profilePicture', croppedBlob, originalFile?.name || 'profile-picture.jpg');
-
+            formDataToUpload.append('profilePicture', croppedBlob, originalFile?.name || 'profile.jpg');
+            
             await uploadProfilePicture(member._id, formDataToUpload);
-
             clearInterval(progressInterval);
-            setUploadProgress((prev) => prev ? { ...prev, progress: 100 } : null);
+            setUploadProgress(prev => prev ? { ...prev, progress: 100 } : null);
             
             setTimeout(() => {
                 setUploadProgress(null);
@@ -250,72 +243,78 @@ const MemberProfile = () => {
             
             setMessage('Profile picture updated successfully!');
             await getCurrentMember();
-
         } catch (error) {
-            setUploadProgress(null);
-            setMessage('Failed to upload profile picture. Please try again.');
             console.error('Upload error:', error);
+            setMessage('Failed to upload profile picture. Please try again.');
+            setUploadProgress(null);
         }
-    };
+    }, [member?._id, originalFile, selectedImage, uploadProfilePicture, getCurrentMember]);
 
-    const handleResumeUpload = async (e) => {
+    const handleResumeUpload = useCallback(async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
+        
+        // Clear the input
         e.target.value = '';
-
+        
+        if (!member?._id) {
+            setMessage('Unable to upload resume. Please refresh and try again.');
+            return;
+        }
+        
         const validation = validateFile(file, 'document');
         if (!validation.isValid) {
             setMessage(validation.errors[0]);
             return;
         }
-
+        
         try {
-            setUploadProgress({
-                fileName: file.name,
-                progress: 0,
-                type: 'document'
+            setUploadProgress({ 
+                fileName: file.name, 
+                progress: 0, 
+                type: 'document' 
             });
 
-            const progressInterval = simulateProgress((progress) => {
-                setUploadProgress((prev) => prev ? { ...prev, progress } : null);
-            });
+            const progressInterval = simulateProgress(p => 
+                setUploadProgress(prev => prev ? { ...prev, progress: p } : null)
+            );
 
             const formDataToUpload = new FormData();
             formDataToUpload.append('resume', file);
-
-            await uploadResume(member._id, formDataToUpload);
-
-            clearInterval(progressInterval);
-            setUploadProgress((prev) => prev ? { ...prev, progress: 100 } : null);
             
-            setTimeout(() => {
-                setUploadProgress(null);
-            }, 1000);
+            await uploadResume(member._id, formDataToUpload);
+            clearInterval(progressInterval);
+            setUploadProgress(prev => prev ? { ...prev, progress: 100 } : null);
+            
+            setTimeout(() => setUploadProgress(null), 1000);
             
             setMessage('Resume uploaded successfully!');
             await getCurrentMember();
-
         } catch (error) {
-            setUploadProgress(null);
-            setMessage('Failed to upload resume. Please try again.');
             console.error('Upload error:', error);
+            setMessage('Failed to upload resume. Please try again.');
+            setUploadProgress(null);
         }
-    };
+    }, [member?._id, uploadResume, getCurrentMember]);
 
-    const handlePasswordReset = async (e) => {
+    const handlePasswordReset = useCallback(async (e) => {
         e.preventDefault();
-
+        
+        if (!member?.LpuId) {
+            setMessage('Unable to reset password. Please refresh and try again.');
+            return;
+        }
+        
         if (newPassword !== confirmPassword) {
             setMessage('Passwords do not match');
             return;
         }
-
+        
         if (newPassword.length < 8) {
             setMessage('Password must be at least 8 characters long');
             return;
         }
-
+        
         try {
             await resetPassword(member.LpuId, newPassword);
             setMessage('Password reset successfully!');
@@ -323,22 +322,16 @@ const MemberProfile = () => {
             setNewPassword('');
             setConfirmPassword('');
         } catch (error) {
-            setMessage('Failed to reset password');
             console.error('Password reset error:', error);
+            setMessage('Failed to reset password. Please try again.');
         }
-    };
+    }, [member?.LpuId, newPassword, confirmPassword, resetPassword]);
 
-    const handleImageEditorCancel = () => {
-        setShowImageEditor(false);
-        if (selectedImage) {
-            URL.revokeObjectURL(selectedImage);
-            setSelectedImage(null);
-        }
-        setOriginalFile(null);
-    };
+    // --- RENDER LOGIC ---
+    const memoizedMember = useMemo(() => member, [member?._id]);
 
-    // Loading state
-    if (memberLoading) {
+    // Now your early returns come after all hooks are defined
+    if (memberLoading && !member) {
         return (
             <div className="min-h-screen pt-16 bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
                 <motion.div
@@ -357,8 +350,7 @@ const MemberProfile = () => {
         );
     }
 
-    // Error state
-    if (!member && !memberLoading) {
+    if (!member && hasInitiallyFetched && !memberLoading) {
         return (
             <div className="min-h-screen pt-16 bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
                 <motion.div
@@ -371,17 +363,18 @@ const MemberProfile = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
                         </svg>
                     </div>
-                    <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-3">
-                        Profile Not Found
-                    </h2>
+                    <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-3">Profile Not Found</h2>
                     <p className="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
                         {memberError || 'We encountered an issue loading your profile. Please try refreshing the page.'}
                     </p>
                     <button
-                        onClick={() => window.location.reload()}
+                        onClick={() => {
+                            setHasInitiallyFetched(false);
+                            setMessage('');
+                        }}
                         className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-semibold shadow-lg"
                     >
-                        Reload Page
+                        Try Again
                     </button>
                 </motion.div>
             </div>
@@ -391,7 +384,7 @@ const MemberProfile = () => {
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <MessageNotification message={message} onClose={() => setMessage('')} />
+                <MessageNotification message={message} onClose={handleMessageClose} />
 
                 <AnimatePresence>
                     {uploadProgress && (
@@ -399,7 +392,7 @@ const MemberProfile = () => {
                             progress={uploadProgress.progress}
                             fileName={uploadProgress.fileName}
                             type={uploadProgress.type}
-                            onCancel={() => setUploadProgress(null)}
+                            onCancel={handleUploadProgressCancel}
                         />
                     )}
                 </AnimatePresence>
@@ -407,21 +400,20 @@ const MemberProfile = () => {
                 {member && (
                     <div className="space-y-8">
                         <ProfileHeader
-                            member={member}
-                            onEditToggle={() => setIsEditing(!isEditing)}
-                            onPasswordReset={() => setShowPasswordReset(true)}
+                            member={memoizedMember}
+                            isEditing={isEditing}
+                            onEditToggle={handleEditToggle}
+                            onPasswordReset={handlePasswordResetOpen}
                             onImageSelect={handleImageSelect}
                             onResumeUpload={handleResumeUpload}
                             uploadLoading={uploadLoading}
                             uploadResumeLoading={uploadResumeLoading}
-                            fileInputRef={fileInputRef}
-                            resumeInputRef={resumeInputRef}
-                            isEditing={isEditing}
                         />
 
-                        <AnimatePresence>
-                            {isEditing && (
+                        <AnimatePresence mode="wait">
+                            {isEditing ? (
                                 <ProfileForm
+                                    key="profile-form"
                                     formData={formData}
                                     onInputChange={handleInputChange}
                                     onSocialLinkChange={handleSocialLinkChange}
@@ -432,38 +424,35 @@ const MemberProfile = () => {
                                     newSkill={newSkill}
                                     setNewSkill={setNewSkill}
                                     onSubmit={handleSubmit}
-                                    onCancel={() => setIsEditing(false)}
+                                    onCancel={handleCancelEdit}
                                     isLoading={updateLoading}
+                                />
+                            ) : (
+                                <ProfileDisplay
+                                    key="profile-display"
+                                    member={memoizedMember}
+                                    onEditToggle={handleEditToggle}
                                 />
                             )}
                         </AnimatePresence>
-
-                        {!isEditing && (
-                            <ProfileDisplay
-                                member={member}
-                                onEditToggle={() => setIsEditing(true)}
-                                onResumeUpload={handleResumeUpload}
-                                uploadResumeLoading={uploadResumeLoading}
-                                resumeInputRef={resumeInputRef}
-                            />
-                        )}
-
-                        <PasswordResetModal
-                            isOpen={showPasswordReset}
-                            onClose={() => setShowPasswordReset(false)}
-                            newPassword={newPassword}
-                            setNewPassword={setNewPassword}
-                            confirmPassword={confirmPassword}
-                            setConfirmPassword={setConfirmPassword}
-                            showPassword={showPassword}
-                            setShowPassword={setShowPassword}
-                            showConfirmPassword={showConfirmPassword}
-                            setShowConfirmPassword={setShowConfirmPassword}
-                            onSubmit={handlePasswordReset}
-                            isLoading={resetLoading}
-                        />
                     </div>
                 )}
+
+                {/* Password modal with separate state management */}
+                <PasswordResetModal
+                    isOpen={showPasswordReset}
+                    onClose={handlePasswordResetClose}
+                    newPassword={newPassword}
+                    setNewPassword={setNewPassword}
+                    confirmPassword={confirmPassword}
+                    setConfirmPassword={setConfirmPassword}
+                    showPassword={showPassword}
+                    setShowPassword={setShowPassword}
+                    showConfirmPassword={showConfirmPassword}
+                    setShowConfirmPassword={setShowConfirmPassword}
+                    onSubmit={handlePasswordReset}
+                    isLoading={resetLoading}
+                />
 
                 <AnimatePresence>
                     {showImageEditor && selectedImage && (

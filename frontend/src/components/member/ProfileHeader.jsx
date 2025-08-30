@@ -30,8 +30,9 @@ const ProfileHeader = ({
     const resumeInputRef = useRef(null);
     const DepartmentIcon = getDepartmentIcon(member.department);
 
-    // Default cover image - this will be replaced with actual cover image later
-    const defaultCoverImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 400'%3E%3Cdefs%3E%3ClinearGradient id='grad1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%236366f1;stop-opacity:1' /%3E%3Cstop offset='50%25' style='stop-color:%238b5cf6;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%2306b6d4;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1200' height='400' fill='url(%23grad1)' /%3E%3Cpath d='M0,100 Q300,50 600,100 T1200,100 L1200,400 L0,400 Z' fill='%23ffffff' fill-opacity='0.1'/%3E%3C/svg%3E";
+    // Modern SVG cover image with abstract shapes, gradients, and subtle geometric accents
+    const defaultCoverImage =
+        "https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80";
 
     return (
         <motion.div
@@ -146,7 +147,7 @@ const ProfileHeader = ({
                                     }`}
                                 >
                                     {isEditing ? <Settings className="w-3 h-3" /> : <Edit3 className="w-3 h-3" />}
-                                    <span className="hidden xs:inline">{isEditing ? 'Cancel' : 'Edit'}</span>
+                                    <span className="xs:inline">{isEditing ? 'Cancel' : 'Edit'}</span>
                                 </button>
 
                                 <button
@@ -154,7 +155,7 @@ const ProfileHeader = ({
                                     className="flex items-center justify-center gap-1 px-2 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all duration-200 text-xs font-semibold shadow-md"
                                 >
                                     <Lock className="w-3 h-3" />
-                                    <span className="hidden xs:inline">Reset</span>
+                                    <span className="xs:inline">Reset</span>
                                 </button>
 
                                 <div className="relative">
@@ -168,7 +169,7 @@ const ProfileHeader = ({
                                         ) : (
                                             <Upload className="w-3 h-3" />
                                         )}
-                                        <span className="hidden xs:inline">Resume</span>
+                                        <span className="xs:inline">Resume</span>
                                     </button>
 
                                     {member.resume?.url && !uploadResumeLoading && (

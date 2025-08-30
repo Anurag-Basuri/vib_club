@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { memo } from 'react';
 import { motion } from 'framer-motion';
 import {
     Mail,
@@ -14,9 +14,8 @@ import {
     MapPin,
 } from 'lucide-react';
 
-const ProfileDisplay = ({ member, onEditToggle, onResumeUpload, uploadResumeLoading }) => {
-    const resumeInputRef = useRef(null);
-
+// Memoize the component to prevent unnecessary re-renders
+const ProfileDisplay = memo(({ member, onEditToggle }) => {
     const InfoCard = ({ icon: Icon, title, children, className = "" }) => (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -181,26 +180,6 @@ const ProfileDisplay = ({ member, onEditToggle, onResumeUpload, uploadResumeLoad
                                 <ExternalLink className="w-5 h-5 text-gray-400 group-hover:text-red-500 transition-colors" />
                             </div>
                         </motion.a>
-
-                        <button
-                            onClick={() => resumeInputRef.current?.click()}
-                            disabled={uploadResumeLoading}
-                            className="w-full flex items-center justify-center gap-3 p-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {uploadResumeLoading ? (
-                                <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-                            ) : (
-                                <Download className="w-5 h-5" />
-                            )}
-                            Update Resume
-                        </button>
-                        <input
-                            ref={resumeInputRef}
-                            type="file"
-                            accept=".pdf,.doc,.docx"
-                            onChange={onResumeUpload}
-                            className="hidden"
-                        />
                     </div>
                 </InfoCard>
             )}
@@ -234,6 +213,6 @@ const ProfileDisplay = ({ member, onEditToggle, onResumeUpload, uploadResumeLoad
             )}
         </div>
     );
-};
+});
 
 export default ProfileDisplay;
