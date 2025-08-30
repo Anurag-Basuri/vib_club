@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { 
-    Crop, 
-    RotateCcw, 
+    Save, 
+    X, 
+    RotateCw, 
     ZoomIn, 
     ZoomOut, 
-    Move, 
-    RotateCw, 
+    Move,
+    RefreshCw,
     Maximize2,
-    Save,
-    X
+    Crop
 } from 'lucide-react';
 
 const ImageEditor = ({ image, onSave, onCancel }) => {
@@ -17,408 +17,358 @@ const ImageEditor = ({ image, onSave, onCancel }) => {
     const imageRef = useRef(null);
     const containerRef = useRef(null);
     
-    const [scale, setScale] = useState(1);
-    const [rotation, setRotation] = useState(0);
-    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const [transform, setTransform] = useState({
+        scale: 1,
+        rotation: 0,
+        x: 0,
+        y: 0
+    });
     const [isDragging, setIsDragging] = useState(false);
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
     const [imageLoaded, setImageLoaded] = useState(false);
-    const [canvasSize, setCanvasSize] = useState({ width: 400, height: 400 });
+    const [canvasSize, setCanvasSize] = useState(400);
 
-    // Calculate responsive canvas size
+    // Responsive canvas sizing
     useEffect(() => {
-        const updateCanvasSize = () => {
+        const updateSize = () => {
             if (containerRef.current) {
-                const containerWidth = containerRef.current.offsetWidth;
-                const size = Math.min(400, containerWidth - 40);
-                setCanvasSize({ width: size, height: size });
+                const container = containerRef.current;
+                const maxSize = Math.min(
+                    container.offsetWidth - 40,
+                    window.innerHeight * 0.5,
+                    500
+                );
+                setCanvasSize(Math.max(300, maxSize));
             }
         };
-
-        updateCanvasSize();
-        window.addEventListener('resize', updateCanvasSize);
-        return () => window.removeEventListener('resize', updateCanvasSize);
+        
+        updateSize();
+        window.addEventListener('resize', updateSize);
+        return () => window.removeEventListener('resize', updateSize);
     }, []);
 
-    // Load and draw image
-    const drawImage = useCallback(() => {
+    // Load image
+    useEffect(() => {
+        if (!image) return;
+        
+        const img = new Image();
+        img.onload = () => {
+            imageRef.current = img;
+            setImageLoaded(true);
+            
+            // Auto-fit image
+            const maxDim = Math.max(img.width, img.height);
+            const autoScale = (canvasSize * 0.7) / maxDim;
+            setTransform(prev => ({ ...prev, scale: autoScale }));
+        };
+        img.src = image;
+    }, [image, canvasSize]);
+
+    // Draw on canvas
+    const draw = useCallback(() => {
         const canvas = canvasRef.current;
-        if (!canvas || !imageRef.current || !imageLoaded) return;
+        const img = imageRef.current;
+        if (!canvas || !img || !imageLoaded) return;
 
         const ctx = canvas.getContext('2d');
-        const img = imageRef.current;
+        const { scale, rotation, x, y } = transform;
+        const center = canvasSize / 2;
+        const cropRadius = canvasSize * 0.35;
+
+        // Clear and setup
+        ctx.clearRect(0, 0, canvasSize, canvasSize);
         
-        // Clear canvas
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Fill background
+        // Background
         ctx.fillStyle = '#f8fafc';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Save context
+        ctx.fillRect(0, 0, canvasSize, canvasSize);
+
+        // Draw image with transforms
         ctx.save();
-        
-        // Apply transformations
-        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.translate(center + x, center + y);
         ctx.rotate((rotation * Math.PI) / 180);
         ctx.scale(scale, scale);
-        ctx.translate(position.x, position.y);
-        
-        // Draw image centered
         ctx.drawImage(img, -img.width / 2, -img.height / 2);
-        
-        // Restore context
         ctx.restore();
-        
-        // Draw crop circle overlay
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-        const radius = Math.min(canvas.width, canvas.height) / 4;
-        
-        // Create mask
+
+        // Crop overlay
         ctx.save();
-        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+        ctx.fillRect(0, 0, canvasSize, canvasSize);
         
-        // Dark overlay
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Clear circle
         ctx.globalCompositeOperation = 'destination-out';
         ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+        ctx.arc(center, center, cropRadius, 0, 2 * Math.PI);
         ctx.fill();
-        
         ctx.restore();
-        
-        // Draw crop circle border
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+
+        // Crop border
         ctx.strokeStyle = '#3b82f6';
         ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(center, center, cropRadius, 0, 2 * Math.PI);
+        ctx.stroke();
+
+        // Grid lines for better alignment
+        ctx.strokeStyle = 'rgba(59, 130, 246, 0.3)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([5, 5]);
+        
+        // Vertical and horizontal center lines
+        ctx.beginPath();
+        ctx.moveTo(center, center - cropRadius);
+        ctx.lineTo(center, center + cropRadius);
+        ctx.moveTo(center - cropRadius, center);
+        ctx.lineTo(center + cropRadius, center);
         ctx.stroke();
         
-        // Draw corner indicators
-        const corners = [
-            [centerX - radius + 10, centerY - radius + 10],
-            [centerX + radius - 10, centerY - radius + 10],
-            [centerX - radius + 10, centerY + radius - 10],
-            [centerX + radius - 10, centerY + radius - 10]
-        ];
-        
-        corners.forEach(([x, y]) => {
-            ctx.strokeStyle = '#3b82f6';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(x - 5, y);
-            ctx.lineTo(x + 5, y);
-            ctx.moveTo(x, y - 5);
-            ctx.lineTo(x, y + 5);
-            ctx.stroke();
-        });
-        
-    }, [scale, rotation, position, imageLoaded]);
+        ctx.setLineDash([]);
+    }, [transform, imageLoaded, canvasSize]);
 
-    // Initialize image
     useEffect(() => {
-        if (image) {
-            const img = new Image();
-            img.onload = () => {
-                imageRef.current = img;
-                setImageLoaded(true);
-                
-                // Auto-fit image
-                const canvas = canvasRef.current;
-                if (canvas) {
-                    const scaleX = canvas.width / img.width;
-                    const scaleY = canvas.height / img.height;
-                    const autoScale = Math.min(scaleX, scaleY) * 0.8;
-                    setScale(autoScale);
-                }
-            };
-            img.src = image;
-        }
-    }, [image]);
+        draw();
+    }, [draw]);
 
-    // Redraw when dependencies change
-    useEffect(() => {
-        drawImage();
-    }, [drawImage]);
-
-    // Mouse event handlers
-    const handleMouseDown = (e) => {
-        if (!canvasRef.current) return;
-        
+    // Mouse/Touch handlers
+    const getEventPos = (e) => {
         const rect = canvasRef.current.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        
+        const clientX = e.clientX || e.touches?.[0]?.clientX;
+        const clientY = e.clientY || e.touches?.[0]?.clientY;
+        return {
+            x: clientX - rect.left,
+            y: clientY - rect.top
+        };
+    };
+
+    const handleStart = (e) => {
+        e.preventDefault();
+        const pos = getEventPos(e);
         setIsDragging(true);
         setDragStart({
-            x: x - position.x,
-            y: y - position.y,
+            x: pos.x - transform.x,
+            y: pos.y - transform.y
         });
     };
 
-    const handleMouseMove = (e) => {
-        if (!isDragging || !canvasRef.current) return;
+    const handleMove = (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
         
-        const rect = canvasRef.current.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        
-        setPosition({
-            x: x - dragStart.x,
-            y: y - dragStart.y,
-        });
+        const pos = getEventPos(e);
+        setTransform(prev => ({
+            ...prev,
+            x: pos.x - dragStart.x,
+            y: pos.y - dragStart.y
+        }));
     };
 
-    const handleMouseUp = () => {
+    const handleEnd = (e) => {
+        e.preventDefault();
         setIsDragging(false);
     };
 
-    // Touch event handlers for mobile
-    const handleTouchStart = (e) => {
-        e.preventDefault();
-        const touch = e.touches[0];
-        handleMouseDown(touch);
+    // Control functions
+    const updateTransform = (updates) => {
+        setTransform(prev => ({ ...prev, ...updates }));
     };
 
-    const handleTouchMove = (e) => {
-        e.preventDefault();
-        const touch = e.touches[0];
-        handleMouseMove(touch);
+    const resetImage = () => {
+        setTransform({ scale: 1, rotation: 0, x: 0, y: 0 });
     };
 
-    const handleTouchEnd = (e) => {
-        e.preventDefault();
-        handleMouseUp();
+    const fitImage = () => {
+        if (!imageRef.current) return;
+        const img = imageRef.current;
+        const maxDim = Math.max(img.width, img.height);
+        const autoScale = (canvasSize * 0.7) / maxDim;
+        setTransform({ scale: autoScale, rotation: 0, x: 0, y: 0 });
     };
 
     // Save cropped image
     const handleSave = () => {
         if (!canvasRef.current || !imageRef.current) return;
 
-        const canvas = canvasRef.current;
-        const img = imageRef.current;
-        
-        // Create output canvas
+        const outputSize = 400;
         const outputCanvas = document.createElement('canvas');
         const outputCtx = outputCanvas.getContext('2d');
-        const outputSize = 300; // High quality output
         
         outputCanvas.width = outputSize;
         outputCanvas.height = outputSize;
-        
-        // Create circular mask
+
+        const { scale, rotation, x, y } = transform;
+        const center = outputSize / 2;
+        const cropRadius = outputSize / 2;
+        const scaleFactor = outputSize / canvasSize;
+
+        // Create circular clip
         outputCtx.beginPath();
-        outputCtx.arc(outputSize / 2, outputSize / 2, outputSize / 2, 0, 2 * Math.PI);
+        outputCtx.arc(center, center, cropRadius, 0, 2 * Math.PI);
         outputCtx.clip();
-        
-        // Calculate crop area
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-        const radius = Math.min(canvas.width, canvas.height) / 4;
-        
-        // Calculate source coordinates
-        const sourceSize = radius * 2;
-        const sourceX = centerX - radius;
-        const sourceY = centerY - radius;
-        
-        // Apply transformations and draw
+
+        // Draw transformed image
         outputCtx.save();
-        outputCtx.translate(outputSize / 2, outputSize / 2);
+        outputCtx.translate(center + (x * scaleFactor), center + (y * scaleFactor));
         outputCtx.rotate((rotation * Math.PI) / 180);
         outputCtx.scale(scale, scale);
-        outputCtx.translate(position.x * (outputSize / sourceSize), position.y * (outputSize / sourceSize));
-        
-        const scaleFactor = outputSize / sourceSize;
         outputCtx.drawImage(
-            img,
-            -img.width * scaleFactor / 2,
-            -img.height * scaleFactor / 2,
-            img.width * scaleFactor,
-            img.height * scaleFactor
+            imageRef.current, 
+            -imageRef.current.width / 2, 
+            -imageRef.current.height / 2
         );
-        
         outputCtx.restore();
-        
-        // Convert to blob
-        outputCanvas.toBlob(
-            (blob) => {
-                if (blob) {
-                    onSave(blob);
-                }
-            },
-            'image/jpeg',
-            0.9
-        );
+
+        outputCanvas.toBlob(onSave, 'image/jpeg', 0.92);
     };
 
-    const resetTransform = () => {
-        setScale(1);
-        setRotation(0);
-        setPosition({ x: 0, y: 0 });
-    };
+    const controls = [
+        {
+            label: 'Zoom',
+            value: Math.round(transform.scale * 100),
+            unit: '%',
+            min: 10,
+            max: 300,
+            step: 5,
+            onChange: (value) => updateTransform({ scale: value / 100 }),
+            buttons: [
+                { icon: ZoomOut, action: () => updateTransform({ scale: Math.max(0.1, transform.scale - 0.1) }) },
+                { icon: ZoomIn, action: () => updateTransform({ scale: Math.min(3, transform.scale + 0.1) }) }
+            ]
+        },
+        {
+            label: 'Rotate',
+            value: transform.rotation,
+            unit: '°',
+            min: 0,
+            max: 360,
+            step: 1,
+            onChange: (value) => updateTransform({ rotation: value }),
+            buttons: [
+                { icon: RotateCw, action: () => updateTransform({ rotation: (transform.rotation + 90) % 360 }) }
+            ]
+        }
+    ];
 
     return (
         <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             onClick={(e) => e.target === e.currentTarget && onCancel()}
         >
             <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-5xl max-h-[95vh] overflow-hidden"
             >
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-600">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                            <Crop className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-600">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-blue-100 dark:bg-blue-900/50 rounded-xl">
+                            <Crop className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                         </div>
                         <div>
-                            <h3 className="text-xl font-bold text-slate-800 dark:text-white">
-                                Edit Profile Picture
-                            </h3>
-                            <p className="text-slate-500 dark:text-slate-400 text-sm">
-                                Adjust your image and crop to a circle
+                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                                Crop Profile Picture
+                            </h2>
+                            <p className="text-gray-500 dark:text-gray-400">
+                                Adjust and crop your image to a perfect circle
                             </p>
                         </div>
                     </div>
                     <button
                         onClick={onCancel}
-                        className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                        className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all"
                     >
-                        <X className="w-5 h-5" />
+                        <X className="w-6 h-6" />
                     </button>
                 </div>
 
                 <div className="p-6">
-                    <div className="flex flex-col lg:flex-row gap-6">
-                        {/* Canvas Container */}
-                        <div className="flex-1" ref={containerRef}>
-                            <div className="relative bg-slate-100 dark:bg-slate-700 rounded-xl p-4">
+                    <div className="flex flex-col xl:flex-row gap-8">
+                        {/* Canvas */}
+                        <div className="flex-1 flex flex-col items-center" ref={containerRef}>
+                            <div className="relative bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-6 mb-4">
                                 <canvas
                                     ref={canvasRef}
-                                    width={canvasSize.width}
-                                    height={canvasSize.height}
-                                    className="border border-slate-300 dark:border-slate-600 rounded-lg cursor-move mx-auto block"
-                                    style={{ 
-                                        maxWidth: '100%',
-                                        height: 'auto',
-                                        touchAction: 'none'
-                                    }}
-                                    onMouseDown={handleMouseDown}
-                                    onMouseMove={handleMouseMove}
-                                    onMouseUp={handleMouseUp}
-                                    onMouseLeave={handleMouseUp}
-                                    onTouchStart={handleTouchStart}
-                                    onTouchMove={handleTouchMove}
-                                    onTouchEnd={handleTouchEnd}
+                                    width={canvasSize}
+                                    height={canvasSize}
+                                    className="rounded-xl border-2 border-gray-200 dark:border-gray-600 cursor-move shadow-lg"
+                                    style={{ touchAction: 'none' }}
+                                    onMouseDown={handleStart}
+                                    onMouseMove={handleMove}
+                                    onMouseUp={handleEnd}
+                                    onMouseLeave={handleEnd}
+                                    onTouchStart={handleStart}
+                                    onTouchMove={handleMove}
+                                    onTouchEnd={handleEnd}
                                 />
                                 
-                                {/* Drag instruction */}
-                                <div className="absolute top-6 left-6 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-lg px-3 py-2 text-xs text-slate-600 dark:text-slate-400 flex items-center gap-2">
-                                    <Move className="w-3 h-3" />
-                                    Drag to reposition
+                                {/* Instruction */}
+                                <div className="absolute top-8 left-8 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-lg px-3 py-2 text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2 shadow-lg">
+                                    <Move className="w-4 h-4" />
+                                    Drag to move image
                                 </div>
                             </div>
                         </div>
 
                         {/* Controls */}
-                        <div className="space-y-6 min-w-[280px]">
-                            {/* Zoom Control */}
-                            <div className="space-y-3">
-                                <label className="block text-slate-700 dark:text-slate-300 font-medium text-sm">
-                                    Zoom ({Math.round(scale * 100)}%)
-                                </label>
-                                <div className="flex items-center gap-3">
-                                    <button
-                                        onClick={() => setScale(Math.max(0.1, scale - 0.1))}
-                                        className="p-2 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
-                                        disabled={scale <= 0.1}
-                                    >
-                                        <ZoomOut className="w-4 h-4" />
-                                    </button>
-                                    <input
-                                        type="range"
-                                        min="0.1"
-                                        max="3"
-                                        step="0.1"
-                                        value={scale}
-                                        onChange={(e) => setScale(parseFloat(e.target.value))}
-                                        className="flex-1 h-2 bg-slate-200 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer slider"
-                                    />
-                                    <button
-                                        onClick={() => setScale(Math.min(3, scale + 0.1))}
-                                        className="p-2 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
-                                        disabled={scale >= 3}
-                                    >
-                                        <ZoomIn className="w-4 h-4" />
-                                    </button>
+                        <div className="w-full xl:w-80 space-y-6">
+                            {controls.map((control) => (
+                                <div key={control.label} className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                            {control.label}
+                                        </label>
+                                        <span className="text-sm font-mono text-gray-500 dark:text-gray-400">
+                                            {control.value}{control.unit}
+                                        </span>
+                                    </div>
+                                    
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            type="range"
+                                            min={control.min}
+                                            max={control.max}
+                                            step={control.step}
+                                            value={control.value}
+                                            onChange={(e) => control.onChange(Number(e.target.value))}
+                                            className="flex-1 h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-500 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-lg"
+                                        />
+                                        
+                                        <div className="flex gap-1">
+                                            {control.buttons.map((button, idx) => (
+                                                <button
+                                                    key={idx}
+                                                    onClick={button.action}
+                                                    className="p-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                                                >
+                                                    <button.icon className="w-4 h-4" />
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-
-                            {/* Rotation Control */}
-                            <div className="space-y-3">
-                                <label className="block text-slate-700 dark:text-slate-300 font-medium text-sm">
-                                    Rotation ({rotation}°)
-                                </label>
-                                <div className="flex items-center gap-3">
-                                    <button
-                                        onClick={() => setRotation(rotation - 15)}
-                                        className="p-2 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
-                                    >
-                                        <RotateCcw className="w-4 h-4" />
-                                    </button>
-                                    <input
-                                        type="range"
-                                        min="0"
-                                        max="360"
-                                        value={rotation}
-                                        onChange={(e) => setRotation(parseInt(e.target.value))}
-                                        className="flex-1 h-2 bg-slate-200 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer slider"
-                                    />
-                                    <button
-                                        onClick={() => setRotation(rotation + 15)}
-                                        className="p-2 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
-                                    >
-                                        <RotateCw className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            </div>
+                            ))}
 
                             {/* Quick Actions */}
                             <div className="space-y-3">
-                                <label className="block text-slate-700 dark:text-slate-300 font-medium text-sm">
+                                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                                     Quick Actions
                                 </label>
-                                <div className="grid grid-cols-2 gap-2">
+                                
+                                <div className="grid grid-cols-2 gap-3">
                                     <button
-                                        onClick={resetTransform}
-                                        className="flex items-center justify-center gap-2 py-2 px-3 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors text-sm"
+                                        onClick={resetImage}
+                                        className="flex items-center justify-center gap-2 py-3 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all font-medium"
                                     >
-                                        <RotateCcw className="w-4 h-4" />
+                                        <RefreshCw className="w-4 h-4" />
                                         Reset
                                     </button>
+                                    
                                     <button
-                                        onClick={() => {
-                                            if (imageRef.current && canvasRef.current) {
-                                                const canvas = canvasRef.current;
-                                                const img = imageRef.current;
-                                                const scaleX = canvas.width / img.width;
-                                                const scaleY = canvas.height / img.height;
-                                                const autoScale = Math.min(scaleX, scaleY) * 0.8;
-                                                setScale(autoScale);
-                                                setPosition({ x: 0, y: 0 });
-                                            }
-                                        }}
-                                        className="flex items-center justify-center gap-2 py-2 px-3 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors text-sm"
+                                        onClick={fitImage}
+                                        className="flex items-center justify-center gap-2 py-3 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all font-medium"
                                     >
                                         <Maximize2 className="w-4 h-4" />
                                         Fit
@@ -429,20 +379,21 @@ const ImageEditor = ({ image, onSave, onCancel }) => {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-slate-200 dark:border-slate-600">
+                    <div className="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-200 dark:border-gray-600">
                         <button
                             onClick={onCancel}
-                            className="px-6 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors font-medium"
+                            className="px-8 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all font-semibold"
                         >
                             Cancel
                         </button>
+                        
                         <button
                             onClick={handleSave}
                             disabled={!imageLoaded}
-                            className="px-6 py-2.5 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white rounded-lg transition-colors font-medium flex items-center gap-2 disabled:cursor-not-allowed"
+                            className="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-xl transition-all font-semibold flex items-center gap-2 shadow-lg hover:shadow-xl disabled:cursor-not-allowed"
                         >
-                            <Save className="w-4 h-4" />
-                            Save Changes
+                            <Save className="w-5 h-5" />
+                            Save Picture
                         </button>
                     </div>
                 </div>
