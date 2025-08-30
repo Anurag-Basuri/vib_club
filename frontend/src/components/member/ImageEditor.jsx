@@ -5,11 +5,10 @@ import {
 	ZoomIn,
 	ZoomOut,
 	RefreshCw,
-	SunMedium,
-	Contrast,
 	X,
 	Upload,
 	Save,
+	Edit3,
 } from 'lucide-react';
 
 const CONTROL_BTN =
@@ -36,7 +35,7 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 	const [isDragging, setIsDragging] = useState(false);
 	const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 	const [imageLoaded, setImageLoaded] = useState(false);
-	const [canvasSize, setCanvasSize] = useState(400);
+	const [canvasSize, setCanvasSize] = useState(320);
 	const [brightness, setBrightness] = useState(100);
 	const [contrast, setContrast] = useState(100);
 	const [activeTab, setActiveTab] = useState('transform'); // 'transform', 'adjust'
@@ -46,8 +45,12 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 		const updateSize = () => {
 			if (containerRef.current) {
 				const container = containerRef.current;
-				const maxSize = Math.min(container.offsetWidth - 32, window.innerHeight * 0.5, 480);
-				setCanvasSize(Math.max(240, maxSize));
+				const maxSize = Math.min(
+					container.offsetWidth - 16,
+					window.innerHeight * 0.45,
+					400
+				);
+				setCanvasSize(Math.max(180, maxSize));
 			}
 		};
 		updateSize();
@@ -66,7 +69,13 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 			// Auto-fit image
 			const maxDim = Math.max(img.width, img.height);
 			const autoScale = (canvasSize * 0.7) / maxDim;
-			setTransform((prev) => ({ ...prev, scale: autoScale, x: 0, y: 0, rotation: 0 }));
+			setTransform((prev) => ({
+				...prev,
+				scale: autoScale,
+				x: 0,
+				y: 0,
+				rotation: 0,
+			}));
 			setBrightness(100);
 			setContrast(100);
 		};
@@ -119,7 +128,7 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 		ctx.stroke();
 
 		// Grid lines for better alignment
-		ctx.strokeStyle = 'rgba(59, 130, 246, 0.25)';
+		ctx.strokeStyle = 'rgba(59, 130, 246, 0.18)';
 		ctx.lineWidth = 1;
 		ctx.setLineDash([5, 5]);
 		ctx.beginPath();
@@ -179,7 +188,13 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 	};
 
 	const resetImage = () => {
-		setTransform((prev) => ({ ...prev, scale: 1, rotation: 0, x: 0, y: 0 }));
+		setTransform((prev) => ({
+			...prev,
+			scale: 1,
+			rotation: 0,
+			x: 0,
+			y: 0,
+		}));
 		setBrightness(100);
 		setContrast(100);
 	};
@@ -401,12 +416,17 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 				<div
 					ref={containerRef}
 					className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-3xl mx-auto p-0 sm:p-6 flex flex-col"
-					style={{ maxHeight: '95vh' }}
+					style={{
+						maxHeight: '98vh',
+						width: '100%',
+						margin: '0 auto',
+						boxSizing: 'border-box',
+					}}
 				>
 					{/* Header */}
-					<div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+					<div className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 border-b border-gray-200 dark:border-gray-700">
 						<div className="flex items-center gap-2">
-							<span className="font-semibold text-lg text-gray-800 dark:text-white">
+							<span className="font-semibold text-base sm:text-lg text-gray-800 dark:text-white">
 								{isEditing ? 'Edit Profile Picture' : 'Profile Picture'}
 							</span>
 						</div>
@@ -420,15 +440,20 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 						</button>
 					</div>
 					{/* Main */}
-					<div className="flex-1 flex flex-col xl:flex-row gap-6 xl:gap-8 p-4 sm:p-6 overflow-y-auto">
+					<div className="flex-1 flex flex-col xl:flex-row gap-4 xl:gap-8 p-2 sm:p-4 overflow-y-auto">
 						{/* Canvas */}
-						<div className="flex-1 flex flex-col items-center justify-center min-w-[240px]">
+						<div className="flex-1 flex flex-col items-center justify-center min-w-[180px]">
 							<canvas
 								ref={canvasRef}
 								width={canvasSize}
 								height={canvasSize}
 								className="rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 touch-none cursor-move"
-								style={{ background: '#222', maxWidth: '100%', height: 'auto' }}
+								style={{
+									background: '#222',
+									maxWidth: '100%',
+									height: 'auto',
+									touchAction: 'none',
+								}}
 								onMouseDown={handleStart}
 								onMouseMove={handleMove}
 								onMouseUp={handleEnd}
@@ -483,31 +508,33 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 						)}
 					</div>
 					{/* Action Buttons */}
-					<div className="flex flex-col sm:flex-row justify-end gap-3 mt-4 px-4 pb-4 border-t border-gray-200 dark:border-gray-700">
+					<div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 mt-2 sm:mt-4 px-2 sm:px-4 pb-3 sm:pb-4 border-t border-gray-200 dark:border-gray-700">
 						<div className="flex-1 flex items-center gap-2">
 							{!isEditing && onUploadNew && (
 								<>
 									<button
 										onClick={onUploadNew}
-										className="flex items-center gap-2 px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold transition-all"
+										className="flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold transition-all text-sm sm:text-base"
 										type="button"
 									>
 										<Upload size={18} /> Upload New
 									</button>
-									<button
-										onClick={() => setIsEditingImage && setIsEditingImage(true)}
-										className="flex items-center gap-2 px-5 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-semibold transition-all"
-										type="button"
-									>
-										<Edit3 size={18} /> Edit
-									</button>
+									{setIsEditingImage && (
+										<button
+											onClick={() => setIsEditingImage(true)}
+											className="flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-semibold transition-all text-sm sm:text-base"
+											type="button"
+										>
+											<Edit3 size={18} /> Edit
+										</button>
+									)}
 								</>
 							)}
 						</div>
 						<div className="flex gap-2">
 							<button
 								onClick={onCancel}
-								className="px-5 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all font-semibold"
+								className="px-4 py-2 sm:px-5 sm:py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all font-semibold text-sm sm:text-base"
 								type="button"
 							>
 								{isEditing ? 'Cancel' : 'Close'}
@@ -516,7 +543,7 @@ const ImageEditor = ({ image, onSave, onCancel, isEditing, onUploadNew, setIsEdi
 								<button
 									onClick={handleSave}
 									disabled={!imageLoaded}
-									className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl disabled:cursor-not-allowed transition-all"
+									className="flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl disabled:cursor-not-allowed transition-all text-sm sm:text-base"
 									type="button"
 								>
 									<Save size={18} /> Save Picture

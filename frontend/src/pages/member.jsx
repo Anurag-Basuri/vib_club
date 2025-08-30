@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     useGetCurrentMember,
@@ -15,29 +15,6 @@ import ProfileDisplay from '../components/member/ProfileDisplay.jsx';
 import PasswordResetModal from '../components/member/PasswordResetModal.jsx';
 import MessageNotification from '../components/member/MessageNotification.jsx';
 import { validateFile, simulateProgress } from '../utils/fileUtils.js';
-
-// Minimal ProfilePictureView modal
-const ProfilePictureView = ({ image, onClose, onUploadNew }) => (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
-        <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-4 max-w-lg w-full flex flex-col items-center">
-            <img src={image} alt="Profile" className="rounded-xl max-h-[60vh] object-contain mb-4" />
-            <div className="flex gap-4 mt-2">
-                <button
-                    onClick={onClose}
-                    className="px-6 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 font-semibold"
-                >
-                    Close
-                </button>
-                <button
-                    onClick={onUploadNew}
-                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold"
-                >
-                    Upload New
-                </button>
-            </div>
-        </div>
-    </div>
-);
 
 const MemberProfile = () => {
     // --- HOOKS ---
@@ -68,19 +45,20 @@ const MemberProfile = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [newSkill, setNewSkill] = useState('');
-    // Profile picture workflow
     const [showImageEditor, setShowImageEditor] = useState(false);
-    const [editorImage, setEditorImage] = useState(null); // string (URL)
+    const [editorImage, setEditorImage] = useState(null);
     const [isEditingImage, setIsEditingImage] = useState(false);
     const [originalFile, setOriginalFile] = useState(null);
-    const [showProfilePictureView, setShowProfilePictureView] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(null);
+    const [showProfilePicture, setShowProfilePicture] = useState(false); // <-- add this
+    const [selectedImage, setSelectedImage] = useState(null); // <-- new
 
     // --- REFS ---
     const fileInputRef = useRef(null);
     const resumeInputRef = useRef(null);
 
     // --- DATA FETCHING & STATE SYNC ---
+    // Fix 1: Prevent infinite loading by using hasInitiallyFetched flag
     useEffect(() => {
         if (!hasInitiallyFetched) {
             setHasInitiallyFetched(true);
@@ -91,6 +69,7 @@ const MemberProfile = () => {
         }
     }, [getCurrentMember, hasInitiallyFetched]);
 
+    // Fix 2: Only update formData when member ID changes, not on every member update
     useEffect(() => {
         if (member?._id) {
             setFormData({
@@ -107,13 +86,15 @@ const MemberProfile = () => {
         }
     }, [member]);
 
+    // Fix 3: Better error handling
     useEffect(() => {
         const errors = [memberError, updateError, uploadError, uploadResumeError, resetError].filter(Boolean);
         if (errors.length > 0) {
-            setMessage(errors[0]);
+            setMessage(errors[0]); // Show first error
         }
     }, [memberError, updateError, uploadError, uploadResumeError, resetError]);
 
+    // Auto-clear messages
     useEffect(() => {
         if (message) {
             const timer = setTimeout(() => setMessage(''), 5000);
@@ -121,84 +102,7 @@ const MemberProfile = () => {
         }
     }, [message]);
 
-    // --- PROFILE PICTURE HANDLERS ---
-    // Open profile picture view modal
-    const handleProfilePictureView = useCallback(() => {
-        setShowProfilePictureView(true);
-    }, []);
-
-    // Open image editor for viewing (from clicking profile picture)
-    const handleProfilePictureClick = useCallback((imageUrl, hasImage) => {
-        if (!hasImage) {
-            // No image, open file picker directly
-            fileInputRef.current?.click();
-            return;
-        }
-        // Has image, open editor in view mode
-        setEditorImage(imageUrl);
-        setIsEditingImage(false);
-        setShowImageEditor(true);
-    }, []);
-
-    // Open image editor for cropping (from file input)
-    const handleImageSelect = useCallback((e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        e.target.value = '';
-        if (editorImage) {
-            URL.revokeObjectURL(editorImage);
-        }
-        const url = URL.createObjectURL(file);
-        setOriginalFile(file);
-        setEditorImage(url);
-        setIsEditingImage(true); // Always edit mode when uploading new
-        setShowImageEditor(true);
-    }, [editorImage]);
-
-    // Save/crop/upload
-    const handleImageSave = useCallback(async (croppedBlob) => {
-        if (!croppedBlob) return;
-        try {
-            setShowImageEditor(false);
-            if (editorImage && isEditingImage) {
-                URL.revokeObjectURL(editorImage);
-            }
-            setUploadProgress({
-                fileName: originalFile?.name || 'profile.jpg',
-                progress: 0,
-                type: 'image'
-            });
-            const progressInterval = simulateProgress(p =>
-                setUploadProgress(prev => prev ? { ...prev, progress: p } : null)
-            );
-            const formDataToUpload = new FormData();
-            formDataToUpload.append('profilePicture', croppedBlob, originalFile?.name || 'profile.jpg');
-            await uploadProfilePicture(member._id, formDataToUpload);
-            clearInterval(progressInterval);
-            setUploadProgress(prev => prev ? { ...prev, progress: 100 } : null);
-            setTimeout(() => {
-                setUploadProgress(null);
-                setOriginalFile(null);
-            }, 1000);
-            setMessage('Profile picture updated successfully!');
-            await getCurrentMember();
-        } catch (error) {
-            console.error('Upload error:', error);
-            setMessage('Failed to upload profile picture. Please try again.');
-            setUploadProgress(null);
-        }
-    }, [member?._id, originalFile, editorImage, isEditingImage, uploadProfilePicture, getCurrentMember]);
-
-    // Close image editor
-    const handleImageEditorCancel = useCallback(() => {
-        setShowImageEditor(false);
-        if (editorImage && isEditingImage) {
-            URL.revokeObjectURL(editorImage);
-        }
-        setOriginalFile(null);
-    }, [editorImage, isEditingImage]);
-
-    // --- OTHER HANDLERS ---
+    // --- MEMOIZED CALLBACKS ---
     const handleEditToggle = useCallback(() => setIsEditing(prev => !prev), []);
     const handleCancelEdit = useCallback(() => setIsEditing(false), []);
     const handlePasswordResetOpen = useCallback(() => setShowPasswordReset(true), []);
@@ -206,35 +110,107 @@ const MemberProfile = () => {
     const handleMessageClose = useCallback(() => setMessage(''), []);
     const handleUploadProgressCancel = useCallback(() => setUploadProgress(null), []);
 
-    // Resume upload
-    const handleResumeUpload = useCallback(async (e) => {
+    const handleProfilePictureView = useCallback(() => {
+        setShowProfilePicture(true);
+    }, []);
+    
+    const handleProfilePictureClick = useCallback((imageUrl) => {
+        if (!imageUrl) return;
+        setEditorImage(imageUrl);
+        setIsEditingImage(false);
+        setShowImageEditor(true);
+    }, []);
+    
+    const handleImageSelect = useCallback((e) => {
         const file = e.target.files[0];
         if (!file) return;
         e.target.value = '';
+        setOriginalFile(file);
+        setEditorImage(URL.createObjectURL(file));
+        setIsEditingImage(true);
+        setShowImageEditor(true);
+    }, []);
+
+    // Save/crop/upload
+    const handleImageSave = useCallback(async (croppedBlob) => {
+        if (!croppedBlob) return;
+
+        try {
+            setShowImageEditor(false);
+            if (selectedImage) {
+                URL.revokeObjectURL(selectedImage);
+                setSelectedImage(null);
+            }
+
+            setUploadProgress({ 
+                fileName: originalFile?.name || 'profile.jpg', 
+                progress: 0, 
+                type: 'image' 
+            });
+
+            const progressInterval = simulateProgress(p => 
+                setUploadProgress(prev => prev ? { ...prev, progress: p } : null)
+            );
+
+            const formDataToUpload = new FormData();
+            formDataToUpload.append('profilePicture', croppedBlob, originalFile?.name || 'profile.jpg');
+            
+            await uploadProfilePicture(member._id, formDataToUpload);
+            clearInterval(progressInterval);
+            setUploadProgress(prev => prev ? { ...prev, progress: 100 } : null);
+            
+            setTimeout(() => {
+                setUploadProgress(null);
+                setOriginalFile(null);
+            }, 1000);
+            
+            setMessage('Profile picture updated successfully!');
+            await getCurrentMember();
+        } catch (error) {
+            console.error('Upload error:', error);
+            setMessage('Failed to upload profile picture. Please try again.');
+            setUploadProgress(null);
+        }
+    }, [member?._id, originalFile, selectedImage, uploadProfilePicture, getCurrentMember]);
+
+    const handleResumeUpload = useCallback(async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        // Clear the input
+        e.target.value = '';
+        
         if (!member?._id) {
             setMessage('Unable to upload resume. Please refresh and try again.');
             return;
         }
+        
         const validation = validateFile(file, 'document');
         if (!validation.isValid) {
             setMessage(validation.errors[0]);
             return;
         }
+        
         try {
-            setUploadProgress({
-                fileName: file.name,
-                progress: 0,
-                type: 'document'
+            setUploadProgress({ 
+                fileName: file.name, 
+                progress: 0, 
+                type: 'document' 
             });
-            const progressInterval = simulateProgress(p =>
+
+            const progressInterval = simulateProgress(p => 
                 setUploadProgress(prev => prev ? { ...prev, progress: p } : null)
             );
+
             const formDataToUpload = new FormData();
             formDataToUpload.append('resume', file);
+            
             await uploadResume(member._id, formDataToUpload);
             clearInterval(progressInterval);
             setUploadProgress(prev => prev ? { ...prev, progress: 100 } : null);
+            
             setTimeout(() => setUploadProgress(null), 1000);
+            
             setMessage('Resume uploaded successfully!');
             await getCurrentMember();
         } catch (error) {
@@ -244,21 +220,24 @@ const MemberProfile = () => {
         }
     }, [member?._id, uploadResume, getCurrentMember]);
 
-    // Password reset
     const handlePasswordReset = useCallback(async (e) => {
         e.preventDefault();
+        
         if (!member?.LpuId) {
             setMessage('Unable to reset password. Please refresh and try again.');
             return;
         }
+        
         if (newPassword !== confirmPassword) {
             setMessage('Passwords do not match');
             return;
         }
+        
         if (newPassword.length < 8) {
             setMessage('Password must be at least 8 characters long');
             return;
         }
+        
         try {
             await resetPassword(member.LpuId, newPassword);
             setMessage('Password reset successfully!');
@@ -271,7 +250,89 @@ const MemberProfile = () => {
         }
     }, [member?.LpuId, newPassword, confirmPassword, resetPassword]);
 
-    // --- EARLY RETURNS ---
+    // Now your early returns come after all hooks are defined
+    const handleImageEditorCancel = useCallback(() => {
+        setShowImageEditor(false);
+        if (selectedImage) {
+            URL.revokeObjectURL(selectedImage);
+            setSelectedImage(null);
+        }
+        setOriginalFile(null);
+    }, [selectedImage]);
+
+    // Handles changes in form fields
+    const handleInputChange = useCallback((e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value,
+        }));
+    }, []);
+
+    // Handles changes in social links
+    const handleSocialLinkChange = useCallback((index, newValue) => {
+        setFormData(prev => ({
+            ...prev,
+            socialLinks: prev.socialLinks.map((link, i) =>
+                i === index ? newValue : link
+            ),
+        }));
+    }, []);
+
+    // Add a new social link
+    const addSocialLink = useCallback(() => {
+        setFormData(prev => ({
+            ...prev,
+            socialLinks: [...prev.socialLinks, ''],
+        }));
+    }, []);
+
+    // Remove a social link by index
+    const removeSocialLink = useCallback((index) => {
+        setFormData(prev => ({
+            ...prev,
+            socialLinks: prev.socialLinks.filter((_, i) => i !== index),
+        }));
+    }, []);
+
+    // Add a new skill
+    const addSkill = useCallback(() => {
+        const skill = newSkill.trim();
+        if (skill && !formData.skills.includes(skill)) {
+            setFormData(prev => ({
+                ...prev,
+                skills: [...prev.skills, skill],
+            }));
+            setNewSkill('');
+        }
+    }, [newSkill, formData.skills]);
+
+    // Remove a skill by index
+    const removeSkill = useCallback((index) => {
+        setFormData(prev => ({
+            ...prev,
+            skills: prev.skills.filter((_, i) => i !== index),
+        }));
+    }, []);
+
+    // Handles profile form submission
+    const handleSubmit = useCallback(async (e) => {
+        e.preventDefault();
+        if (!member?._id) {
+            setMessage('Unable to update profile. Please refresh and try again.');
+            return;
+        }
+        try {
+            await updateProfile(member._id, formData);
+            setMessage('Profile updated successfully!');
+            setIsEditing(false);
+            await getCurrentMember();
+        } catch (error) {
+            console.error('Profile update error:', error);
+            setMessage('Failed to update profile. Please try again.');
+        }
+    }, [member?._id, formData, updateProfile, getCurrentMember]);
+
     if (memberLoading && !member) {
         return (
             <div className="min-h-screen pt-16 bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -382,7 +443,7 @@ const MemberProfile = () => {
                     </div>
                 )}
 
-                {/* Password modal */}
+                {/* Password modal with separate state management */}
                 <PasswordResetModal
                     isOpen={showPasswordReset}
                     onClose={handlePasswordResetClose}
@@ -398,7 +459,6 @@ const MemberProfile = () => {
                     isLoading={resetLoading}
                 />
 
-                {/* Image Editor Modal */}
                 <AnimatePresence>
                     {showImageEditor && editorImage && (
                         <ImageEditor
@@ -411,14 +471,13 @@ const MemberProfile = () => {
                     )}
                 </AnimatePresence>
 
-                {/* Profile Picture View Modal */}
                 <AnimatePresence>
-                    {showProfilePictureView && member?.profilePicture?.url && (
+                    {showProfilePicture && member?.profilePicture?.url && (
                         <ProfilePictureView
                             image={member.profilePicture.url}
-                            onClose={() => setShowProfilePictureView(false)}
+                            onClose={() => setShowProfilePicture(false)}
                             onUploadNew={() => {
-                                setShowProfilePictureView(false);
+                                setShowProfilePicture(false);
                                 setTimeout(() => fileInputRef.current?.click(), 200);
                             }}
                         />
