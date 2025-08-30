@@ -101,6 +101,7 @@ const memberSchema = new mongoose.Schema({
     hostel: {
         type: String,
         enum: [
+            '',
             'BH-1',
             'BH-2',
             'BH-3',
