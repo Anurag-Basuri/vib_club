@@ -124,7 +124,7 @@ router.post(
     uploadFile('profilePicture'),
     (req, res, next) => {
         if (!req.file) {
-            return res.status(400).json({ message: 'Profile picture is required' });
+            return res.status(400).json({ message: 'Profile picture is the issue' });
         }
         next();
     },
