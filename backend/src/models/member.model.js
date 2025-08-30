@@ -112,7 +112,9 @@ const memberSchema = new mongoose.Schema({
             'GH-2',
             'GH-3',
             'GH-4',
-            'GH-5'
+            'GH-5',
+            'GH-6',
+            'GH-7'
         ]
     },
     password: {

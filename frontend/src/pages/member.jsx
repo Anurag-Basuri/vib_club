@@ -118,10 +118,20 @@ const MemberProfile = () => {
 
     const handleInputChange = useCallback((e) => {
         const { name, value, type, checked } = e.target;
-        setFormData(prev => ({ 
-            ...prev, 
-            [name]: type === 'checkbox' ? checked : value 
-        }));
+        
+        if (name === 'hosteler' && type === 'checkbox' && !checked) {
+            // When hosteler is unchecked, also reset the hostel value
+            setFormData(prev => ({ 
+                ...prev, 
+                hosteler: false,
+                hostel: ''  // Reset hostel when hosteler is false
+            }));
+        } else {
+            setFormData(prev => ({ 
+                ...prev, 
+                [name]: type === 'checkbox' ? checked : value 
+            }));
+        }
     }, []);
 
     const handleSocialLinkChange = useCallback((index, field, value) => {

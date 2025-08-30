@@ -173,7 +173,6 @@ const updateProfile = asyncHandler(async (req, res) => {
         socialLinks,
         bio,
     } = req.body;
-    console.log(req.body);
 
     const member = await Member.findById(req.params.id);
     if (!member) {
@@ -185,8 +184,8 @@ const updateProfile = asyncHandler(async (req, res) => {
     member.program = program || member.program;
     member.year = year || member.year;
     member.skills = skills || member.skills;
-    member.hosteler = hosteler || member.hosteler;
-    member.hostel = hostel || member.hostel;
+    member.hosteler = hosteler === undefined ? member.hosteler : hosteler;
+    member.hostel = hosteler === false ? '' : (hostel || member.hostel);
     member.socialLinks = socialLinks || member.socialLinks;
     member.bio = bio || member.bio;
 
