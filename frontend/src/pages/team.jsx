@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Loader, Users, Filter, Search, UserCheck, UserX, X } from 'lucide-react';
+import { Sparkles, Loader, Users, Filter, Search, UserCheck, UserX, X, Award, Layout, SearchX } from 'lucide-react';
 import { publicClient } from '../services/api.js';
 import { useAuth } from '../hooks/useAuth.js';
 
@@ -127,7 +127,7 @@ const TeamsPage = () => {
 	};
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-[#0a0f1f] via-[#1a1f3a] to-[#0d1326] text-white overflow-x-hidden">
+		<div className="min-h-screen bg-gradient-to-br from-[#080b17] via-[#0f1228] to-[#0a0c20] text-white overflow-x-hidden">
 			{/* Background particles */}
 			<FloatingParticles />
 

@@ -1,101 +1,132 @@
 import React, { useEffect, useRef } from 'react';
 
 const FloatingParticles = () => {
-	const canvasRef = useRef(null);
+    const canvasRef = useRef(null);
 
-	useEffect(() => {
-		const canvas = canvasRef.current;
-		if (!canvas) return;
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
 
-		const ctx = canvas.getContext('2d');
-		canvas.width = window.innerWidth;
-		canvas.height = window.innerHeight;
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
 
-		// Adjust particle count based on screen size for better performance
-		const isMobile = window.innerWidth < 768;
-		const particleCount = isMobile
-			? Math.min(window.innerWidth / 20, 40)
-			: Math.min(window.innerWidth / 10, 100);
+        // Adjust particle count based on screen size
+        const isMobile = window.innerWidth < 768;
+        const particleCount = isMobile
+            ? Math.min(window.innerWidth / 30, 30)
+            : Math.min(window.innerWidth / 20, 70);
 
-		const particles = [];
+        const particles = [];
 
-		for (let i = 0; i < particleCount; i++) {
-			particles.push({
-				x: Math.random() * canvas.width,
-				y: Math.random() * canvas.height,
-				radius: Math.random() * (isMobile ? 2 : 3) + 1,
-				color: i % 3 === 0 ? '#3a56c9' : i % 3 === 1 ? '#5d7df5' : '#0ea5e9',
-				speedX: Math.random() * 0.4 - 0.2,
-				speedY: Math.random() * 0.4 - 0.2,
-				opacity: Math.random() * 0.4 + 0.1,
-			});
-		}
+        // More modern color palette
+        const colors = [
+            'rgba(79, 70, 229, alpha)', // indigo-600
+            'rgba(99, 102, 241, alpha)', // indigo-500
+            'rgba(59, 130, 246, alpha)', // blue-500
+            'rgba(37, 99, 235, alpha)',  // blue-600
+            'rgba(147, 51, 234, alpha)'  // purple-600
+        ];
 
-		// More efficient connection function - only connect nearby particles
-		const connectParticles = () => {
-			const connectionDistance = isMobile ? 80 : 120;
-			for (let i = 0; i < particles.length; i++) {
-				for (let j = i; j < particles.length; j++) {
-					const dx = particles[i].x - particles[j].x;
-					const dy = particles[i].y - particles[j].y;
-					const distance = Math.sqrt(dx * dx + dy * dy);
+        for (let i = 0; i < particleCount; i++) {
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            const opacity = Math.random() * 0.5 + 0.1;
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: Math.random() * (isMobile ? 1.5 : 2) + 1,
+                color: color.replace('alpha', opacity),
+                speedX: Math.random() * 0.3 - 0.15,
+                speedY: Math.random() * 0.3 - 0.15,
+                opacity
+            });
+        }
 
-					if (distance < connectionDistance) {
-						ctx.beginPath();
-						ctx.strokeStyle = `rgba(93, 125, 245, ${0.1 * (1 - distance / connectionDistance)})`;
-						ctx.lineWidth = 0.5;
-						ctx.moveTo(particles[i].x, particles[i].y);
-						ctx.lineTo(particles[j].x, particles[j].y);
-						ctx.stroke();
-					}
-				}
-			}
-		};
+        const connectParticles = () => {
+            const connectionDistance = isMobile ? 100 : 150;
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
 
-		// Use requestAnimationFrame for smoother animations
-		let animationId;
-		const animate = () => {
-			animationId = requestAnimationFrame(animate);
-			ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    if (distance < connectionDistance) {
+                        const opacity = 0.15 * (1 - distance / connectionDistance);
+                        ctx.beginPath();
+                        // Create gradient lines
+                        const gradient = ctx.createLinearGradient(
+                            particles[i].x, particles[i].y,
+                            particles[j].x, particles[j].y
+                        );
+                        gradient.addColorStop(0, particles[i].color.replace(particles[i].opacity, opacity));
+                        gradient.addColorStop(1, particles[j].color.replace(particles[j].opacity, opacity));
+                        
+                        ctx.strokeStyle = gradient;
+                        ctx.lineWidth = 0.6;
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        };
 
-			particles.forEach((p) => {
-				p.x += p.speedX;
-				p.y += p.speedY;
+        let animationId;
+        const animate = () => {
+            animationId = requestAnimationFrame(animate);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-				if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
-				if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
+            particles.forEach((p) => {
+                p.x += p.speedX;
+                p.y += p.speedY;
 
-				ctx.beginPath();
-				ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-				ctx.fillStyle = p.color.replace(')', `, ${p.opacity})`).replace('rgb', 'rgba');
-				ctx.fill();
-			});
+                if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
+                if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
 
-			connectParticles();
-		};
+                // Add glow effect
+                const glow = 5;
+                const radGrad = ctx.createRadialGradient(
+                    p.x, p.y, 0,
+                    p.x, p.y, p.radius + glow
+                );
+                radGrad.addColorStop(0, p.color);
+                radGrad.addColorStop(1, p.color.replace(p.opacity, 0));
+                
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius + glow, 0, Math.PI * 2);
+                ctx.fillStyle = radGrad;
+                ctx.fill();
 
-		const handleResize = () => {
-			canvas.width = window.innerWidth;
-			canvas.height = window.innerHeight;
-		};
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+            });
 
-		window.addEventListener('resize', handleResize);
-		animate();
+            connectParticles();
+        };
 
-		// Clean up function
-		return () => {
-			window.removeEventListener('resize', handleResize);
-			cancelAnimationFrame(animationId);
-		};
-	}, []);
+        const handleResize = () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        };
 
-	return (
-		<canvas
-			ref={canvasRef}
-			className="fixed inset-0 z-0 pointer-events-none"
-			style={{ background: 'transparent' }}
-		/>
-	);
+        window.addEventListener('resize', handleResize);
+        animate();
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            cancelAnimationFrame(animationId);
+        };
+    }, []);
+
+    return (
+        <canvas
+            ref={canvasRef}
+            className="fixed inset-0 z-0 pointer-events-none"
+            style={{ background: 'transparent' }}
+        />
+    );
 };
 
 export default FloatingParticles;
