@@ -1,87 +1,123 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Star, ChevronRight } from 'lucide-react';
+import { Star, ChevronRight, LinkedinIcon, GithubIcon } from 'lucide-react';
 
 const LeadershipCard = ({ leader, index, onClick }) => (
-	<motion.div
-		className="relative"
-		initial={{ opacity: 0, y: 50 }}
-		animate={{ opacity: 1, y: 0 }}
-		transition={{ delay: index * 0.2, duration: 0.7 }}
-		whileHover={{ y: -10, scale: 1.03 }}
-		whileTap={{ scale: 0.98 }}
-		onClick={() => onClick(leader)}
-	>
-		<div
-			className={`relative p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-[#0a0f1f]/80 to-[#1a1f3a]/90 border border-[#3a56c9]/40 shadow-xl cursor-pointer hover:shadow-[0_0_30px_rgba(93,125,245,0.2)] hover:border-[#5d7df5]/60 transition-all duration-300 ${
-				leader.level === 0 ? 'w-[260px] sm:w-80' : 'w-[220px] sm:w-72'
-			}`}
-		>
-			{/* Enhanced glow effect */}
-			<div className="absolute -inset-0.5 bg-gradient-to-r from-[#3a56c9] to-[#5d7df5] rounded-2xl opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
+    <motion.div
+        className="perspective"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: index * 0.2, duration: 0.7 }}
+        whileHover={{ scale: 1.03 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={() => onClick(leader)}
+    >
+        <div className={`group relative w-full ${leader.level === 0 ? 'w-[280px] sm:w-[320px]' : 'w-[240px] sm:w-[280px]'}`}>
+            {/* 3D rotation effect */}
+            <motion.div 
+                className="preserve-3d"
+                whileHover={{ 
+                    rotateY: [0, 5, -5, 0],
+                    rotateX: [0, -5, 5, 0],
+                    transition: { duration: 0.5 }
+                }}
+            >
+                <div className="relative p-5 rounded-2xl bg-gradient-to-b from-[#161a36]/95 to-[#0f1225]/95 border border-indigo-500/30 shadow-2xl hover:shadow-indigo-500/20 hover:border-indigo-400/50 transition-all duration-300 cursor-pointer overflow-hidden transform-gpu backface-hidden">
+                    {/* Animated gradients */}
+                    <div className="absolute -top-24 -left-24 w-48 h-48 bg-indigo-600/20 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                    <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-blue-600/20 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                    
+                    {/* Leader badge */}
+                    {leader.level === 0 && (
+                        <motion.div 
+                            className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold uppercase tracking-wider py-1 px-4 rounded-full shadow-lg border border-white/10"
+                            animate={{ y: [0, -3, 0] }}
+                            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                        >
+                            Club Lead
+                        </motion.div>
+                    )}
 
-			{/* Leader badge with animation */}
-			{leader.level === 0 && (
-				<motion.div
-					className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-[#5d7df5] to-[#3a56c9] text-white text-xs font-bold uppercase tracking-wider py-1 px-4 rounded-full"
-					animate={{ y: [0, -3, 0] }}
-					transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-				>
-					Club Lead
-				</motion.div>
-			)}
+                    <div className="flex flex-col items-center relative z-10">
+                        {/* Profile image with modern styling */}
+                        <div className="relative mb-5 group">
+                            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-600 via-blue-600 to-sky-400 blur-md opacity-50 group-hover:opacity-80 transition-opacity"></div>
+                            <div className="absolute inset-1 rounded-full bg-gradient-to-br from-white/10 to-transparent"></div>
+                            <img
+                                src={leader?.profilePicture?.url || '/default-profile.png'}
+                                alt={leader?.fullName}
+                                className="relative z-10 w-28 h-28 rounded-full object-cover border-2 border-white/10"
+                                onError={(e) => {
+                                    e.target.src = '/default-profile.png';
+                                }}
+                            />
+                            <motion.div
+                                className="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg border border-white/10"
+                                animate={{
+                                    rotate: [0, 360],
+                                    scale: [1, 1.1, 1],
+                                }}
+                                transition={{
+                                    rotate: { duration: 8, repeat: Infinity, ease: 'linear' },
+                                    scale: { duration: 2, repeat: Infinity, ease: 'easeInOut' },
+                                }}
+                            >
+                                <Star size={16} className="text-white" />
+                            </motion.div>
+                        </div>
 
-			<div className="flex flex-col items-center relative z-10">
-				<div className="relative mb-4">
-					{/* Avatar glow */}
-					<div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#3a56c9] to-[#5d7df5] blur-md opacity-50 group-hover:opacity-70 transition-opacity"></div>
+                        <h3 className="text-xl font-bold text-white mb-2">{leader.fullName}</h3>
 
-					<img
-						src={leader?.profilePicture?.url || '/default-profile.png'}
-						alt={leader?.fullName}
-						className="relative z-10 w-24 h-24 rounded-full object-cover border-4 border-[#3a56c9]/40"
-						onError={(e) => {
-							e.target.src = '/default-profile.png';
-						}}
-					/>
+                        {/* Modern designation pill */}
+                        <div className="mb-3">
+                            <span className="px-4 py-1.5 rounded-full bg-indigo-600/30 text-blue-200 text-sm font-medium border border-indigo-400/30">
+                                {leader.designation}
+                            </span>
+                        </div>
 
-					<motion.div
-						className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-gradient-to-r from-[#5d7df5] to-[#3a56c9] flex items-center justify-center shadow-lg"
-						animate={{
-							rotate: [0, 360],
-							scale: [1, 1.1, 1],
-						}}
-						transition={{
-							rotate: { duration: 5, repeat: Infinity, ease: 'linear' },
-							scale: { duration: 2, repeat: Infinity, ease: 'easeInOut' },
-						}}
-					>
-						<Star size={16} className="text-white" />
-					</motion.div>
-				</div>
+                        <p className="text-white/70 text-sm text-center mb-5 max-w-[220px] line-clamp-2">
+                            {leader.bio || 'Passionate leader driving innovation'}
+                        </p>
 
-				<h3 className="text-xl font-bold text-white mb-1">{leader.fullName}</h3>
+                        {/* Social icons */}
+                        <div className="flex gap-3 mb-5">
+                            {leader.socialLinks?.some(link => link.platform.toLowerCase().includes('linkedin')) && (
+                                <motion.a 
+                                    href={leader.socialLinks.find(link => 
+                                        link.platform.toLowerCase().includes('linkedin'))?.url || '#'}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-2 rounded-full bg-indigo-600/30 text-white hover:bg-indigo-600/60 transition-colors"
+                                    whileHover={{ y: -3 }}
+                                >
+                                    <LinkedinIcon size={16} />
+                                </motion.a>
+                            )}
+                            {leader.socialLinks?.some(link => link.platform.toLowerCase().includes('github')) && (
+                                <motion.a 
+                                    href={leader.socialLinks.find(link => 
+                                        link.platform.toLowerCase().includes('github'))?.url || '#'}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-2 rounded-full bg-indigo-600/30 text-white hover:bg-indigo-600/60 transition-colors"
+                                    whileHover={{ y: -3 }}
+                                >
+                                    <GithubIcon size={16} />
+                                </motion.a>
+                            )}
+                        </div>
 
-				<div className="relative mb-2">
-					<span className="absolute inset-0 rounded-full bg-gradient-to-r from-[#3a56c9] to-[#5d7df5] blur-md opacity-30"></span>
-					<p className="relative px-3 py-1 text-[#5d7df5] font-medium rounded-full text-center bg-[#1a244f]/80 border border-[#3a56c9]/30">
-						{leader.designation}
-					</p>
-				</div>
-
-				<p className="text-[#9ca3d4] text-sm text-center mb-4 max-w-[220px] line-clamp-2">
-					{leader.bio || 'Passionate leader driving innovation'}
-				</p>
-
-				<motion.div
-					className="flex items-center justify-center text-[#5d7df5] text-sm font-medium mt-2"
-					whileHover={{ x: 3 }}
-				>
-					View Profile <ChevronRight size={16} className="ml-1" />
-				</motion.div>
-			</div>
-		</div>
-	</motion.div>
+                        <motion.div
+                            className="flex items-center justify-center text-blue-300 text-sm font-medium"
+                            whileHover={{ x: 3 }}
+                        >
+                            View Profile <ChevronRight size={16} className="ml-1" />
+                        </motion.div>
+                    </div>
+                </div>
+            </motion.div>
+        </div>
+    </motion.div>
 );
 
 export default LeadershipCard;
