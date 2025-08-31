@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Loader } from 'lucide-react';
+import { Sparkles, Loader, Users } from 'lucide-react';
 import { publicClient } from '../services/api.js';
 import { useAuth } from '../hooks/useAuth.js';
 
@@ -8,6 +8,7 @@ import { useAuth } from '../hooks/useAuth.js';
 import LeadershipCard from '../components/team/LeadershipCard';
 import DepartmentSection from '../components/team/DepartmentSection';
 import TeamMemberModal from '../components/team/TeamMemberModal';
+import FloatingParticles from '../components/team/FloatingParticles';
 
 const TeamsPage = () => {
 	const { isAuthenticated } = useAuth();
@@ -94,6 +95,9 @@ const TeamsPage = () => {
 
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-[#0a0f1f] via-[#1a1f3a] to-[#0d1326] text-white overflow-x-hidden">
+			{/* Background particles */}
+			<FloatingParticles />
+
 			{loading && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0a0f1f]/90 backdrop-blur-lg">
 					<div className="text-center">
@@ -130,7 +134,22 @@ const TeamsPage = () => {
 						style={{ transform: 'translate(-50%, -50%)' }}
 					/>
 				</div>
+
 				<div className="relative z-10 max-w-4xl mx-auto">
+					<motion.div
+						className="mb-6 flex justify-center"
+						initial={{ scale: 0, opacity: 0 }}
+						animate={{ scale: 1, opacity: 1 }}
+						transition={{ duration: 0.5 }}
+					>
+						<div className="relative">
+							<div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#3a56c9] to-[#5d7df5] blur-md"></div>
+							<div className="relative p-4 rounded-full bg-[#1a244f] border-2 border-[#3a56c9]/40">
+								<Users size={40} className="text-[#5d7df5]" />
+							</div>
+						</div>
+					</motion.div>
+
 					<motion.h1
 						className="text-4xl sm:text-5xl md:text-6xl font-extrabold bg-gradient-to-r from-[#5d7df5] via-[#3a56c9] to-[#0ea5e9] bg-clip-text text-transparent tracking-tight mb-6"
 						initial={{ opacity: 0 }}
@@ -156,6 +175,36 @@ const TeamsPage = () => {
 							sparks innovation.
 						</span>
 					</motion.p>
+
+					{/* Team stats */}
+					<motion.div
+						className="flex flex-wrap justify-center gap-4 mt-8"
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ delay: 0.6, duration: 0.8 }}
+					>
+						<div className="bg-[#1a244f]/50 backdrop-blur-sm px-6 py-3 rounded-xl border border-[#3a56c9]/30">
+							<div className="text-3xl font-bold text-[#5d7df5]">{teamData.length}</div>
+							<div className="text-sm text-[#9ca3d4]">Team Members</div>
+						</div>
+						<div className="bg-[#1a244f]/50 backdrop-blur-sm px-6 py-3 rounded-xl border border-[#3a56c9]/30">
+							<div className="text-3xl font-bold text-[#5d7df5]">
+								{
+									Object.keys(
+										teamData.reduce(
+											(acc, m) => ({ ...acc, [m.department]: true }),
+											{}
+										)
+									).length
+								}
+							</div>
+							<div className="text-sm text-[#9ca3d4]">Departments</div>
+						</div>
+						<div className="bg-[#1a244f]/50 backdrop-blur-sm px-6 py-3 rounded-xl border border-[#3a56c9]/30">
+							<div className="text-3xl font-bold text-[#5d7df5]">{leadership.length}</div>
+							<div className="text-sm text-[#9ca3d4]">Leaders</div>
+						</div>
+					</motion.div>
 				</div>
 			</section>
 
@@ -163,15 +212,19 @@ const TeamsPage = () => {
 			{leadership.length > 0 && (
 				<section id="leadership" className="py-10 sm:py-16 px-4 relative z-10">
 					<div className="max-w-6xl mx-auto">
-						<motion.h2
-							className="text-3xl sm:text-4xl font-bold text-center mb-10 sm:mb-14 bg-gradient-to-r from-[#5d7df5] to-[#3a56c9] bg-clip-text text-transparent"
+						<motion.div
+							className="flex flex-col items-center mb-10"
 							initial={{ opacity: 0, y: 20 }}
 							whileInView={{ opacity: 1, y: 0 }}
 							viewport={{ once: true }}
 							transition={{ duration: 0.8 }}
 						>
-							Leadership Team
-						</motion.h2>
+							<h2 className="text-3xl sm:text-4xl font-bold text-center mb-4 bg-gradient-to-r from-[#5d7df5] to-[#3a56c9] bg-clip-text text-transparent">
+								Leadership Team
+							</h2>
+							<div className="w-20 h-1 bg-gradient-to-r from-[#3a56c9] to-[#5d7df5] rounded-full"></div>
+						</motion.div>
+
 						<div className="relative">
 							{leadership.filter((m) => m.designation === 'CEO').length > 0 && (
 								<div className="flex justify-center mb-10">
@@ -202,15 +255,19 @@ const TeamsPage = () => {
 			{/* Departments Sections */}
 			<section id="departments" className="py-10 sm:py-16 px-4 relative z-10">
 				<div className="max-w-7xl mx-auto">
-					<motion.h2
-						className="text-3xl sm:text-4xl font-bold text-center mb-10 sm:mb-14 bg-gradient-to-r from-[#0ea5e9] to-[#5d7df5] bg-clip-text text-transparent"
+					<motion.div
+						className="flex flex-col items-center mb-10"
 						initial={{ opacity: 0, y: 20 }}
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
 						transition={{ duration: 0.8 }}
 					>
-						Our Departments
-					</motion.h2>
+						<h2 className="text-3xl sm:text-4xl font-bold text-center mb-4 bg-gradient-to-r from-[#0ea5e9] to-[#5d7df5] bg-clip-text text-transparent">
+							Our Departments
+						</h2>
+						<div className="w-20 h-1 bg-gradient-to-r from-[#0ea5e9] to-[#5d7df5] rounded-full"></div>
+					</motion.div>
+
 					<div className="space-y-16 sm:space-y-20">
 						{technical.length > 0 && (
 							<DepartmentSection
