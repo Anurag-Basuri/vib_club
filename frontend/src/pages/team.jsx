@@ -10,6 +10,7 @@ import DepartmentSection from '../components/team/DepartmentSection';
 import TeamMemberModal from '../components/team/TeamMemberModal';
 import FloatingParticles from '../components/team/FloatingParticles';
 import TeamSkeleton from '../components/team/TeamSkeleton';
+import ScrollToTopButton from '../components/team/ScrollToTopButton';
 
 const TeamsPage = () => {
 	const { isAuthenticated } = useAuth();
@@ -241,16 +242,21 @@ const TeamsPage = () => {
 									size={24}
 								/>
 								<span>
-									Where <span className="font-semibold text-[#5d7df5]">creativity</span>{' '}
-									meets <span className="font-semibold text-[#3a56c9]">technology</span>{' '}
-									and <span className="font-semibold text-[#0ea5e9]">collaboration</span>{' '}
+									Where{' '}
+									<span className="font-semibold text-[#5d7df5]">creativity</span>{' '}
+									meets{' '}
+									<span className="font-semibold text-[#3a56c9]">technology</span>{' '}
+									and{' '}
+									<span className="font-semibold text-[#0ea5e9]">
+										collaboration
+									</span>{' '}
 									sparks innovation.
 								</span>
 							</motion.p>
 
-							{/* Search bar */}
+							{/* Search bar with enhanced mobile experience */}
 							<motion.div
-								className="max-w-md mx-auto mb-8"
+								className="max-w-md w-full mx-auto mb-6 sm:mb-8 px-4 sm:px-0"
 								initial={{ opacity: 0, y: 20 }}
 								animate={{ opacity: 1, y: 0 }}
 								transition={{ delay: 0.6, duration: 0.5 }}
@@ -261,18 +267,18 @@ const TeamsPage = () => {
 										placeholder="Search by name, department, skills..."
 										value={searchQuery}
 										onChange={(e) => setSearchQuery(e.target.value)}
-										className="w-full px-4 py-3 pl-10 bg-[#1a244f]/70 border border-[#3a56c9]/40 rounded-xl text-white placeholder-[#9ca3d4] focus:outline-none focus:border-[#5d7df5] transition-colors"
+										className="w-full px-4 py-2 sm:py-3 pl-10 bg-[#1a244f]/70 border border-[#3a56c9]/40 rounded-xl text-white placeholder-[#9ca3d4] focus:outline-none focus:border-[#5d7df5] transition-colors text-sm sm:text-base"
 									/>
 									<Search
 										className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#5d7df5]"
-										size={18}
+										size={16}
 									/>
 									{searchQuery && (
 										<button
 											className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#9ca3d4] hover:text-white transition-colors"
 											onClick={() => setSearchQuery('')}
 										>
-											<X size={18} />
+											<X size={16} />
 										</button>
 									)}
 								</div>
@@ -292,7 +298,9 @@ const TeamsPage = () => {
 									<div className="text-2xl sm:text-3xl font-bold text-[#5d7df5]">
 										{teamData.length}
 									</div>
-									<div className="text-xs sm:text-sm text-[#9ca3d4]">Team Members</div>
+									<div className="text-xs sm:text-sm text-[#9ca3d4]">
+										Team Members
+									</div>
 								</motion.div>
 								<motion.div
 									className="bg-[#1a244f]/50 backdrop-blur-sm px-4 sm:px-6 py-2 sm:py-3 rounded-xl border border-[#3a56c9]/30 flex-1 min-w-[100px] max-w-[150px]"
@@ -308,7 +316,9 @@ const TeamsPage = () => {
 											).length
 										}
 									</div>
-									<div className="text-xs sm:text-sm text-[#9ca3d4]">Departments</div>
+									<div className="text-xs sm:text-sm text-[#9ca3d4]">
+										Departments
+									</div>
 								</motion.div>
 								<motion.div
 									className="bg-[#1a244f]/50 backdrop-blur-sm px-4 sm:px-6 py-2 sm:py-3 rounded-xl border border-[#3a56c9]/30 flex-1 min-w-[100px] max-w-[150px]"
@@ -341,10 +351,13 @@ const TeamsPage = () => {
 								</motion.div>
 
 								<div className="relative">
-									{leadership.filter((m) => m.designation === 'CEO').length > 0 && (
+									{leadership.filter((m) => m.designation === 'CEO').length >
+										0 && (
 										<div className="flex justify-center mb-10">
 											<LeadershipCard
-												leader={leadership.find((m) => m.designation === 'CEO')}
+												leader={leadership.find(
+													(m) => m.designation === 'CEO'
+												)}
 												index={0}
 												onClick={handleMemberClick}
 											/>
@@ -489,12 +502,16 @@ const TeamsPage = () => {
 								eventManagement.length === 0 && (
 									<div className="text-center py-16 max-w-md mx-auto">
 										<div className="bg-[#1a244f]/70 rounded-xl p-8 border border-[#3a56c9]/40">
-											<SearchX size={48} className="text-[#5d7df5]/70 mx-auto mb-4" />
+											<SearchX
+												size={48}
+												className="text-[#5d7df5]/70 mx-auto mb-4"
+											/>
 											<h3 className="text-xl font-semibold text-white mb-2">
 												No Results Found
 											</h3>
 											<p className="text-[#9ca3d4] mb-4">
-												We couldn't find any team members matching "{searchQuery}"
+												We couldn't find any team members matching "
+												{searchQuery}"
 											</p>
 											<button
 												onClick={() => setSearchQuery('')}
@@ -515,6 +532,9 @@ const TeamsPage = () => {
 						onClose={closeModal}
 						isAuthenticated={isAuthenticated}
 					/>
+
+					{/* Add the scroll to top button */}
+					<ScrollToTopButton />
 				</>
 			)}
 		</div>

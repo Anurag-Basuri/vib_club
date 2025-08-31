@@ -138,13 +138,7 @@ export const useUpdateTicket = () => {
 		});
 		return res.data.data;
 	};
-	const {
-		action: updateTicket,
-		data: ticket,
-		loading,
-		error,
-		reset,
-	} = useTicketAction(actionFn);
+	const { action: updateTicket, data: ticket, loading, error, reset } = useTicketAction(actionFn);
 
 	return { updateTicket, ticket, loading, error, reset };
 };

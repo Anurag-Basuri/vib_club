@@ -28,7 +28,7 @@ const publicClient = axios.create({
 
 apiClient.interceptors.request.use((config) => {
 	const { accessToken } = getToken();
-	
+
 	// Check if token is valid before making request
 	if (accessToken && isTokenValid()) {
 		config.headers['Authorization'] = `Bearer ${accessToken}`;
@@ -38,7 +38,7 @@ apiClient.interceptors.request.use((config) => {
 		window.location.href = '/auth';
 		return Promise.reject(new Error('Token expired'));
 	}
-	
+
 	return config;
 });
 

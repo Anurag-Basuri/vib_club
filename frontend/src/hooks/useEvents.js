@@ -128,7 +128,6 @@ export const useGetAllEvents = () => {
 	return { getAllEvents, events, loading, error, reset };
 };
 
-
 // Get Event By ID (public)
 export const useGetEventById = () => {
 	const [loading, setLoading] = useState(false);

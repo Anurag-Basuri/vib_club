@@ -85,7 +85,7 @@ const TeamMemberModal = ({ member, isOpen, onClose, isAuthenticated }) => {
 						{/* Enhanced blur effects */}
 						<div className="absolute -top-20 -left-20 w-40 h-40 rounded-full bg-[#3a56c9]/20 blur-3xl"></div>
 						<div className="absolute -bottom-20 -right-20 w-40 h-40 rounded-full bg-[#5d7df5]/20 blur-3xl"></div>
-						
+
 						{/* Close button with improved touch target */}
 						<button
 							onClick={onClose}
@@ -94,7 +94,7 @@ const TeamMemberModal = ({ member, isOpen, onClose, isAuthenticated }) => {
 						>
 							<X size={18} />
 						</button>
-						
+
 						{/* Authentication badge */}
 						{isAuthenticated && (
 							<div className="absolute top-4 left-4 flex items-center gap-1 px-2 py-1 rounded-full bg-[#1a244f]/70 text-[#5d7df5] text-xs backdrop-blur-sm border border-[#3a56c9]/30">
@@ -208,10 +208,7 @@ const TeamMemberModal = ({ member, isOpen, onClose, isAuthenticated }) => {
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#0a0f1f]/50 rounded-xl p-4 border border-[#2a3a72]/50">
 									{/* Program (visible to all) */}
 									<div className="text-left flex items-start gap-2">
-										<Briefcase
-											size={16}
-											className="text-[#5d7df5] mt-0.5"
-										/>
+										<Briefcase size={16} className="text-[#5d7df5] mt-0.5" />
 										<div>
 											<p className="text-xs text-[#9ca3d4]">Program</p>
 											<p className="text-sm text-white">
@@ -268,10 +265,7 @@ const TeamMemberModal = ({ member, isOpen, onClose, isAuthenticated }) => {
 									{/* Hostel info (visible only to authenticated users) */}
 									{isAuthenticated && member?.hosteler && (
 										<div className="text-left flex items-start gap-2 col-span-2">
-											<MapPin
-												size={16}
-												className="text-[#5d7df5] mt-0.5"
-											/>
+											<MapPin size={16} className="text-[#5d7df5] mt-0.5" />
 											<div>
 												<p className="text-xs text-[#9ca3d4]">Hostel</p>
 												<p className="text-sm text-white">
@@ -327,10 +321,7 @@ const TeamMemberModal = ({ member, isOpen, onClose, isAuthenticated }) => {
 									</div>
 								) : (
 									<div className="flex flex-col items-center justify-center py-6 text-[#9ca3d4]">
-										<Sparkles
-											size={24}
-											className="mb-2 text-[#5d7df5]/50"
-										/>
+										<Sparkles size={24} className="mb-2 text-[#5d7df5]/50" />
 										<p>No skills listed yet</p>
 									</div>
 								)}
@@ -359,10 +350,7 @@ const TeamMemberModal = ({ member, isOpen, onClose, isAuthenticated }) => {
 															? `${member.email.substring(0, 3)}•••@•••${member.email.substring(member.email.lastIndexOf('.'))}`
 															: 'N/A'}
 													</p>
-													<Lock
-														size={12}
-														className="text-[#5d7df5]/40"
-													/>
+													<Lock size={12} className="text-[#5d7df5]/40" />
 												</div>
 											)}
 										</div>
@@ -395,14 +383,10 @@ const TeamMemberModal = ({ member, isOpen, onClose, isAuthenticated }) => {
 												<div className="flex items-center gap-1">
 													<p className="text-sm text-[#9ca3d4]">
 														{member?.phone
-															? '••• ••• ' +
-																member.phone.slice(-4)
+															? '••• ••• ' + member.phone.slice(-4)
 															: 'N/A'}
 													</p>
-													<Lock
-														size={12}
-														className="text-[#5d7df5]/40"
-													/>
+													<Lock size={12} className="text-[#5d7df5]/40" />
 												</div>
 											)}
 										</div>
@@ -423,10 +407,7 @@ const TeamMemberModal = ({ member, isOpen, onClose, isAuthenticated }) => {
 								{socialLinks.length > 0 && (
 									<div className="mt-6">
 										<h4 className="text-[#d0d5f7] font-medium mb-3 flex items-center">
-											<ChevronRight
-												size={16}
-												className="text-[#5d7df5]"
-											/>
+											<ChevronRight size={16} className="text-[#5d7df5]" />
 											<span>Social Profiles</span>
 										</h4>
 

@@ -580,38 +580,38 @@ const HorrorRaveYardPage = () => {
 						</motion.div>
 
 						{/* Rusty Metal Button */}
-												<motion.div
-													className="mt-10"
-													initial={{ opacity: 0, scale: 0.8 }}
-													animate={{ opacity: 1, scale: 1 }}
-													transition={{ delay: 1.2, duration: 0.8, ease: 'backOut' }}
-												>
-													<motion.button
-														whileHover={{
-															scale: 1.05,
-															boxShadow: '0 0 30px rgba(220, 38, 38, 0.8)',
-														}}
-														whileTap={{ scale: 0.95 }}
-														onClick={() => window.open('https://vibranta.org', '_blank')}
-														className="px-10 py-5 relative rounded-xl font-bold text-xl shadow-lg overflow-hidden"
-														style={{
-															background: `linear-gradient(145deg, #8B4513, #5D2919), url("https://www.transparenttextures.com/patterns/rust.png")`,
-															backgroundBlendMode: 'overlay',
-															boxShadow: `0 4px 0 #3a180d, inset 0 2px 4px rgba(255, 100, 100, 0.4)`,
-															border: '1px solid #5D2919',
-															textShadow: '0 0 8px rgba(255, 50, 50, 0.7)',
-															fontFamily: "'Rajdhani', sans-serif",
-														}}
-														transition={{
-															duration: 0.3,
-															ease: 'easeInOut',
-														}}
-													>
-														<div className="relative z-10 flex items-center gap-3">
-															<span>Register Here</span>
-														</div>
+						<motion.div
+							className="mt-10"
+							initial={{ opacity: 0, scale: 0.8 }}
+							animate={{ opacity: 1, scale: 1 }}
+							transition={{ delay: 1.2, duration: 0.8, ease: 'backOut' }}
+						>
+							<motion.button
+								whileHover={{
+									scale: 1.05,
+									boxShadow: '0 0 30px rgba(220, 38, 38, 0.8)',
+								}}
+								whileTap={{ scale: 0.95 }}
+								onClick={() => window.open('https://vibranta.org', '_blank')}
+								className="px-10 py-5 relative rounded-xl font-bold text-xl shadow-lg overflow-hidden"
+								style={{
+									background: `linear-gradient(145deg, #8B4513, #5D2919), url("https://www.transparenttextures.com/patterns/rust.png")`,
+									backgroundBlendMode: 'overlay',
+									boxShadow: `0 4px 0 #3a180d, inset 0 2px 4px rgba(255, 100, 100, 0.4)`,
+									border: '1px solid #5D2919',
+									textShadow: '0 0 8px rgba(255, 50, 50, 0.7)',
+									fontFamily: "'Rajdhani', sans-serif",
+								}}
+								transition={{
+									duration: 0.3,
+									ease: 'easeInOut',
+								}}
+							>
+								<div className="relative z-10 flex items-center gap-3">
+									<span>Register Here</span>
+								</div>
 
-														{/* Rust corrosion spots on button */}
+								{/* Rust corrosion spots on button */}
 								<div className="absolute inset-0 flex justify-around items-start pointer-events-none">
 									{[...Array(5)].map((_, i) => (
 										<div

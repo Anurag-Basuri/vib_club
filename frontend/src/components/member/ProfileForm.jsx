@@ -18,13 +18,7 @@ import {
 import { allSkills } from '../../utils/fileUtils.js';
 
 // --- SkillsSelector Component ---
-const SkillsSelector = ({
-	allSkills,
-	selectedSkills,
-	onSkillAdd,
-	newSkill,
-	setNewSkill,
-}) => {
+const SkillsSelector = ({ allSkills, selectedSkills, onSkillAdd, newSkill, setNewSkill }) => {
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 	const [focusedIndex, setFocusedIndex] = useState(-1);
 	const inputRef = useRef(null);
@@ -48,10 +42,7 @@ const SkillsSelector = ({
 				'Leadership',
 				'Teamwork',
 			].filter(
-				(skill) =>
-					!selectedSkills.some(
-						(sel) => sel.toLowerCase() === skill.toLowerCase()
-					)
+				(skill) => !selectedSkills.some((sel) => sel.toLowerCase() === skill.toLowerCase())
 			),
 		[selectedSkills]
 	);
@@ -63,17 +54,13 @@ const SkillsSelector = ({
 		const startsWith = allSkills.filter(
 			(skill) =>
 				skill.toLowerCase().startsWith(searchTerm) &&
-				!selectedSkills.some(
-					(sel) => sel.toLowerCase() === skill.toLowerCase()
-				)
+				!selectedSkills.some((sel) => sel.toLowerCase() === skill.toLowerCase())
 		);
 		const contains = allSkills.filter(
 			(skill) =>
 				!skill.toLowerCase().startsWith(searchTerm) &&
 				skill.toLowerCase().includes(searchTerm) &&
-				!selectedSkills.some(
-					(sel) => sel.toLowerCase() === skill.toLowerCase()
-				)
+				!selectedSkills.some((sel) => sel.toLowerCase() === skill.toLowerCase())
 		);
 		return [...startsWith, ...contains].slice(0, 50);
 	}, [allSkills, newSkill, selectedSkills]);
@@ -86,9 +73,7 @@ const SkillsSelector = ({
 			const trimmed = skillToAdd.trim();
 			if (
 				trimmed &&
-				!selectedSkills.some(
-					(sel) => sel.toLowerCase() === trimmed.toLowerCase()
-				)
+				!selectedSkills.some((sel) => sel.toLowerCase() === trimmed.toLowerCase())
 			) {
 				onSkillAdd(trimmed);
 				setNewSkill('');
@@ -146,9 +131,7 @@ const SkillsSelector = ({
 	// Scroll focused item into view
 	useEffect(() => {
 		if (!scrollContainerRef.current || focusedIndex < 0) return;
-		const item = scrollContainerRef.current.querySelector(
-			`[data-index="${focusedIndex}"]`
-		);
+		const item = scrollContainerRef.current.querySelector(`[data-index="${focusedIndex}"]`);
 		if (item) item.scrollIntoView({ block: 'nearest' });
 	}, [focusedIndex]);
 
@@ -282,16 +265,24 @@ const SkillsSelector = ({
 			</div>
 			<div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
 				<span className="flex items-center gap-1">
-					<span className="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded font-mono">↑</span>
-					<span className="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded font-mono">↓</span>
+					<span className="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded font-mono">
+						↑
+					</span>
+					<span className="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded font-mono">
+						↓
+					</span>
 					to navigate
 				</span>
 				<span className="flex items-center gap-1">
-					<span className="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded font-mono">Enter</span>
+					<span className="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded font-mono">
+						Enter
+					</span>
 					to select
 				</span>
 				<span className="flex items-center gap-1">
-					<span className="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded font-mono">Esc</span>
+					<span className="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded font-mono">
+						Esc
+					</span>
 					to close
 				</span>
 			</div>
@@ -461,16 +452,29 @@ const ProfileForm = ({
 							required={formData.hosteler}
 						>
 							<option value="">Select Hostel</option>
-							{['BH-1', 'BH-2', 'BH-3', 'BH-4', 'BH-5', 'BH-6', 'BH-7', 'GH-1', 'GH-2', 'GH-3', 'GH-4', 'GH-5', 'GH-6', 'GH-7'].map((h) => (
+							{[
+								'BH-1',
+								'BH-2',
+								'BH-3',
+								'BH-4',
+								'BH-5',
+								'BH-6',
+								'BH-7',
+								'GH-1',
+								'GH-2',
+								'GH-3',
+								'GH-4',
+								'GH-5',
+								'GH-6',
+								'GH-7',
+							].map((h) => (
 								<option key={h} value={h}>
 									{h}
 								</option>
 							))}
 						</select>
 						{isHostelInvalid && (
-							<p className="text-red-500 text-xs mt-1">
-								Please select your hostel.
-							</p>
+							<p className="text-red-500 text-xs mt-1">Please select your hostel.</p>
 						)}
 					</div>
 				)}
@@ -548,9 +552,7 @@ const ProfileForm = ({
 								<input
 									type="url"
 									value={link.url}
-									onChange={(e) =>
-										onSocialLinkChange(idx, 'url', e.target.value)
-									}
+									onChange={(e) => onSocialLinkChange(idx, 'url', e.target.value)}
 									className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all text-sm"
 									placeholder="https://..."
 									required

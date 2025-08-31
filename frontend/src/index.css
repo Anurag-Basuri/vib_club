@@ -1,169 +1,174 @@
 @import 'tailwindcss';
 
 html {
-  scroll-behavior: auto !important; /* Let Lenis handle smooth scrolling */
-  overflow-x: hidden;
+	scroll-behavior: auto !important; /* Let Lenis handle smooth scrolling */
+	overflow-x: hidden;
 }
 
 /* Lenis specific optimizations */
 html.lenis,
 html.lenis body {
-  height: auto;
+	height: auto;
 }
 
 .lenis.lenis-smooth {
-  scroll-behavior: auto !important;
+	scroll-behavior: auto !important;
 }
 
 .lenis.lenis-smooth [data-lenis-prevent] {
-  overscroll-behavior: contain;
+	overscroll-behavior: contain;
 }
 
 /* Prevent layout shifts */
 #root {
-  isolation: isolate;
+	isolation: isolate;
 }
 
 /* Enhanced Glass Effects */
 .glass-card {
-  background: rgba(255, 255, 255, 0.05);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+	background: rgba(255, 255, 255, 0.05);
+	-webkit-backdrop-filter: blur(10px);
+	backdrop-filter: blur(10px);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .glass-card-primary {
-  background: rgba(59, 130, 246, 0.1);
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15);
+	background: rgba(59, 130, 246, 0.1);
+	-webkit-backdrop-filter: blur(16px);
+	backdrop-filter: blur(16px);
+	border: 1px solid rgba(59, 130, 246, 0.2);
+	box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15);
 }
 
 .glass-card-error {
-  background: rgba(239, 68, 68, 0.1);
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  box-shadow: 0 8px 32px rgba(239, 68, 68, 0.15);
+	background: rgba(239, 68, 68, 0.1);
+	-webkit-backdrop-filter: blur(16px);
+	backdrop-filter: blur(16px);
+	border: 1px solid rgba(239, 68, 68, 0.2);
+	box-shadow: 0 8px 32px rgba(239, 68, 68, 0.15);
 }
 
 .glass-card-success {
-  background: rgba(34, 197, 94, 0.1);
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(34, 197, 94, 0.2);
-  box-shadow: 0 8px 32px rgba(34, 197, 94, 0.15);
+	background: rgba(34, 197, 94, 0.1);
+	-webkit-backdrop-filter: blur(16px);
+	backdrop-filter: blur(16px);
+	border: 1px solid rgba(34, 197, 94, 0.2);
+	box-shadow: 0 8px 32px rgba(34, 197, 94, 0.15);
 }
 
 /* Optimized scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
+	width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
+	background: rgba(0, 0, 0, 0.1);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 3px;
-  transition: background 0.2s ease;
+	background: rgba(255, 255, 255, 0.2);
+	border-radius: 3px;
+	transition: background 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+	background: rgba(255, 255, 255, 0.3);
 }
 
 /* Performance optimizations */
 .will-change-transform {
-  will-change: transform;
+	will-change: transform;
 }
 
 .will-change-scroll {
-  will-change: scroll-position;
+	will-change: scroll-position;
 }
 
 /* Smooth animations */
 @keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+	0% {
+		transform: translateX(-100%);
+	}
+	100% {
+		transform: translateX(100%);
+	}
 }
 
 .animate-shimmer {
-  position: relative;
-  overflow: hidden;
+	position: relative;
+	overflow: hidden;
 }
 
 .animate-shimmer::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.1),
-    transparent
-  );
-  animation: shimmer 2s infinite;
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+	animation: shimmer 2s infinite;
 }
 
 @keyframes pulse-slow {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.6; }
+	0%,
+	100% {
+		opacity: 0.3;
+	}
+	50% {
+		opacity: 0.6;
+	}
 }
 
 .animate-pulse-slow {
-  animation: pulse-slow 4s ease-in-out infinite;
+	animation: pulse-slow 4s ease-in-out infinite;
 }
 
 /* Enhanced hover effects */
 .hover-lift {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	transition:
+		transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+		box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .hover-lift:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+	transform: translateY(-4px);
+	box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
 }
 
 /* Fix for modal scrolling */
 .modal-open {
-  overflow: hidden;
+	overflow: hidden;
 }
 
 /* Prevent scroll issues on mobile */
 .touch-pan-y {
-  touch-action: pan-y;
+	touch-action: pan-y;
 }
 
 .touch-none {
-  touch-action: none;
+	touch-action: none;
 }
 
 /* Better focus states */
 button:focus-visible,
 input:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid rgba(59, 130, 246, 0.6);
-  outline-offset: 2px;
+	outline: 2px solid rgba(59, 130, 246, 0.6);
+	outline-offset: 2px;
 }
 
 /* Add this to your CSS file if you're using it */
 
 @layer utilities {
-  .xs\:hidden {
-    display: none;
-  }
-  .xs\:inline {
-    display: inline;
-  }
-  .xs\:block {
-    display: block;
-  }
+	.xs\:hidden {
+		display: none;
+	}
+	.xs\:inline {
+		display: inline;
+	}
+	.xs\:block {
+		display: block;
+	}
 }

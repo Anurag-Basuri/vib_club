@@ -107,7 +107,8 @@ export const handlePayment = async ({
 };
 
 export default handlePayment;
-{/*
+{
+	/*
 import { publicClient } from '../services/api.js';
 	
 	export const handlePayment = async ({
@@ -206,4 +207,5 @@ import { publicClient } from '../services/api.js';
 		}
 };
 
-export default handlePayment;*/}
+export default handlePayment;*/
+}
