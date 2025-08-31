@@ -29,7 +29,6 @@ const LeadershipCard = ({ leader, index, onClick }) => (
 		transition={{ delay: index * 0.2, duration: 0.7 }}
 		whileHover={{ y: -10, scale: 1.03 }}
 		whileTap={{ scale: 0.98 }}
-		onClick={() => onClick(leader)}
 	>
 		<div
 			className={`relative p-6 rounded-2xl bg-gradient-to-br from-[#0a0f1f]/80 to-[#1a1f3a]/90 border border-[#3a56c9]/40 shadow-xl cursor-pointer ${leader.level === 0 ? 'w-80' : 'w-72'}`}
@@ -37,7 +36,7 @@ const LeadershipCard = ({ leader, index, onClick }) => (
 			<div className="flex flex-col items-center">
 				<div className="relative mb-4">
 					<img
-						src={leader.profilePicture || 'default-profile.png'}
+						src={leader.profilePicture.url || 'default-profile.png'}
 						alt={leader.fullName}
 						className="w-24 h-24 rounded-full object-cover border-4 border-[#3a56c9]/40"
 					/>
@@ -50,14 +49,14 @@ const LeadershipCard = ({ leader, index, onClick }) => (
 				<p className="text-[#9ca3d4] text-sm text-center mb-4">
 					{leader.bio || 'Passionate leader driving innovation'}
 				</p>
-				<motion.button
+				{/* <motion.button
 					className="mt-2 px-4 py-2 rounded-lg bg-gradient-to-r from-[#3a56c9]/30 to-[#5d7df5]/30 text-[#9ca3d4] text-sm hover:text-white hover:from-[#3a56c9]/50 hover:to-[#5d7df5]/50 transition-all"
 					whileHover={{ scale: 1.05 }}
 				>
 					<span className="flex items-center gap-2">
 						View Profile <ArrowRight size={14} />
 					</span>
-				</motion.button>
+				</motion.button> */}
 			</div>
 		</div>
 	</motion.div>
@@ -77,7 +76,7 @@ const TeamMemberCard = ({ member, delay = 0, onClick }) => (
 			<div className="flex items-center mb-4">
 				<div className="relative">
 					<img
-						src={member.profilePicture || 'default-profile.png'}
+						src={member.profilePicture.url || 'default-profile.png'}
 						alt={member.fullName}
 						className="w-16 h-16 rounded-full object-cover border-3 border-[#3a56c9]/30"
 					/>
@@ -107,14 +106,14 @@ const TeamMemberCard = ({ member, delay = 0, onClick }) => (
 					</span>
 				)}
 			</div>
-			<motion.button
+			{/* <motion.button
 				className="w-full px-4 py-2 rounded-lg bg-gradient-to-r from-[#3a56c9]/30 to-[#5d7df5]/30 text-[#9ca3d4] text-sm hover:text-white hover:from-[#3a56c9]/50 hover:to-[#5d7df5]/50 transition-all"
 				whileHover={{ scale: 1.03 }}
 			>
 				<span className="flex items-center justify-center gap-2">
 					View Profile <ArrowRight size={14} />
 				</span>
-			</motion.button>
+			</motion.button> */}
 		</div>
 	</motion.div>
 );
