@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Sparkles, Loader, Users } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles, Loader, Users, Filter, Search, UserCheck, UserX, X } from 'lucide-react';
 import { publicClient } from '../services/api.js';
 import { useAuth } from '../hooks/useAuth.js';
 
@@ -28,6 +28,8 @@ const TeamsPage = () => {
 	const [eventManagement, setEventManagement] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
+	const [searchQuery, setSearchQuery] = useState('');
+	const [showAuthMessage, setShowAuthMessage] = useState(true);
 
 	useEffect(() => {
 		const fetchTeamData = async () => {
@@ -48,7 +50,20 @@ const TeamsPage = () => {
 
 	useEffect(() => {
 		if (teamData.length > 0) {
-			const leadershipMembers = teamData
+			// Filter team data if search query exists
+			const filteredData = searchQuery
+				? teamData.filter(
+						(member) =>
+							member.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+							member.department?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+							member.designation?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+							member.skills?.some((skill) =>
+								skill.toLowerCase().includes(searchQuery.toLowerCase())
+							)
+					)
+				: teamData;
+
+			const leadershipMembers = filteredData
 				.filter((member) => ['CEO', 'CTO', 'CMO', 'COO'].includes(member.designation))
 				.map((member) => ({
 					...member,
@@ -60,28 +75,44 @@ const TeamsPage = () => {
 				!leadershipMembers.some((lm) => lm._id === member._id);
 
 			setTechnical(
-				teamData.filter((m) => m.department === 'Technical' && excludeLeadership(m))
+				filteredData.filter((m) => m.department === 'Technical' && excludeLeadership(m))
 			);
 			setManagement(
-				teamData.filter((m) => m.department === 'Management' && excludeLeadership(m))
+				filteredData.filter((m) => m.department === 'Management' && excludeLeadership(m))
 			);
 			setMarketing(
-				teamData.filter((m) => m.department === 'Marketing' && excludeLeadership(m))
+				filteredData.filter((m) => m.department === 'Marketing' && excludeLeadership(m))
 			);
 			setSocialMedia(
-				teamData.filter((m) => m.department === 'Social Media' && excludeLeadership(m))
+				filteredData.filter((m) => m.department === 'Social Media' && excludeLeadership(m))
 			);
-			setMedia(teamData.filter((m) => m.department === 'Media' && excludeLeadership(m)));
+			setMedia(filteredData.filter((m) => m.department === 'Media' && excludeLeadership(m)));
 			setContentWriting(
-				teamData.filter((m) => m.department === 'Content Writing' && excludeLeadership(m))
+				filteredData.filter(
+					(m) => m.department === 'Content Writing' && excludeLeadership(m)
+				)
 			);
-			setDesign(teamData.filter((m) => m.department === 'Design' && excludeLeadership(m)));
-			setHR(teamData.filter((m) => m.department === 'HR' && excludeLeadership(m)));
+			setDesign(
+				filteredData.filter((m) => m.department === 'Design' && excludeLeadership(m))
+			);
+			setHR(filteredData.filter((m) => m.department === 'HR' && excludeLeadership(m)));
 			setEventManagement(
-				teamData.filter((m) => m.department === 'Event Management' && excludeLeadership(m))
+				filteredData.filter(
+					(m) => m.department === 'Event Management' && excludeLeadership(m)
+				)
 			);
 		}
-	}, [teamData]);
+	}, [teamData, searchQuery]);
+
+	// Auto-hide auth message after 5 seconds
+	useEffect(() => {
+		if (showAuthMessage) {
+			const timer = setTimeout(() => {
+				setShowAuthMessage(false);
+			}, 5000);
+			return () => clearTimeout(timer);
+		}
+	}, [showAuthMessage]);
 
 	const handleMemberClick = (member) => {
 		setSelectedMember(member);
@@ -97,6 +128,42 @@ const TeamsPage = () => {
 		<div className="min-h-screen bg-gradient-to-br from-[#0a0f1f] via-[#1a1f3a] to-[#0d1326] text-white overflow-x-hidden">
 			{/* Background particles */}
 			<FloatingParticles />
+
+			{/* Authentication Status Banner */}
+			<AnimatePresence>
+				{showAuthMessage && (
+					<motion.div
+						className={`fixed top-20 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded-lg flex items-center gap-2 backdrop-blur-md border ${
+							isAuthenticated
+								? 'bg-[#1e2f60]/80 border-[#3a56c9] text-[#d0d5f7]'
+								: 'bg-[#1e2f60]/80 border-[#3a56c9]/50 text-[#9ca3d4]'
+						}`}
+						initial={{ y: -50, opacity: 0 }}
+						animate={{ y: 0, opacity: 1 }}
+						exit={{ y: -50, opacity: 0 }}
+					>
+						{isAuthenticated ? (
+							<>
+								<UserCheck size={16} className="text-[#5d7df5]" />
+								<span className="text-sm">Viewing as authenticated member</span>
+							</>
+						) : (
+							<>
+								<UserX size={16} className="text-[#5d7df5]/70" />
+								<span className="text-sm">
+									Some details are hidden for non-members
+								</span>
+							</>
+						)}
+						<button
+							className="ml-2 text-[#5d7df5] hover:text-[#3a56c9] transition-colors"
+							onClick={() => setShowAuthMessage(false)}
+						>
+							<X size={14} />
+						</button>
+					</motion.div>
+				)}
+			</AnimatePresence>
 
 			{loading && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0a0f1f]/90 backdrop-blur-lg">
@@ -176,6 +243,36 @@ const TeamsPage = () => {
 						</span>
 					</motion.p>
 
+					{/* Search bar */}
+					<motion.div
+						className="max-w-md mx-auto mb-8"
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ delay: 0.6, duration: 0.5 }}
+					>
+						<div className="relative">
+							<input
+								type="text"
+								placeholder="Search by name, department, skills..."
+								value={searchQuery}
+								onChange={(e) => setSearchQuery(e.target.value)}
+								className="w-full px-4 py-3 pl-10 bg-[#1a244f]/70 border border-[#3a56c9]/40 rounded-xl text-white placeholder-[#9ca3d4] focus:outline-none focus:border-[#5d7df5] transition-colors"
+							/>
+							<Search
+								className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#5d7df5]"
+								size={18}
+							/>
+							{searchQuery && (
+								<button
+									className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#9ca3d4] hover:text-white transition-colors"
+									onClick={() => setSearchQuery('')}
+								>
+									<X size={18} />
+								</button>
+							)}
+						</div>
+					</motion.div>
+
 					{/* Team stats */}
 					<motion.div
 						className="flex flex-wrap justify-center gap-4 mt-8"
@@ -183,11 +280,19 @@ const TeamsPage = () => {
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ delay: 0.6, duration: 0.8 }}
 					>
-						<div className="bg-[#1a244f]/50 backdrop-blur-sm px-6 py-3 rounded-xl border border-[#3a56c9]/30">
-							<div className="text-3xl font-bold text-[#5d7df5]">{teamData.length}</div>
+						<motion.div
+							className="bg-[#1a244f]/50 backdrop-blur-sm px-6 py-3 rounded-xl border border-[#3a56c9]/30"
+							whileHover={{ y: -5, backgroundColor: 'rgba(30, 47, 96, 0.6)' }}
+						>
+							<div className="text-3xl font-bold text-[#5d7df5]">
+								{teamData.length}
+							</div>
 							<div className="text-sm text-[#9ca3d4]">Team Members</div>
-						</div>
-						<div className="bg-[#1a244f]/50 backdrop-blur-sm px-6 py-3 rounded-xl border border-[#3a56c9]/30">
+						</motion.div>
+						<motion.div
+							className="bg-[#1a244f]/50 backdrop-blur-sm px-6 py-3 rounded-xl border border-[#3a56c9]/30"
+							whileHover={{ y: -5, backgroundColor: 'rgba(30, 47, 96, 0.6)' }}
+						>
 							<div className="text-3xl font-bold text-[#5d7df5]">
 								{
 									Object.keys(
@@ -199,11 +304,16 @@ const TeamsPage = () => {
 								}
 							</div>
 							<div className="text-sm text-[#9ca3d4]">Departments</div>
-						</div>
-						<div className="bg-[#1a244f]/50 backdrop-blur-sm px-6 py-3 rounded-xl border border-[#3a56c9]/30">
-							<div className="text-3xl font-bold text-[#5d7df5]">{leadership.length}</div>
+						</motion.div>
+						<motion.div
+							className="bg-[#1a244f]/50 backdrop-blur-sm px-6 py-3 rounded-xl border border-[#3a56c9]/30"
+							whileHover={{ y: -5, backgroundColor: 'rgba(30, 47, 96, 0.6)' }}
+						>
+							<div className="text-3xl font-bold text-[#5d7df5]">
+								{leadership.length}
+							</div>
 							<div className="text-sm text-[#9ca3d4]">Leaders</div>
-						</div>
+						</motion.div>
 					</motion.div>
 				</div>
 			</section>
@@ -268,12 +378,31 @@ const TeamsPage = () => {
 						<div className="w-20 h-1 bg-gradient-to-r from-[#0ea5e9] to-[#5d7df5] rounded-full"></div>
 					</motion.div>
 
+					{/* Search results message */}
+					{searchQuery && (
+						<div className="mb-8 text-center">
+							<div className="inline-flex items-center gap-2 px-4 py-2 bg-[#1a244f]/70 rounded-lg border border-[#3a56c9]/40">
+								<Filter size={16} className="text-[#5d7df5]" />
+								<span className="text-[#d0d5f7]">
+									Showing results for "{searchQuery}"
+								</span>
+								<button
+									onClick={() => setSearchQuery('')}
+									className="ml-2 text-[#5d7df5] hover:text-white transition-colors"
+								>
+									Clear
+								</button>
+							</div>
+						</div>
+					)}
+
 					<div className="space-y-16 sm:space-y-20">
 						{technical.length > 0 && (
 							<DepartmentSection
 								department="Technical"
 								members={technical}
 								onClick={handleMemberClick}
+								isAuthenticated={isAuthenticated}
 							/>
 						)}
 						{management.length > 0 && (
@@ -281,6 +410,7 @@ const TeamsPage = () => {
 								department="Management"
 								members={management}
 								onClick={handleMemberClick}
+								isAuthenticated={isAuthenticated}
 							/>
 						)}
 						{marketing.length > 0 && (
@@ -288,6 +418,7 @@ const TeamsPage = () => {
 								department="Marketing"
 								members={marketing}
 								onClick={handleMemberClick}
+								isAuthenticated={isAuthenticated}
 							/>
 						)}
 						{socialMedia.length > 0 && (
@@ -295,6 +426,7 @@ const TeamsPage = () => {
 								department="Social Media"
 								members={socialMedia}
 								onClick={handleMemberClick}
+								isAuthenticated={isAuthenticated}
 							/>
 						)}
 						{media.length > 0 && (
@@ -302,6 +434,7 @@ const TeamsPage = () => {
 								department="Media"
 								members={media}
 								onClick={handleMemberClick}
+								isAuthenticated={isAuthenticated}
 							/>
 						)}
 						{contentWriting.length > 0 && (
@@ -309,6 +442,7 @@ const TeamsPage = () => {
 								department="Content Writing"
 								members={contentWriting}
 								onClick={handleMemberClick}
+								isAuthenticated={isAuthenticated}
 							/>
 						)}
 						{design.length > 0 && (
@@ -316,6 +450,7 @@ const TeamsPage = () => {
 								department="Design"
 								members={design}
 								onClick={handleMemberClick}
+								isAuthenticated={isAuthenticated}
 							/>
 						)}
 						{hr.length > 0 && (
@@ -323,6 +458,7 @@ const TeamsPage = () => {
 								department="HR"
 								members={hr}
 								onClick={handleMemberClick}
+								isAuthenticated={isAuthenticated}
 							/>
 						)}
 						{eventManagement.length > 0 && (
@@ -330,9 +466,40 @@ const TeamsPage = () => {
 								department="Event Management"
 								members={eventManagement}
 								onClick={handleMemberClick}
+								isAuthenticated={isAuthenticated}
 							/>
 						)}
 					</div>
+
+					{/* No results message */}
+					{searchQuery &&
+						technical.length === 0 &&
+						management.length === 0 &&
+						marketing.length === 0 &&
+						socialMedia.length === 0 &&
+						media.length === 0 &&
+						contentWriting.length === 0 &&
+						design.length === 0 &&
+						hr.length === 0 &&
+						eventManagement.length === 0 && (
+							<div className="text-center py-16 max-w-md mx-auto">
+								<div className="bg-[#1a244f]/70 rounded-xl p-8 border border-[#3a56c9]/40">
+									<SearchX size={48} className="text-[#5d7df5]/70 mx-auto mb-4" />
+									<h3 className="text-xl font-semibold text-white mb-2">
+										No Results Found
+									</h3>
+									<p className="text-[#9ca3d4] mb-4">
+										We couldn't find any team members matching "{searchQuery}"
+									</p>
+									<button
+										onClick={() => setSearchQuery('')}
+										className="px-4 py-2 bg-[#3a56c9] hover:bg-[#5d7df5] text-white rounded-lg transition-colors"
+									>
+										Clear Search
+									</button>
+								</div>
+							</div>
+						)}
 				</div>
 			</section>
 
