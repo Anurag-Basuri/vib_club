@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import TeamMemberCard from './TeamMemberCard';
 import { ChevronRight } from 'lucide-react';
 
-const DepartmentSection = ({ department, members, onClick }) => {
+const DepartmentSection = ({ department, members, onClick, isAuthenticated }) => {
 	const designationGroups = members.reduce((acc, member) => {
 		if (!acc[member.designation]) acc[member.designation] = [];
 		acc[member.designation].push(member);
@@ -46,6 +46,7 @@ const DepartmentSection = ({ department, members, onClick }) => {
 								member={member}
 								delay={index}
 								onClick={onClick}
+								isAuthenticated={isAuthenticated}
 							/>
 						))}
 					</div>
