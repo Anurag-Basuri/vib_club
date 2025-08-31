@@ -13,18 +13,22 @@ const LeadershipCard = ({ leader, index, onClick }) => (
 		onClick={() => onClick(leader)}
 	>
 		<div
-			className={`relative p-6 rounded-2xl bg-gradient-to-br from-[#0a0f1f]/80 to-[#1a1f3a]/90 border border-[#3a56c9]/40 shadow-xl cursor-pointer hover:shadow-[0_0_30px_rgba(93,125,245,0.2)] hover:border-[#5d7df5]/60 transition-all duration-300 ${
-				leader.level === 0 ? 'w-full sm:w-80' : 'w-full sm:w-72'
+			className={`relative p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-[#0a0f1f]/80 to-[#1a1f3a]/90 border border-[#3a56c9]/40 shadow-xl cursor-pointer hover:shadow-[0_0_30px_rgba(93,125,245,0.2)] hover:border-[#5d7df5]/60 transition-all duration-300 ${
+				leader.level === 0 ? 'w-[260px] sm:w-80' : 'w-[220px] sm:w-72'
 			}`}
 		>
-			{/* Background glow effect */}
+			{/* Enhanced glow effect */}
 			<div className="absolute -inset-0.5 bg-gradient-to-r from-[#3a56c9] to-[#5d7df5] rounded-2xl opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
 
-			{/* Leader badge */}
+			{/* Leader badge with animation */}
 			{leader.level === 0 && (
-				<div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-[#5d7df5] to-[#3a56c9] text-white text-xs font-bold uppercase tracking-wider py-1 px-4 rounded-full">
+				<motion.div
+					className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-[#5d7df5] to-[#3a56c9] text-white text-xs font-bold uppercase tracking-wider py-1 px-4 rounded-full"
+					animate={{ y: [0, -3, 0] }}
+					transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+				>
 					Club Lead
-				</div>
+				</motion.div>
 			)}
 
 			<div className="flex flex-col items-center relative z-10">

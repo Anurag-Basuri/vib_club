@@ -275,25 +275,25 @@ const TeamsPage = () => {
 
 					{/* Team stats */}
 					<motion.div
-						className="flex flex-wrap justify-center gap-4 mt-8"
+						className="flex flex-wrap justify-center gap-3 sm:gap-4 mt-6 sm:mt-8 px-2"
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ delay: 0.6, duration: 0.8 }}
 					>
 						<motion.div
-							className="bg-[#1a244f]/50 backdrop-blur-sm px-6 py-3 rounded-xl border border-[#3a56c9]/30"
+							className="bg-[#1a244f]/50 backdrop-blur-sm px-4 sm:px-6 py-2 sm:py-3 rounded-xl border border-[#3a56c9]/30 flex-1 min-w-[100px] max-w-[150px]"
 							whileHover={{ y: -5, backgroundColor: 'rgba(30, 47, 96, 0.6)' }}
 						>
-							<div className="text-3xl font-bold text-[#5d7df5]">
+							<div className="text-2xl sm:text-3xl font-bold text-[#5d7df5]">
 								{teamData.length}
 							</div>
-							<div className="text-sm text-[#9ca3d4]">Team Members</div>
+							<div className="text-xs sm:text-sm text-[#9ca3d4]">Team Members</div>
 						</motion.div>
 						<motion.div
-							className="bg-[#1a244f]/50 backdrop-blur-sm px-6 py-3 rounded-xl border border-[#3a56c9]/30"
+							className="bg-[#1a244f]/50 backdrop-blur-sm px-4 sm:px-6 py-2 sm:py-3 rounded-xl border border-[#3a56c9]/30 flex-1 min-w-[100px] max-w-[150px]"
 							whileHover={{ y: -5, backgroundColor: 'rgba(30, 47, 96, 0.6)' }}
 						>
-							<div className="text-3xl font-bold text-[#5d7df5]">
+							<div className="text-2xl sm:text-3xl font-bold text-[#5d7df5]">
 								{
 									Object.keys(
 										teamData.reduce(
@@ -303,16 +303,16 @@ const TeamsPage = () => {
 									).length
 								}
 							</div>
-							<div className="text-sm text-[#9ca3d4]">Departments</div>
+							<div className="text-xs sm:text-sm text-[#9ca3d4]">Departments</div>
 						</motion.div>
 						<motion.div
-							className="bg-[#1a244f]/50 backdrop-blur-sm px-6 py-3 rounded-xl border border-[#3a56c9]/30"
+							className="bg-[#1a244f]/50 backdrop-blur-sm px-4 sm:px-6 py-2 sm:py-3 rounded-xl border border-[#3a56c9]/30 flex-1 min-w-[100px] max-w-[150px]"
 							whileHover={{ y: -5, backgroundColor: 'rgba(30, 47, 96, 0.6)' }}
 						>
-							<div className="text-3xl font-bold text-[#5d7df5]">
+							<div className="text-2xl sm:text-3xl font-bold text-[#5d7df5]">
 								{leadership.length}
 							</div>
-							<div className="text-sm text-[#9ca3d4]">Leaders</div>
+							<div className="text-xs sm:text-sm text-[#9ca3d4]">Leaders</div>
 						</motion.div>
 					</motion.div>
 				</div>
