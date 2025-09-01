@@ -23,6 +23,7 @@ const navSections = [
 		items: [
 			{ name: 'Home', icon: Home, path: '/', color: '#00d9ff' },
 			{ name: 'Events', icon: Calendar, path: '/event', color: '#7c3aed' },
+			{ name: 'Team', icon: User, path: '/team', color: '#7c3aed' },
 			{ name: 'Contact', icon: Mail, path: '/contact', color: '#0284c7' },
 		],
 	},
@@ -32,6 +33,7 @@ const navSections = [
 const pathToNavName = (pathname) => {
 	if (pathname === '/') return 'Home';
 	if (pathname.startsWith('/event')) return 'Events';
+	if (pathname.startsWith('/team')) return 'Team';
 	if (pathname.startsWith('/contact')) return 'Contact';
 	return 'Home';
 };
