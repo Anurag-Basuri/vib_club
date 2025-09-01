@@ -131,42 +131,6 @@ const TeamsPage = () => {
 			{/* Background particles */}
 			<FloatingParticles />
 
-			{/* Authentication Status Banner */}
-			<AnimatePresence>
-				{showAuthMessage && (
-					<motion.div
-						className={`fixed top-20 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded-lg flex items-center gap-2 backdrop-blur-md border ${
-							isAuthenticated
-								? 'bg-[#1e2f60]/80 border-[#3a56c9] text-[#d0d5f7]'
-								: 'bg-[#1e2f60]/80 border-[#3a56c9]/50 text-[#9ca3d4]'
-						}`}
-						initial={{ y: -50, opacity: 0 }}
-						animate={{ y: 0, opacity: 1 }}
-						exit={{ y: -50, opacity: 0 }}
-					>
-						{isAuthenticated ? (
-							<>
-								<UserCheck size={16} className="text-[#5d7df5]" />
-								<span className="text-sm">Viewing as authenticated member</span>
-							</>
-						) : (
-							<>
-								<UserX size={16} className="text-[#5d7df5]/70" />
-								<span className="text-sm">
-									Some details are hidden for non-members
-								</span>
-							</>
-						)}
-						<button
-							className="ml-2 text-[#5d7df5] hover:text-[#3a56c9] transition-colors"
-							onClick={() => setShowAuthMessage(false)}
-						>
-							<X size={14} />
-						</button>
-					</motion.div>
-				)}
-			</AnimatePresence>
-
 			{loading ? (
 				<div className="py-10">
 					<div className="text-center mb-8">
@@ -199,13 +163,6 @@ const TeamsPage = () => {
 				<>
 					{/* Hero Section */}
 					<section className="relative w-full pt-20 md:pt-28 pb-12 md:pb-16 px-4 flex flex-col items-center justify-center text-center">
-						{/* Modern geometric background */}
-						<div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-							<div className="absolute -top-20 -left-20 w-[40vw] h-[40vw] rounded-full bg-gradient-to-r from-indigo-600/20 to-purple-600/30 blur-[120px] animate-pulse-slow" />
-							<div className="absolute -bottom-40 -right-20 w-[50vw] h-[50vw] rounded-full bg-gradient-to-l from-blue-500/20 to-sky-400/20 blur-[100px] animate-pulse-slow" />
-							<div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 w-[70vw] h-[30vw] bg-gradient-to-br from-violet-500/10 via-fuchsia-500/10 to-transparent rounded-[100%] blur-[80px] animate-pulse-slow" />
-						</div>
-
 						<div className="relative z-10 max-w-4xl mx-auto">
 							<motion.div
 								className="mb-8 flex justify-center"
@@ -242,74 +199,6 @@ const TeamsPage = () => {
 									Where <span className="font-semibold text-blue-300">creativity</span> meets <span className="font-semibold text-indigo-300">technology</span> and <span className="font-semibold text-sky-300">collaboration</span> sparks innovation.
 								</span>
 							</motion.p>
-							
-							{/* Modern glassmorphic search */}
-							<motion.div
-								className="max-w-md w-full mx-auto mb-8 px-4 sm:px-0"
-								initial={{ opacity: 0, y: 20 }}
-								animate={{ opacity: 1, y: 0 }}
-								transition={{ delay: 0.6, duration: 0.5 }}
-							>
-								<div className="relative group">
-									<div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-xl blur opacity-30 group-hover:opacity-50 transition-opacity"></div>
-									<div className="relative overflow-hidden bg-[#161a36]/70 backdrop-filter backdrop-blur-xl border border-white/10 rounded-xl shadow-xl">
-										<input
-											type="text"
-											placeholder="Search by name, department, skills..."
-											value={searchQuery}
-											onChange={(e) => setSearchQuery(e.target.value)}
-											className="w-full px-4 py-3 pl-11 bg-transparent text-white placeholder-white/50 focus:outline-none focus:placeholder-white/30 text-sm sm:text-base transition-all"
-										/>
-										<Search
-											className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-white/70 group-hover:text-white transition-colors"
-											size={18}
-										/>
-										{searchQuery && (
-											<button
-												className="absolute right-3.5 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white transition-colors p-1 rounded-full hover:bg-white/10"
-												onClick={() => setSearchQuery('')}
-											>
-												<X size={16} />
-											</button>
-										)}
-									</div>
-								</div>
-							</motion.div>
-
-							{/* Team stats */}
-							<motion.div
-								className="flex flex-wrap justify-center gap-4 sm:gap-6 mt-8 px-2"
-								initial={{ opacity: 0, y: 20 }}
-								animate={{ opacity: 1, y: 0 }}
-								transition={{ delay: 0.7, duration: 0.8 }}
-							>
-								{[
-									{ value: teamData.length, label: 'Team Members', icon: Users },
-									{ 
-										value: Object.keys(teamData.reduce((acc, m) => ({ ...acc, [m.department]: true }), {})).length, 
-										label: 'Departments', 
-										icon: Layout 
-									},
-									{ value: leadership.length, label: 'Leaders', icon: Award }
-								].map((stat, index) => (
-									<motion.div
-										key={index}
-										className="relative group"
-										whileHover={{ y: -8, transition: { type: "spring", stiffness: 300 } }}
-									>
-										<div className="absolute inset-0 bg-gradient-to-br from-indigo-600/80 via-blue-600/80 to-sky-400/80 rounded-2xl blur-sm opacity-0 group-hover:opacity-70 transition-opacity"></div>
-										<div className="relative flex flex-col items-center px-6 py-4 rounded-2xl bg-[#161a36]/70 backdrop-filter backdrop-blur-xl border border-white/10 shadow-lg min-w-[140px]">
-											<div className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-200">
-												{stat.value}
-											</div>
-											<div className="text-sm text-blue-100/80">{stat.label}</div>
-											<div className="absolute -top-3 -right-3 p-1.5 rounded-full bg-gradient-to-br from-indigo-600 to-blue-500 shadow-lg">
-												<stat.icon size={14} className="text-white" />
-											</div>
-										</div>
-									</motion.div>
-								))}
-							</motion.div>
 						</div>
 					</section>
 

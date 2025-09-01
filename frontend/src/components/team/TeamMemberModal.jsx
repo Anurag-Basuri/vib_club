@@ -1,422 +1,483 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-	X,
-	Award,
-	Mail,
-	Linkedin,
-	Github,
-	User,
-	Calendar,
-	BookOpen,
-	Briefcase,
-	ChevronRight,
-	Phone,
-	MapPin,
-	Code,
-	Download,
-	ExternalLink,
-	Lock,
-	Sparkles,
-	UserCheck,
+    X,
+    Award,
+    Mail,
+    Linkedin,
+    Github,
+    User,
+    Calendar,
+    BookOpen,
+    Briefcase,
+    ChevronRight,
+    Phone,
+    MapPin,
+    Code,
+    Download,
+    ExternalLink,
+    Lock,
+    Sparkles,
+    UserCheck,
+    Home,
+    FileText,
+    Building,
+    GraduationCap,
+    Clock,
+    AlertCircle,
+    CheckCircle,
+    XCircle,
+    Globe,
+    Share2,
+    Info,
+    Link as LinkIcon,
+    Badge,
+    Hash,
 } from 'lucide-react';
 
 const TeamMemberModal = ({ member, isOpen, onClose, isAuthenticated }) => {
-	const [activeTab, setActiveTab] = useState('about');
+    const [activeTab, setActiveTab] = useState('about');
 
-	if (!isOpen) return null;
+    if (!isOpen) return null;
 
-	// Format joined date with better readability
-	const formatDate = (dateString) => {
-		if (!dateString) return 'N/A';
-		const date = new Date(dateString);
-		return new Intl.DateTimeFormat('en-US', {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric',
-		}).format(date);
-	};
+    // Format joined date with better readability
+    const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return new Intl.DateTimeFormat('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        }).format(date);
+    };
 
-	// Extract social media links from member data
-	const getSocialLinks = () => {
-		const links = [];
+    // Extract social media links from member data
+    const getSocialLinks = () => {
+        const links = [];
 
-		if (member?.socialLinks?.length > 0) {
-			return member.socialLinks;
-		}
+        if (member?.socialLinks?.length > 0) {
+            return member.socialLinks;
+        }
 
-		// Add some fallback detection for LinkedIn/Github if not in socialLinks array
-		if (member?.linkedIn) {
-			links.push({
-				platform: 'LinkedIn',
-				url: member.linkedIn,
-			});
-		}
+        // Add some fallback detection for LinkedIn/Github if not in socialLinks array
+        if (member?.linkedIn) {
+            links.push({
+                platform: 'LinkedIn',
+                url: member.linkedIn,
+            });
+        }
 
-		if (member?.github) {
-			links.push({
-				platform: 'GitHub',
-				url: member.github,
-			});
-		}
+        if (member?.github) {
+            links.push({
+                platform: 'GitHub',
+                url: member.github,
+            });
+        }
 
-		return links;
-	};
+        return links;
+    };
 
-	const socialLinks = getSocialLinks();
+    const socialLinks = getSocialLinks();
 
-	return (
-		<AnimatePresence>
-			{isOpen && (
-				<motion.div
-					className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-[#0a0f1f]/80 backdrop-blur-lg overflow-y-auto"
-					initial={{ opacity: 0 }}
-					animate={{ opacity: 1 }}
-					exit={{ opacity: 0 }}
-					onClick={onClose}
-				>
-					<motion.div
-						className="relative max-w-lg w-full my-2 sm:my-8 max-h-[95vh] overflow-y-auto"
-						initial={{ scale: 0.8, y: 50 }}
-						animate={{ scale: 1, y: 0 }}
-						exit={{ scale: 0.8, y: 50 }}
-						onClick={(e) => e.stopPropagation()}
-					>
-						{/* Top section with profile info */}
-						<div className="relative rounded-t-2xl bg-gradient-to-b from-[#161a36]/95 to-[#0f1225]/95 p-6 pb-20 border-t border-l border-r border-indigo-500/30 overflow-hidden">
-							{/* Background effects */}
-							<div className="absolute -top-40 left-0 right-0 h-80 bg-gradient-to-b from-indigo-600/20 via-blue-600/20 to-transparent rounded-full blur-3xl transform -translate-x-1/2"></div>
-							<div className="absolute -top-40 right-0 h-80 w-full bg-gradient-to-b from-blue-600/20 via-indigo-600/20 to-transparent rounded-full blur-3xl transform translate-x-1/2"></div>
+    // Helper to get status badge styles
+    const getStatusBadge = (status) => {
+        switch (status) {
+            case 'active':
+                return {
+                    color: 'text-green-400',
+                    bg: 'bg-green-900/20',
+                    border: 'border-green-500/30',
+                    icon: <CheckCircle size={14} className="mr-1" />,
+                };
+            case 'banned':
+                return {
+                    color: 'text-red-400',
+                    bg: 'bg-red-900/20',
+                    border: 'border-red-500/30',
+                    icon: <XCircle size={14} className="mr-1" />,
+                };
+            case 'removed':
+                return {
+                    color: 'text-yellow-400',
+                    bg: 'bg-yellow-900/20',
+                    border: 'border-yellow-500/30',
+                    icon: <AlertCircle size={14} className="mr-1" />,
+                };
+            default:
+                return {
+                    color: 'text-blue-400',
+                    bg: 'bg-blue-900/20',
+                    border: 'border-blue-500/30',
+                    icon: <Info size={14} className="mr-1" />,
+                };
+        }
+    };
 
-							{/* Close button */}
-							<button
-								onClick={onClose}
-								className="absolute top-4 right-4 text-white/70 hover:text-white z-10 bg-white/10 p-2 rounded-full backdrop-blur-sm w-8 h-8 flex items-center justify-center border border-white/20"
-								aria-label="Close modal"
-							>
-								<X size={18} />
-							</button>
+    // Specific status badge for this member
+    const statusBadge = getStatusBadge(member.status);
 
-							{/* Authentication badge */}
-							{isAuthenticated && (
-								<div className="absolute top-4 left-4 flex items-center gap-1 px-3 py-1.5 rounded-full bg-indigo-600/30 text-blue-200 text-xs backdrop-blur-sm border border-indigo-500/30">
-									<UserCheck size={12} />
-									<span>Authenticated View</span>
-								</div>
-							)}
+    return (
+        <AnimatePresence>
+            {isOpen && (
+                <motion.div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={onClose}
+                >
+                    <motion.div
+                        className="relative w-full max-w-4xl bg-gradient-to-br from-[#141b38] to-[#0f172a] rounded-2xl overflow-hidden shadow-xl my-8"
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.9, opacity: 0 }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-10"
+                            onClick={onClose}
+                        >
+                            <X size={20} className="text-white" />
+                        </button>
 
-							<div className="flex flex-col items-center relative z-10">
-								{/* Profile image */}
-								<div className="relative inline-block group">
-									<div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-600 via-blue-600 to-sky-400 blur-md opacity-70 group-hover:opacity-100 transition-opacity"></div>
-									<div className="absolute inset-1 rounded-full bg-gradient-to-br from-white/10 to-transparent"></div>
+                        <div className="flex flex-col md:flex-row">
+                            {/* Profile image section */}
+                            <div className="md:w-2/5 relative">
+                                <div className="h-64 md:h-full bg-gradient-to-br from-[#1e2d5f] via-[#3a56c9] to-[#5d7df5] flex items-center justify-center relative overflow-hidden">
+                                    {/* Background pattern */}
+                                    <div className="absolute inset-0 opacity-10">
+                                        <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                            <defs>
+                                                <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                                                    <path d="M 10 0 L 0 0 0 10" fill="none" stroke="white" strokeWidth="0.5" />
+                                                </pattern>
+                                            </defs>
+                                            <rect width="100" height="100" fill="url(#grid)" />
+                                        </svg>
+                                    </div>
+                                    
+                                    {/* Profile image with fallback */}
+                                    <motion.div 
+                                        className="relative z-10"
+                                        initial={{ scale: 0.9, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        transition={{ delay: 0.2, duration: 0.3 }}
+                                    >
+                                        {member.profilePicture?.url ? (
+                                            <div className="relative">
+                                                {/* Subtle glow behind image */}
+                                                <div className="absolute -inset-2 rounded-full bg-blue-400/30 blur-md"></div>
+                                                
+                                                {/* Image with border */}
+                                                <div className="relative h-40 w-40 md:h-48 md:w-48 lg:h-56 lg:w-56 rounded-full overflow-hidden border-4 border-white/20 shadow-lg">
+                                                    <img
+                                                        src={member.profilePicture.url}
+                                                        alt={member.fullname}
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            e.target.onerror = null;
+                                                            e.target.src = 'https://via.placeholder.com/200?text=No+Image';
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="relative">
+                                                {/* Subtle glow behind avatar */}
+                                                <div className="absolute -inset-2 rounded-full bg-blue-400/30 blur-md"></div>
+                                                
+                                                {/* Styled avatar fallback */}
+                                                <div className="relative h-40 w-40 md:h-48 md:w-48 lg:h-56 lg:w-56 rounded-full overflow-hidden border-4 border-white/20 shadow-lg bg-gradient-to-br from-[#2a3a6a] to-[#364680] flex items-center justify-center">
+                                                    <span className="text-5xl font-bold text-white/90">
+                                                        {member.fullname?.charAt(0) || '?'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </motion.div>
 
-									<img
-										src={member?.profilePicture?.url || '/default-profile.png'}
-										alt={member?.fullName || 'Team member'}
-										className="w-32 h-32 rounded-full object-cover border-2 border-white/10 relative z-10"
-										onError={(e) => {
-											e.target.src = '/default-profile.png';
-										}}
-									/>
+                                    {/* Decorative elements */}
+                                    <div className="absolute bottom-4 left-4 right-4 flex justify-center">
+                                        <div className="px-4 py-1 bg-black/30 backdrop-blur-sm rounded-full text-xs text-white/70 flex items-center">
+                                            {member.department && (
+                                                <span>{member.department}</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                {/* Status badge - Only visible to authenticated users */}
+                                {isAuthenticated && member.status && (
+                                    <div className="absolute top-4 left-4 z-20">
+                                        <div className={`flex items-center px-3 py-1 rounded-full ${statusBadge.bg} ${statusBadge.border} backdrop-blur-sm shadow-lg text-xs font-medium ${statusBadge.color}`}>
+                                            {statusBadge.icon}
+                                            {member.status.charAt(0).toUpperCase() + member.status.slice(1)}
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {/* Member's name overlay at bottom - only on mobile */}
+                                <div className="md:hidden absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                                    <h2 className="text-xl font-bold text-white truncate">
+                                        {member.fullname}
+                                    </h2>
+                                    <p className="text-blue-300 font-medium text-sm truncate">
+                                        {member.designation}
+                                    </p>
+                                </div>
+                            </div>
 
-									<motion.div
-										className="absolute -top-2 -right-2 w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg border border-white/10"
-										animate={{
-											rotate: [0, 360],
-											scale: [1, 1.1, 1],
-										}}
-										transition={{
-											rotate: {
-												duration: 8,
-												repeat: Infinity,
-												ease: 'linear',
-											},
-											scale: {
-												duration: 3,
-												repeat: Infinity,
-												ease: 'easeInOut',
-											},
-										}}
-									>
-										<Award size={20} className="text-white" />
-									</motion.div>
-								</div>
+                            {/* Details section */}
+                            <div className="md:w-3/5 p-6 md:p-8">
+                                <h2 className="text-2xl md:text-3xl font-bold text-white">
+                                    {member.fullname}
+                                </h2>
+                                <p className="text-blue-300 font-medium mt-1">
+                                    {member.designation}
+                                </p>
+                                <p className="text-indigo-200 mt-1">{member.department}</p>
 
-								<h3 className="text-2xl font-bold text-white mt-5 mb-2">
-									{member?.fullName}
-								</h3>
+                                {/* ID and Member Since - Only visible to authenticated users */}
+                                {isAuthenticated && (
+                                    <div className="flex flex-wrap gap-2 mt-3">
+                                        {member.memberID && (
+                                            <div className="px-2 py-1 bg-indigo-900/20 text-indigo-300 rounded-md text-xs border border-indigo-500/30 flex items-center">
+                                                <Hash size={12} className="mr-1" />
+                                                ID: {member.memberID.substring(0, 8)}
+                                            </div>
+                                        )}
+                                        {member.LpuId && (
+                                            <div className="px-2 py-1 bg-blue-900/20 text-blue-300 rounded-md text-xs border border-blue-500/30 flex items-center">
+                                                <Badge size={12} className="mr-1" />
+                                                LPU ID: {member.LpuId}
+                                            </div>
+                                        )}
+                                        {member.joinedAt && (
+                                            <div className="px-2 py-1 bg-purple-900/20 text-purple-300 rounded-md text-xs border border-purple-500/30 flex items-center">
+                                                <Clock size={12} className="mr-1" />
+                                                Joined: {formatDate(member.joinedAt)}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
 
-								<div className="flex flex-wrap justify-center gap-2 mb-4">
-									<span className="px-3 py-1 rounded-full bg-indigo-600/30 text-sm text-blue-200 border border-indigo-500/30">
-										{member?.designation}
-									</span>
-									<span className="px-3 py-1 rounded-full bg-blue-600/20 text-sm text-blue-200 border border-blue-500/20">
-										{member?.department}
-									</span>
-								</div>
-							</div>
-						</div>
+                                {/* Basic information - visible to everyone */}
+                                <div className="mt-6">
+                                    <h3 className="text-lg font-semibold text-white/90 mb-3">
+                                        About
+                                    </h3>
+                                    <p className="text-white/70">{member.bio || "No bio provided."}</p>
+                                </div>
 
-						{/* Content section with frosted glass effect */}
-						<div className="relative rounded-b-2xl bg-gradient-to-b from-[#161a36]/80 to-[#0f1225]/80 backdrop-blur-lg p-6 -mt-16 border border-indigo-500/30 border-t-transparent">
-							{/* Modern tab navigation */}
-							<div className="flex justify-center gap-2 mb-6 bg-[#0c1028]/50 p-1 rounded-xl border border-indigo-500/20">
-								{['about', 'skills', 'contact'].map((tab) => (
-									<button
-										key={tab}
-										onClick={() => setActiveTab(tab)}
-										className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-											activeTab === tab
-												? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg'
-												: 'text-white/60 hover:text-white hover:bg-white/5'
-										}`}
-									>
-										{tab.charAt(0).toUpperCase() + tab.slice(1)}
-									</button>
-								))}
-							</div>
+                                {/* Contact information - visible to everyone */}
+                                <div className="mt-6">
+                                    <h3 className="text-lg font-semibold text-white/90 mb-3">
+                                        Contact
+                                    </h3>
+                                    <div className="space-y-2">
+                                        {member.email && (
+                                            <div className="flex items-center">
+                                                <Mail size={18} className="text-blue-300 mr-3" />
+                                                <a
+                                                    href={`mailto:${member.email}`}
+                                                    className="text-white/70 hover:text-white"
+                                                >
+                                                    {member.email}
+                                                </a>
+                                            </div>
+                                        )}
+                                        {member.phone && (
+                                            <div className="flex items-center">
+                                                <Phone size={18} className="text-blue-300 mr-3" />
+                                                <a
+                                                    href={`tel:${member.phone}`}
+                                                    className="text-white/70 hover:text-white"
+                                                >
+                                                    {member.phone}
+                                                </a>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
 
-							{/* Tab content with modern styling */}
-							{activeTab === 'about' && (
-								<div className="space-y-5">
-									{/* Bio */}
-									{member?.bio && (
-										<div className="p-5 bg-indigo-600/10 rounded-xl border border-indigo-500/20 text-left relative overflow-hidden">
-											<div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-600 to-blue-600"></div>
-											<p className="text-white/80 leading-relaxed">
-												{member.bio}
-											</p>
-										</div>
-									)}
+                                {/* Social links - visible to everyone */}
+                                {socialLinks.length > 0 && (
+                                    <div className="mt-4">
+                                        <h3 className="text-lg font-semibold text-white/90 mb-3">
+                                            Connect
+                                        </h3>
+                                        <div className="space-y-2">
+                                            {socialLinks.map((link, index) => {
+                                                let Icon = LinkIcon;
+                                                if (link.platform.toLowerCase().includes('linkedin')) Icon = Linkedin;
+                                                if (link.platform.toLowerCase().includes('github')) Icon = Github;
+                                                if (link.platform.toLowerCase().includes('website') || link.platform.toLowerCase().includes('portfolio')) Icon = Globe;
+                                                
+                                                return (
+                                                    <div key={index} className="flex items-center">
+                                                        <Icon size={18} className="text-blue-300 mr-3" />
+                                                        <a
+                                                            href={link.url}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="text-white/70 hover:text-white"
+                                                        >
+                                                            {link.platform}
+                                                        </a>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
 
-									{/* Member details with modern cards */}
-									<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-										{[
-											{ label: 'Program', value: member?.program, icon: Briefcase },
-											{ label: 'Year', value: member?.year, icon: BookOpen },
-											{ label: 'Joined', value: formatDate(member?.joinedAt), icon: Calendar },
-											{
-												label: 'LPU ID',
-												value: isAuthenticated ? member?.LpuId : null,
-												restricted: !isAuthenticated,
-												icon: User,
-											},
-											...(isAuthenticated && member?.hosteler
-												? [
-														{
-															label: 'Hostel',
-															value: member?.hostel,
-															icon: MapPin,
-															colSpan: true,
-														},
-												  ]
-												: []),
-										].map((item, index) => (
-											<div
-												key={index}
-												className={`p-4 rounded-xl bg-indigo-600/10 border border-indigo-500/20 flex items-start gap-3 ${
-													item.colSpan ? 'md:col-span-2' : ''
-												}`}
-											>
-												<div className="p-2 rounded-lg bg-indigo-600/20 text-blue-300">
-													<item.icon size={16} />
-												</div>
-												<div>
-													<p className="text-xs text-blue-300/70">{item.label}</p>
-													{item.restricted ? (
-														<div className="flex items-center gap-1 text-white/50 text-sm mt-1">
-															<Lock size={12} />
-															<span>Authenticated only</span>
-														</div>
-													) : (
-														<p className="text-sm text-white mt-1">
-															{item.value || 'N/A'}
-														</p>
-													)}
-												</div>
-											</div>
-										))}
-									</div>
+                                {/* Skills - visible to everyone */}
+                                {member.skills && member.skills.length > 0 && (
+                                    <div className="mt-6">
+                                        <h3 className="text-lg font-semibold text-white/90 mb-3">
+                                            Skills
+                                        </h3>
+                                        <div className="flex flex-wrap gap-2">
+                                            {member.skills.map((skill, index) => (
+                                                <span
+                                                    key={index}
+                                                    className="px-3 py-1 bg-blue-900/40 text-blue-200 rounded-full text-sm"
+                                                >
+                                                    {skill}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
 
-									{/* Resume download (authenticated only) */}
-									{isAuthenticated && member?.resume?.url && (
-										<motion.a
-											href={member.resume.url}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="flex items-center justify-center gap-2 w-full p-3 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg border border-white/10"
-											whileHover={{
-												y: -3,
-												boxShadow: '0 10px 25px -5px rgba(79, 70, 229, 0.5)',
-											}}
-										>
-											<Download size={16} />
-											<span>Download Resume</span>
-										</motion.a>
-									)}
-								</div>
-							)}
+                                {/* Program and Year - Visible to authenticated users */}
+                                {isAuthenticated && (member.program || member.year) && (
+                                    <div className="mt-6">
+                                        <h3 className="text-lg font-semibold text-white/90 mb-3">
+                                            Education
+                                        </h3>
+                                        <div className="space-y-2">
+                                            {member.program && (
+                                                <div className="flex items-center">
+                                                    <GraduationCap size={18} className="text-blue-300 mr-3" />
+                                                    <span className="text-white/70">
+                                                        Program: {member.program}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            {member.year && (
+                                                <div className="flex items-center">
+                                                    <Calendar size={18} className="text-blue-300 mr-3" />
+                                                    <span className="text-white/70">
+                                                        Year: {member.year}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
 
-							{/* Skills tab content */}
-							{activeTab === 'skills' && (
-								<div className="p-5 bg-indigo-600/10 rounded-xl border border-indigo-500/20">
-									{member?.skills?.length > 0 ? (
-										<div>
-											<div className="mb-5 flex items-center gap-3">
-												<div className="p-2 rounded-lg bg-indigo-600/20 text-blue-300">
-													<Code size={16} />
-												</div>
-												<h4 className="text-white font-medium">Technical Skills</h4>
-											</div>
-											<div className="flex flex-wrap gap-2">
-												{member.skills.map((skill, index) => (
-													<motion.div
-														key={index}
-														className="group relative"
-														whileHover={{ scale: 1.05 }}
-													>
-														<div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-600 to-blue-600 opacity-0 group-hover:opacity-100 blur transition-opacity"></div>
-														<div className="relative px-3 py-1.5 rounded-full bg-indigo-600/20 text-sm text-blue-200 border border-indigo-500/30 group-hover:border-indigo-500/50 transition-colors">
-															{skill}
-														</div>
-													</motion.div>
-												))}
-											</div>
-										</div>
-									) : (
-										<div className="flex flex-col items-center justify-center py-10 text-white/60">
-											<Sparkles size={24} className="mb-3 text-blue-400/50" />
-											<p>No skills listed yet</p>
-										</div>
-									)}
-								</div>
-							)}
+                                {/* Hostel Information - Visible to authenticated users */}
+                                {isAuthenticated && member.hosteler && (
+                                    <div className="mt-6">
+                                        <h3 className="text-lg font-semibold text-white/90 mb-3">
+                                            Residence
+                                        </h3>
+                                        <div className="space-y-2">
+                                            <div className="flex items-center">
+                                                <Building size={18} className="text-blue-300 mr-3" />
+                                                <span className="text-white/70">
+                                                    {member.hosteler ? `Hosteler (${member.hostel || 'Hostel not specified'})` : 'Day Scholar'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
-							{/* Contact tab content */}
-							{activeTab === 'contact' && (
-								<div className="space-y-4">
-									{/* Email card */}
-									<div className="p-4 rounded-xl bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-between">
-										<div className="flex items-center gap-3">
-											<div className="p-2 rounded-lg bg-indigo-600/20 text-blue-300">
-												<Mail size={16} />
-											</div>
-											<div>
-												<p className="text-xs text-blue-300/70">Email</p>
-												{isAuthenticated ? (
-													<p className="text-sm text-white">
-														{member?.email || 'N/A'}
-													</p>
-												) : (
-													<div className="flex items-center gap-1">
-														<p className="text-sm text-white/50 font-mono">
-															{member?.email
-																? `${member.email.substring(0, 3)}•••@•••${member.email.substring(
-																		member.email.lastIndexOf('.')
-																  )}`
-																: 'N/A'}
-														</p>
-														<Lock size={12} className="text-blue-400/40" />
-													</div>
-												)}
-											</div>
-										</div>
+                                {/* Resume - Visible to authenticated users */}
+                                {isAuthenticated && member.resume?.url && (
+                                    <div className="mt-6">
+                                        <h3 className="text-lg font-semibold text-white/90 mb-3">
+                                            Documents
+                                        </h3>
+                                        <div className="space-y-2">
+                                            <div className="flex items-center">
+                                                <FileText size={18} className="text-blue-300 mr-3" />
+                                                <a
+                                                    href={member.resume.url}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="text-white/70 hover:text-white flex items-center"
+                                                >
+                                                    View Resume
+                                                    <Download size={14} className="ml-2" />
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
-										{isAuthenticated && member?.email && (
-											<motion.a
-												href={`mailto:${member.email}`}
-												className="p-2 rounded-lg bg-indigo-600/30 text-blue-300 hover:bg-indigo-600/50 transition-colors border border-indigo-500/30"
-												whileHover={{ scale: 1.1 }}
-											>
-												<Mail size={16} />
-											</motion.a>
-										)}
-									</div>
+                                {/* Projects & Achievements - Auth only section */}
+                                {isAuthenticated ? (
+                                    <>
+                                        {/* Projects */}
+                                        {member.projects && member.projects.length > 0 && (
+                                            <div className="mt-6">
+                                                <h3 className="text-lg font-semibold text-white/90 mb-3">
+                                                    Projects
+                                                </h3>
+                                                <ul className="list-disc list-inside text-white/70 space-y-1">
+                                                    {member.projects.map((project, index) => (
+                                                        <li key={index}>{project}</li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
 
-									{/* Phone card */}
-									<div className="p-4 rounded-xl bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-between">
-										<div className="flex items-center gap-3">
-											<div className="p-2 rounded-lg bg-indigo-600/20 text-blue-300">
-												<Phone size={16} />
-											</div>
-											<div>
-												<p className="text-xs text-blue-300/70">Phone</p>
-												{isAuthenticated ? (
-													<p className="text-sm text-white font-mono">
-														{member?.phone || 'N/A'}
-													</p>
-												) : (
-													<div className="flex items-center gap-1">
-														<p className="text-sm text-white/50 font-mono">
-															{member?.phone
-																? '••• ••• ' + member.phone.slice(-4)
-																: 'N/A'}
-														</p>
-														<Lock size={12} className="text-blue-400/40" />
-													</div>
-												)}
-											</div>
-										</div>
+                                        {/* Achievements */}
+                                        {member.achievements && member.achievements.length > 0 && (
+                                            <div className="mt-6">
+                                                <h3 className="text-lg font-semibold text-white/90 mb-3">
+                                                    Achievements
+                                                </h3>
+                                                <ul className="list-disc list-inside text-white/70 space-y-1">
+                                                    {member.achievements.map((achievement, index) => (
+                                                        <li key={index}>{achievement}</li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
 
-										{isAuthenticated && member?.phone && (
-											<motion.a
-												href={`tel:${member.phone}`}
-												className="p-2 rounded-lg bg-indigo-600/30 text-blue-300 hover:bg-indigo-600/50 transition-colors border border-indigo-500/30"
-												whileHover={{ scale: 1.1 }}
-											>
-												<Phone size={16} />
-											</motion.a>
-										)}
-									</div>
-
-									{/* Social links */}
-									{socialLinks.length > 0 && (
-										<div className="mt-6">
-											<h4 className="text-white font-medium mb-4 flex items-center gap-2">
-												<div className="w-1 h-4 bg-gradient-to-b from-indigo-400 to-blue-600 rounded-full"></div>
-												<span>Social Profiles</span>
-											</h4>
-
-											<div className="grid grid-cols-1 gap-3">
-												{socialLinks.map((link, index) => (
-													<motion.a
-														key={index}
-														href={link.url}
-														target="_blank"
-														rel="noopener noreferrer"
-														className="flex items-center justify-between p-4 rounded-xl bg-indigo-600/10 text-white hover:bg-indigo-600/20 transition-colors border border-indigo-500/20"
-														whileHover={{ x: 5 }}
-													>
-														<div className="flex items-center gap-3">
-															<div className="p-2 rounded-lg bg-indigo-600/20">
-																{link.platform.toLowerCase().includes('linkedin') && (
-																	<Linkedin size={16} className="text-[#0A66C2]" />
-																)}
-																{link.platform.toLowerCase().includes('github') && (
-																	<Github size={16} className="text-white" />
-																)}
-																{!link.platform.toLowerCase().includes('linkedin') &&
-																	!link.platform.toLowerCase().includes('github') && (
-																		<ExternalLink size={16} className="text-blue-300" />
-																	)}
-															</div>
-															<span>{link.platform}</span>
-														</div>
-														<ExternalLink size={14} className="text-blue-300" />
-													</motion.a>
-												))}
-											</div>
-										</div>
-									)}
-								</div>
-							)}
-						</div>
-					</motion.div>
-				</motion.div>
-			)}
-		</AnimatePresence>
-	);
+                                        {/* Additional Information */}
+                                        {member.additionalInfo && (
+                                            <div className="mt-6">
+                                                <h3 className="text-lg font-semibold text-white/90 mb-3">
+                                                    Additional Information
+                                                </h3>
+                                                <p className="text-white/70">{member.additionalInfo}</p>
+                                            </div>
+                                        )}
+                                    </>
+                                ) : (
+                                    <div className="mt-8 p-4 border border-blue-800/50 rounded-lg bg-blue-900/20">
+                                        <div className="flex items-center gap-2 text-blue-300">
+                                            <Lock size={18} />
+                                            <p className="font-medium">
+                                                Additional information is only visible to authenticated members
+                                            </p>
+                                        </div>
+                                        <p className="mt-2 text-sm text-white/60">
+                                            Sign in to view complete details including education, projects, achievements, and more.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </motion.div>
+                </motion.div>
+            )}
+        </AnimatePresence>
+    );
 };
 
 export default TeamMemberModal;
