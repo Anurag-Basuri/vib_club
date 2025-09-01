@@ -38,6 +38,8 @@ const TeamsPage = () => {
 	const [design, setDesign] = useState([]);
 	const [hr, setHR] = useState([]);
 	const [eventManagement, setEventManagement] = useState([]);
+	const [pr, setPR] = useState([]);
+	const [coordinator, setCoordinator] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
 	const [searchQuery, setSearchQuery] = useState('');
@@ -47,13 +49,10 @@ const TeamsPage = () => {
 		const fetchTeamData = async () => {
 			try {
 				setLoading(true);
-				console.log('Fetching team data...');
 				const response = await publicClient.get('api/members/getall');
-				console.log('API Response:', response.data);
 				
 				if (response.data && response.data.data && response.data.data.members) {
 					setTeamData(response.data.data.members);
-					console.log('Team data set:', response.data.data.members.length, 'members');
 				} else {
 					console.error('Unexpected API response structure:', response.data);
 					setError('Invalid data format received from server.');
@@ -72,9 +71,9 @@ const TeamsPage = () => {
 
 	useEffect(() => {
     if (teamData.length > 0) {
-        console.log('Total team data:', teamData.length);
-        console.log('Sample member:', teamData[0]);
-        
+        console.log('Total team length:', teamData.length);
+        console.log('Total team data:', teamData);
+
         // Filter team data if search query exists
         const filteredData = searchQuery
             ? teamData.filter(
@@ -114,6 +113,8 @@ const TeamsPage = () => {
         const designMembers = filteredData.filter((m) => m.department === 'Design' && excludeLeadership(m));
         const hrMembers = filteredData.filter((m) => m.department === 'HR' && excludeLeadership(m));
         const eventManagementMembers = filteredData.filter((m) => m.department === 'Event Management' && excludeLeadership(m));
+		const prMembers = filteredData.filter((m) => m.department === 'PR' && excludeLeadership(m));
+		const coordinatorMembers = filteredData.filter((m) => m.department === 'Coordinator' && excludeLeadership(m));
 
         console.log('Department counts:', {
             technical: technicalMembers.length,
@@ -124,7 +125,9 @@ const TeamsPage = () => {
             contentWriting: contentWritingMembers.length,
             design: designMembers.length,
             hr: hrMembers.length,
-            eventManagement: eventManagementMembers.length
+            eventManagement: eventManagementMembers.length,
+            pr: prMembers.length,
+            coordinator: coordinatorMembers.length,
         });
 
         setTechnical(technicalMembers);
@@ -136,6 +139,8 @@ const TeamsPage = () => {
         setDesign(designMembers);
         setHR(hrMembers);
         setEventManagement(eventManagementMembers);
+        setPR(prMembers);
+        setCoordinator(coordinatorMembers);
     }
 }, [teamData, searchQuery]);
 
@@ -289,148 +294,183 @@ const TeamsPage = () => {
 
 					{/* Departments Sections */}
 					<section id="departments" className="py-10 sm:py-16 px-4 relative z-10">
-						<div className="max-w-7xl mx-auto">
-							<motion.div
-								className="flex flex-col items-center mb-10"
-								initial={{ opacity: 0, y: 20 }}
-								whileInView={{ opacity: 1, y: 0 }}
-								viewport={{ once: true }}
-								transition={{ duration: 0.8 }}
-							>
-								<h2 className="text-3xl sm:text-4xl font-bold text-center mb-4 bg-gradient-to-r from-[#0ea5e9] to-[#5d7df5] bg-clip-text text-transparent">
-									Our Departments
-								</h2>
-								<div className="w-20 h-1 bg-gradient-to-r from-[#0ea5e9] to-[#5d7df5] rounded-full"></div>
-							</motion.div>
+    <div className="max-w-7xl mx-auto">
+        <motion.div
+            className="flex flex-col items-center mb-10"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+        >
+            <h2 className="text-3xl sm:text-4xl font-bold text-center mb-4 bg-gradient-to-r from-[#0ea5e9] to-[#5d7df5] bg-clip-text text-transparent">
+                Our Departments
+            </h2>
+            <div className="w-20 h-1 bg-gradient-to-r from-[#0ea5e9] to-[#5d7df5] rounded-full"></div>
+        </motion.div>
 
-							{/* Search results message */}
-							{searchQuery && (
-								<div className="mb-8 text-center">
-									<div className="inline-flex items-center gap-2 px-4 py-2 bg-[#1a244f]/70 rounded-lg border border-[#3a56c9]/40">
-										<Filter size={16} className="text-[#5d7df5]" />
-										<span className="text-[#d0d5f7]">
-											Showing results for "{searchQuery}"
-										</span>
-										<button
-											onClick={() => setSearchQuery('')}
-											className="ml-2 text-[#5d7df5] hover:text-white transition-colors"
-										>
-											Clear
-										</button>
-									</div>
-								</div>
-							)}
+        {/* Search results message */}
+        {searchQuery && (
+            <div className="mb-8 text-center">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#1a244f]/70 rounded-lg border border-[#3a56c9]/40">
+                    <Filter size={16} className="text-[#5d7df5]" />
+                    <span className="text-[#d0d5f7]">
+                        Showing results for "{searchQuery}"
+                    </span>
+                    <button
+                        onClick={() => setSearchQuery('')}
+                        className="ml-2 text-[#5d7df5] hover:text-white transition-colors"
+                    >
+                        Clear
+                    </button>
+                </div>
+            </div>
+        )}
 
-							<div className="space-y-16 sm:space-y-20">
-								{technical.length > 0 && (
-									<DepartmentSection
-										department="Technical"
-										members={technical}
-										onClick={handleMemberClick}
-										isAuthenticated={isAuthenticated}
-									/>
-								)}
-								{management.length > 0 && (
-									<DepartmentSection
-										department="Management"
-										members={management}
-										onClick={handleMemberClick}
-										isAuthenticated={isAuthenticated}
-									/>
-								)}
-								{marketing.length > 0 && (
-									<DepartmentSection
-										department="Marketing"
-										members={marketing}
-										onClick={handleMemberClick}
-										isAuthenticated={isAuthenticated}
-									/>
-								)}
-								{socialMedia.length > 0 && (
-									<DepartmentSection
-										department="Social Media"
-										members={socialMedia}
-										onClick={handleMemberClick}
-										isAuthenticated={isAuthenticated}
-									/>
-								)}
-								{media.length > 0 && (
-									<DepartmentSection
-										department="Media"
-										members={media}
-										onClick={handleMemberClick}
-										isAuthenticated={isAuthenticated}
-									/>
-								)}
-								{contentWriting.length > 0 && (
-									<DepartmentSection
-										department="Content Writing"
-										members={contentWriting}
-										onClick={handleMemberClick}
-										isAuthenticated={isAuthenticated}
-									/>
-								)}
-								{design.length > 0 && (
-									<DepartmentSection
-										department="Design"
-										members={design}
-										onClick={handleMemberClick}
-										isAuthenticated={isAuthenticated}
-									/>
-								)}
-								{hr.length > 0 && (
-									<DepartmentSection
-										department="HR"
-										members={hr}
-										onClick={handleMemberClick}
-										isAuthenticated={isAuthenticated}
-									/>
-								)}
-								{eventManagement.length > 0 && (
-									<DepartmentSection
-										department="Event Management"
-										members={eventManagement}
-										onClick={handleMemberClick}
-										isAuthenticated={isAuthenticated}
-									/>
-								)}
-							</div>
+        <div className="space-y-16 sm:space-y-20">
+            {/* Technical Department */}
+            {technical.length > 0 && (
+                <DepartmentSection
+                    department="Technical"
+                    members={technical}
+                    onClick={handleMemberClick}
+                    isAuthenticated={isAuthenticated}
+                />
+            )}
 
-							{/* No results message */}
-							{searchQuery &&
-								technical.length === 0 &&
-								management.length === 0 &&
-								marketing.length === 0 &&
-								socialMedia.length === 0 &&
-								media.length === 0 &&
-								contentWriting.length === 0 &&
-								design.length === 0 &&
-								hr.length === 0 &&
-								eventManagement.length === 0 && (
-									<div className="text-center py-16 max-w-md mx-auto">
-										<div className="bg-[#1a244f]/70 rounded-xl p-8 border border-[#3a56c9]/40">
-											<SearchX
-											 size={48}
-											 className="text-[#5d7df5]/70 mx-auto mb-4"
-											/>
-											<h3 className="text-xl font-semibold text-white mb-2">
-												No Results Found
-											</h3>
-											<p className="text-[#9ca3d4] mb-4">
-												We couldn't find any team members matching "
-												{searchQuery}"
-											</p>
-											<button
-												onClick={() => setSearchQuery('')}
-												className="px-4 py-2 bg-[#3a56c9] hover:bg-[#5d7df5] text-white rounded-lg transition-colors"
-											>
-												Clear Search
-											</button>
-										</div>
-									</div>
-								)}
-						</div>
-					</section>
+            {/* Management Department */}
+            {management.length > 0 && (
+                <DepartmentSection
+                    department="Management"
+                    members={management}
+                    onClick={handleMemberClick}
+                    isAuthenticated={isAuthenticated}
+                />
+            )}
+
+            {/* Marketing Department */}
+            {marketing.length > 0 && (
+                <DepartmentSection
+                    department="Marketing"
+                    members={marketing}
+                    onClick={handleMemberClick}
+                    isAuthenticated={isAuthenticated}
+                />
+            )}
+
+            {/* Social Media Department */}
+            {socialMedia.length > 0 && (
+                <DepartmentSection
+                    department="Social Media"
+                    members={socialMedia}
+                    onClick={handleMemberClick}
+                    isAuthenticated={isAuthenticated}
+                />
+            )}
+
+            {/* Media Department */}
+            {media.length > 0 && (
+                <DepartmentSection
+                    department="Media"
+                    members={media}
+                    onClick={handleMemberClick}
+                    isAuthenticated={isAuthenticated}
+                />
+            )}
+
+            {/* Content Writing Department */}
+            {contentWriting.length > 0 && (
+                <DepartmentSection
+                    department="Content Writing"
+                    members={contentWriting}
+                    onClick={handleMemberClick}
+                    isAuthenticated={isAuthenticated}
+                />
+            )}
+
+            {/* Design Department */}
+            {design.length > 0 && (
+                <DepartmentSection
+                    department="Design"
+                    members={design}
+                    onClick={handleMemberClick}
+                    isAuthenticated={isAuthenticated}
+                />
+            )}
+
+            {/* HR Department */}
+            {hr.length > 0 && (
+                <DepartmentSection
+                    department="HR"
+                    members={hr}
+                    onClick={handleMemberClick}
+                    isAuthenticated={isAuthenticated}
+                />
+            )}
+
+            {/* Event Management Department */}
+            {eventManagement.length > 0 && (
+                <DepartmentSection
+                    department="Event Management"
+                    members={eventManagement}
+                    onClick={handleMemberClick}
+                    isAuthenticated={isAuthenticated}
+                />
+            )}
+
+            {/* PR Department */}
+            {pr.length > 0 && (
+                <DepartmentSection
+                    department="PR"
+                    members={pr}
+                    onClick={handleMemberClick}
+                    isAuthenticated={isAuthenticated}
+                />
+            )}
+
+            {/* Coordinator Department */}
+            {coordinator.length > 0 && (
+                <DepartmentSection
+                    department="Coordinator"
+                    members={coordinator}
+                    onClick={handleMemberClick}
+                    isAuthenticated={isAuthenticated}
+                />
+            )}
+        </div>
+
+        {/* No results message */}
+        {searchQuery &&
+            technical.length === 0 &&
+            management.length === 0 &&
+            marketing.length === 0 &&
+            socialMedia.length === 0 &&
+            media.length === 0 &&
+            contentWriting.length === 0 &&
+            design.length === 0 &&
+            hr.length === 0 &&
+            eventManagement.length === 0 &&
+            pr.length === 0 &&
+            coordinator.length === 0 && (
+                <div className="text-center py-16 max-w-md mx-auto">
+                    <div className="bg-[#1a244f]/70 rounded-xl p-8 border border-[#3a56c9]/40">
+                        <SearchX size={48} className="text-[#5d7df5]/70 mx-auto mb-4" />
+                        <h3 className="text-xl font-semibold text-white mb-2">
+                            No Results Found
+                        </h3>
+                        <p className="text-[#9ca3d4] mb-4">
+                            We couldn't find any team members matching "{searchQuery}"
+                        </p>
+                        <button
+                            onClick={() => setSearchQuery('')}
+                            className="px-4 py-2 bg-[#3a56c9] hover:bg-[#5d7df5] text-white rounded-lg transition-colors"
+                        >
+                            Clear Search
+                        </button>
+                    </div>
+                </div>
+            )}
+    </div>
+</section>
 
 					{/* Modal */}
 					<TeamMemberModal
