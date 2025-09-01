@@ -47,18 +47,16 @@ const DepartmentSection = ({ department, members, onClick, isAuthenticated }) =>
                         </div>
                     </div>
 
-                    {/* Updated responsive grid */}
-                    <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                    {/* Center-aligned cards using flexbox */}
+                    <div className="flex flex-wrap justify-center gap-4 sm:gap-6 max-w-6xl mx-auto">
                         {membersInDesignation.map((member, index) => (
-                            <div key={member._id || index} className="flex justify-center">
-                                <div className="w-full max-w-[280px]">
-                                    <UnifiedTeamCard
-                                        member={member}
-                                        delay={index * 0.05}
-                                        onClick={onClick}
-                                        isAuthenticated={isAuthenticated}
-                                    />
-                                </div>
+                            <div key={member._id || index} className="w-full max-w-[280px] xs:w-auto xs:max-w-[280px]">
+                                <UnifiedTeamCard
+                                    member={member}
+                                    delay={index * 0.05}
+                                    onClick={onClick}
+                                    isAuthenticated={isAuthenticated}
+                                />
                             </div>
                         ))}
                     </div>

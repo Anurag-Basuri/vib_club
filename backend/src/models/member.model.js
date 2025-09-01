@@ -157,6 +157,7 @@ const memberSchema = new mongoose.Schema({
                 'Event Management',
                 'Media',
                 'Design',
+                'Social Media',
                 'Coordinator',
                 'PR'
             ],

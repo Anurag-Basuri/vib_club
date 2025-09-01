@@ -47,11 +47,21 @@ const TeamsPage = () => {
 		const fetchTeamData = async () => {
 			try {
 				setLoading(true);
+				console.log('Fetching team data...');
 				const response = await publicClient.get('api/members/getall');
-				setTeamData(response.data.data.members);
+				console.log('API Response:', response.data);
+				
+				if (response.data && response.data.data && response.data.data.members) {
+					setTeamData(response.data.data.members);
+					console.log('Team data set:', response.data.data.members.length, 'members');
+				} else {
+					console.error('Unexpected API response structure:', response.data);
+					setError('Invalid data format received from server.');
+				}
 				setError(null);
 			} catch (error) {
 				console.error('Error fetching team data:', error);
+				console.error('Error details:', error.response?.data || error.message);
 				setError('Failed to load team data. Please try again later.');
 			} finally {
 				setLoading(false);
@@ -66,7 +76,7 @@ const TeamsPage = () => {
 			const filteredData = searchQuery
 				? teamData.filter(
 						(member) =>
-							member.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+							member.fullname?.toLowerCase().includes(searchQuery.toLowerCase()) ||
 							member.department?.toLowerCase().includes(searchQuery.toLowerCase()) ||
 							member.designation?.toLowerCase().includes(searchQuery.toLowerCase()) ||
 							member.skills?.some((skill) =>
@@ -230,10 +240,10 @@ const TeamsPage = () => {
             </motion.div>
 
             <div className="relative">
-                {/* CEO Card - Centered on all screens */}
+                {/* CEO Card - Centered */}
                 {leadership.filter((m) => m.designation === 'CEO').length > 0 && (
                     <div className="flex justify-center mb-6 sm:mb-10">
-                        <div className="w-full max-w-[280px] md:max-w-[320px]">
+                        <div className="w-full max-w-[280px]">
                             <UnifiedTeamCard
                                 member={leadership.find((m) => m.designation === 'CEO')}
                                 delay={0}
@@ -244,20 +254,18 @@ const TeamsPage = () => {
                     </div>
                 )}
                 
-                {/* Other leadership - responsive grid */}
-                <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                {/* Other leadership - center-aligned flexbox */}
+                <div className="flex flex-wrap justify-center gap-4 sm:gap-6 max-w-6xl mx-auto">
                     {leadership
                         .filter((m) => m.designation !== 'CEO')
                         .map((leader, index) => (
-                            <div key={leader._id || index} className="flex justify-center">
-                                <div className="w-full max-w-[280px]">
-                                    <UnifiedTeamCard
-                                        member={leader}
-                                        delay={index + 1}
-                                        onClick={handleMemberClick}
-                                        isAuthenticated={isAuthenticated}
-                                    />
-                                </div>
+                            <div key={leader._id || index} className="w-full max-w-[280px] xs:w-auto xs:max-w-[280px]">
+                                <UnifiedTeamCard
+                                    member={leader}
+                                    delay={index + 1}
+                                    onClick={handleMemberClick}
+                                    isAuthenticated={isAuthenticated}
+                                />
                             </div>
                         ))}
                 </div>
@@ -389,8 +397,8 @@ const TeamsPage = () => {
 									<div className="text-center py-16 max-w-md mx-auto">
 										<div className="bg-[#1a244f]/70 rounded-xl p-8 border border-[#3a56c9]/40">
 											<SearchX
-												size={48}
-												className="text-[#5d7df5]/70 mx-auto mb-4"
+											 size={48}
+											 className="text-[#5d7df5]/70 mx-auto mb-4"
 											/>
 											<h3 className="text-xl font-semibold text-white mb-2">
 												No Results Found
