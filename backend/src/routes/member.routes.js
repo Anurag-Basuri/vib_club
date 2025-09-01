@@ -108,10 +108,7 @@ router.put(
     authMiddleware.verifyToken,
     authMiddleware.isAdmin,
     validate([
-        param('id').isMongoId().withMessage('Invalid member ID'),
-        body('department').optional().isString(),
-        body('designation').optional().isString(),
-        body('LpuId').optional().isString()
+        param('id').isMongoId().withMessage('Invalid member ID')
     ]),
     updateMemberByAdmin
 );

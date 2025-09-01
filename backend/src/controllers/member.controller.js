@@ -7,9 +7,9 @@ import { sendPasswordResetEmail } from '../services/email.service.js';
 
 // Register a new member
 const registerMember = asyncHandler(async (req, res) => {
-    const { fullname, LpuId, email, password, department, designation } = req.body;
-    if (!fullname || !LpuId || !password || !department || !designation) {
-        return res.status(400).json(new ApiResponse(400, null, 'Full name, LPU ID, password, department, and designation are required'));
+    const { fullname, LpuId, email, password, department, designation, joinedAt } = req.body;
+    if (!fullname || !LpuId || !password || !department || !designation ) {
+        return res.status(400).json(new ApiResponse(400, null, 'Full name, LPU ID, password, department, designation, and joined date are required'));
     }
 
     const existingMember = await Member.findOne({ LpuId });
@@ -24,6 +24,7 @@ const registerMember = asyncHandler(async (req, res) => {
         password,
         department,
         designation,
+        joinedAt: joinedAt || Date.now(),
     });
 
     const accessToken = member.generateAuthToken();
@@ -205,7 +206,7 @@ const updateProfile = asyncHandler(async (req, res) => {
 
 // Update by admin
 const updateMemberByAdmin = asyncHandler(async (req, res) => {
-    const { department, designation, LpuId } = req.body;
+    const { department, designation, LpuId, joinedAt } = req.body;
 
     const member = await Member.findById(req.params.id);
     if (!member) {
@@ -215,6 +216,7 @@ const updateMemberByAdmin = asyncHandler(async (req, res) => {
     member.department = department || member.department;
     member.designation = designation || member.designation;
     member.LpuId = LpuId || member.LpuId;
+    member.joinedAt = joinedAt || member.joinedAt;
 
     await member.save();
 
