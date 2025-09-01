@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     X,
@@ -33,12 +33,22 @@ import {
     Link as LinkIcon,
     Badge,
     Hash,
+    ChevronDown,
+    ChevronUp,
 } from 'lucide-react';
 
 const TeamMemberModal = ({ member, isOpen, onClose, isAuthenticated }) => {
     const [activeTab, setActiveTab] = useState('about');
+    const [expandedSections, setExpandedSections] = useState({});
+    const [imageLoading, setImageLoading] = useState(true);
 
-    if (!isOpen) return null;
+    // Toggle section expansion
+    const toggleSection = (section) => {
+        setExpandedSections(prev => ({
+            ...prev,
+            [section]: !prev[section]
+        }));
+    };
 
     // Format joined date with better readability
     const formatDate = (dateString) => {
@@ -116,36 +126,102 @@ const TeamMemberModal = ({ member, isOpen, onClose, isAuthenticated }) => {
     // Specific status badge for this member
     const statusBadge = getStatusBadge(member.status);
 
+    // Collapsible section component
+    const CollapsibleSection = ({ title, icon: Icon, children, defaultExpanded = false }) => {
+        const isExpanded = expandedSections[title] !== undefined ? expandedSections[title] : defaultExpanded;
+        
+        return (
+            <div className="mt-4 border-b border-white/10 pb-4">
+                <button 
+                    className="flex items-center justify-between w-full text-left"
+                    onClick={() => toggleSection(title)}
+                >
+                    <div className="flex items-center">
+                        {Icon && <Icon size={18} className="text-blue-300 mr-2" />}
+                        <h3 className="text-lg font-semibold text-white/90">
+                            {title}
+                        </h3>
+                    </div>
+                    {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                </button>
+                
+                <AnimatePresence>
+                    {isExpanded && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden"
+                        >
+                            <div className="pt-3">
+                                {children}
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
+        );
+    };
+
+    // Add this effect to handle keyboard events
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        
+        if (isOpen) {
+            window.addEventListener('keydown', handleKeyDown);
+        }
+        
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isOpen, onClose]);
+
+    if (!isOpen) return null;
+
     return (
         <AnimatePresence>
             {isOpen && (
-                <motion.div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     onClick={onClose}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="member-profile-title"
                 >
                     <motion.div
-                        className="relative w-full max-w-4xl bg-gradient-to-br from-[#141b38] to-[#0f172a] rounded-2xl overflow-hidden shadow-xl my-8"
+                        className="relative w-full max-w-4xl bg-gradient-to-br from-[#141b38] to-[#0f172a] rounded-2xl overflow-hidden shadow-xl my-4 max-h-[95vh] overflow-y-auto"
                         initial={{ scale: 0.9, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0.9, opacity: 0 }}
                         onClick={(e) => e.stopPropagation()}
                     >
+                        {/* Close button with improved tap target for mobile */}
                         <button
-                            className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-10"
+                            className="absolute top-3 right-3 p-2.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-10 backdrop-blur-sm"
                             onClick={onClose}
                         >
-                            <X size={20} className="text-white" />
+                            <X size={18} className="text-white" />
                         </button>
 
-                        <div className="flex flex-col md:flex-row">
-                            {/* Profile image section */}
-                            <div className="md:w-2/5 relative">
-                                <div className="h-64 md:h-full bg-gradient-to-br from-[#1e2d5f] via-[#3a56c9] to-[#5d7df5] flex items-center justify-center relative overflow-hidden">
-                                    {/* Background pattern */}
-                                    <div className="absolute inset-0 opacity-10">
+                        {/* Header with profile image and basic info */}
+                        <div className="flex flex-col">
+                            <div className="relative h-64 bg-gradient-to-br from-[#1e2d5f] via-[#3a56c9] to-[#5d7df5] flex items-center justify-center overflow-hidden">
+                                {/* Enhanced background pattern with animation */}
+                                <div className="absolute inset-0 opacity-10">
+                                    <motion.div
+                                        initial={{ rotate: 0 }}
+                                        animate={{ rotate: 360 }}
+                                        transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
+                                        className="w-full h-full"
+                                    >
                                         <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                                             <defs>
                                                 <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
@@ -154,92 +230,188 @@ const TeamMemberModal = ({ member, isOpen, onClose, isAuthenticated }) => {
                                             </defs>
                                             <rect width="100" height="100" fill="url(#grid)" />
                                         </svg>
-                                    </div>
-                                    
-                                    {/* Profile image with fallback */}
-                                    <motion.div 
-                                        className="relative z-10"
-                                        initial={{ scale: 0.9, opacity: 0 }}
-                                        animate={{ scale: 1, opacity: 1 }}
-                                        transition={{ delay: 0.2, duration: 0.3 }}
-                                    >
-                                        {member.profilePicture?.url ? (
-                                            <div className="relative">
-                                                {/* Subtle glow behind image */}
-                                                <div className="absolute -inset-2 rounded-full bg-blue-400/30 blur-md"></div>
-                                                
-                                                {/* Image with border */}
-                                                <div className="relative h-40 w-40 md:h-48 md:w-48 lg:h-56 lg:w-56 rounded-full overflow-hidden border-4 border-white/20 shadow-lg">
-                                                    <img
-                                                        src={member.profilePicture.url}
-                                                        alt={member.fullname}
-                                                        className="w-full h-full object-cover"
-                                                        onError={(e) => {
-                                                            e.target.onerror = null;
-                                                            e.target.src = 'https://via.placeholder.com/200?text=No+Image';
-                                                        }}
-                                                    />
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div className="relative">
-                                                {/* Subtle glow behind avatar */}
-                                                <div className="absolute -inset-2 rounded-full bg-blue-400/30 blur-md"></div>
-                                                
-                                                {/* Styled avatar fallback */}
-                                                <div className="relative h-40 w-40 md:h-48 md:w-48 lg:h-56 lg:w-56 rounded-full overflow-hidden border-4 border-white/20 shadow-lg bg-gradient-to-br from-[#2a3a6a] to-[#364680] flex items-center justify-center">
-                                                    <span className="text-5xl font-bold text-white/90">
-                                                        {member.fullname?.charAt(0) || '?'}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        )}
                                     </motion.div>
-
-                                    {/* Decorative elements */}
-                                    <div className="absolute bottom-4 left-4 right-4 flex justify-center">
-                                        <div className="px-4 py-1 bg-black/30 backdrop-blur-sm rounded-full text-xs text-white/70 flex items-center">
-                                            {member.department && (
-                                                <span>{member.department}</span>
-                                            )}
-                                        </div>
-                                    </div>
                                 </div>
                                 
+                                {/* Decorative geometric elements */}
+                                <div className="absolute inset-0 overflow-hidden opacity-20">
+                                    {Array.from({ length: 5 }).map((_, i) => (
+                                        <motion.div
+                                            key={i}
+                                            className="absolute bg-white/30 rounded-full"
+                                            style={{
+                                                width: `${Math.random() * 10 + 5}px`,
+                                                height: `${Math.random() * 10 + 5}px`,
+                                                left: `${Math.random() * 100}%`,
+                                                top: `${Math.random() * 100}%`,
+                                            }}
+                                            animate={{
+                                                y: [0, Math.random() * 50 - 25],
+                                                x: [0, Math.random() * 50 - 25],
+                                                scale: [1, Math.random() + 0.5, 1],
+                                            }}
+                                            transition={{
+                                                duration: Math.random() * 5 + 10,
+                                                repeat: Infinity,
+                                                repeatType: "reverse",
+                                            }}
+                                        />
+                                    ))}
+                                </div>
+                                
+                                {/* Profile image with enhanced styling */}
+                                <motion.div 
+                                    className="relative z-10"
+                                    initial={{ scale: 0.9, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    transition={{ delay: 0.2, duration: 0.3 }}
+                                >
+                                    {member.profilePicture?.url ? (
+                                        <div className="relative group">
+                                            {/* Multi-layered glow effect */}
+                                            <motion.div 
+                                                className="absolute -inset-4 rounded-full bg-gradient-to-r from-blue-600/40 via-indigo-500/40 to-purple-600/40 blur-xl opacity-70 group-hover:opacity-100"
+                                                animate={{ 
+                                                    scale: [1, 1.05, 1],
+                                                }}
+                                                transition={{ 
+                                                    duration: 3,
+                                                    repeat: Infinity,
+                                                    repeatType: "reverse"
+                                                }}
+                                            />
+                                            <div className="absolute -inset-2 rounded-full bg-blue-400/30 blur-md"></div>
+                                            
+                                            {/* Enhanced image container */}
+                                            <div className="relative h-40 w-40 rounded-full overflow-hidden border-4 border-white/20 shadow-[0_0_20px_rgba(79,70,229,0.3)] transition-all duration-300 group-hover:border-white/30 group-hover:shadow-[0_0_30px_rgba(99,102,241,0.5)]">
+                                                <img
+                                                    src={member.profilePicture.url}
+                                                    alt={member.fullname}
+                                                    className={`w-full h-full object-cover scale-105 group-hover:scale-110 transition-transform duration-700 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
+                                                    onError={(e) => {
+                                                        setImageLoading(false);
+                                                        e.target.onerror = null;
+                                                        e.target.src = 'https://via.placeholder.com/200?text=No+Image';
+                                                    }}
+                                                    onLoad={() => setImageLoading(false)}
+                                                />
+                                                
+                                                {/* Subtle overlay for better text contrast */}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                            </div>
+                                            
+                                            {/* Decorative orbit effect */}
+                                            <motion.div 
+                                                className="absolute -inset-6 rounded-full border border-indigo-500/30 border-dashed opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                                animate={{ rotate: 360 }}
+                                                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="relative group">
+                                            {/* Multi-layered glow effect for avatar */}
+                                            <motion.div 
+                                                className="absolute -inset-4 rounded-full bg-gradient-to-r from-blue-600/40 via-indigo-500/40 to-purple-600/40 blur-xl opacity-70 group-hover:opacity-100"
+                                                animate={{ 
+                                                    scale: [1, 1.05, 1],
+                                                }}
+                                                transition={{ 
+                                                    duration: 3,
+                                                    repeat: Infinity,
+                                                    repeatType: "reverse"
+                                                }}
+                                            />
+                                            <div className="absolute -inset-2 rounded-full bg-blue-400/30 blur-md"></div>
+                                            
+                                            {/* Enhanced avatar container */}
+                                            <div className="relative h-40 w-40 rounded-full overflow-hidden border-4 border-white/20 shadow-[0_0_20px_rgba(79,70,229,0.3)] bg-gradient-to-br from-[#2a3a6a] to-[#364680] flex items-center justify-center transition-all duration-300 group-hover:border-white/30 group-hover:shadow-[0_0_30px_rgba(99,102,241,0.5)]">
+                                                <motion.span 
+                                                    className="text-5xl font-bold text-white/90"
+                                                    animate={{ 
+                                                        textShadow: [
+                                                            "0 0 5px rgba(255,255,255,0.5)",
+                                                            "0 0 15px rgba(255,255,255,0.5)",
+                                                            "0 0 5px rgba(255,255,255,0.5)"
+                                                        ]
+                                                    }}
+                                                    transition={{ 
+                                                        duration: 3,
+                                                        repeat: Infinity
+                                                    }}
+                                                >
+                                                    {member.fullname?.charAt(0) || '?'}
+                                                </motion.span>
+                                                
+                                                {/* Dynamic background particles */}
+                                                {Array.from({ length: 8 }).map((_, i) => (
+                                                    <motion.div
+                                                        key={i}
+                                                        className="absolute bg-white/10 rounded-full"
+                                                        style={{
+                                                            width: `${Math.random() * 6 + 2}px`,
+                                                            height: `${Math.random() * 6 + 2}px`,
+                                                            left: `${Math.random() * 100}%`,
+                                                            top: `${Math.random() * 100}%`,
+                                                        }}
+                                                        animate={{
+                                                            y: [0, Math.random() * 30 - 15],
+                                                            x: [0, Math.random() * 30 - 15],
+                                                            opacity: [0.3, 0.8, 0.3],
+                                                        }}
+                                                        transition={{
+                                                            duration: Math.random() * 5 + 5,
+                                                            repeat: Infinity,
+                                                            repeatType: "reverse",
+                                                        }}
+                                                    />
+                                                ))}
+                                            </div>
+                                            
+                                            {/* Decorative orbit effect */}
+                                            <motion.div 
+                                                className="absolute -inset-6 rounded-full border border-indigo-500/30 border-dashed opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                                animate={{ rotate: 360 }}
+                                                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                                            />
+                                        </div>
+                                    )}
+                                </motion.div>
+
                                 {/* Status badge - Only visible to authenticated users */}
                                 {isAuthenticated && member.status && (
-                                    <div className="absolute top-4 left-4 z-20">
-                                        <div className={`flex items-center px-3 py-1 rounded-full ${statusBadge.bg} ${statusBadge.border} backdrop-blur-sm shadow-lg text-xs font-medium ${statusBadge.color}`}>
+                                    <div className="absolute top-3 left-3 z-20">
+                                        <div className={`flex items-center px-2 py-1 rounded-full ${statusBadge.bg} ${statusBadge.border} backdrop-blur-sm shadow-lg text-xs font-medium ${statusBadge.color}`}>
                                             {statusBadge.icon}
                                             {member.status.charAt(0).toUpperCase() + member.status.slice(1)}
                                         </div>
                                     </div>
                                 )}
                                 
-                                {/* Member's name overlay at bottom - only on mobile */}
-                                <div className="md:hidden absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                                    <h2 className="text-xl font-bold text-white truncate">
-                                        {member.fullname}
-                                    </h2>
-                                    <p className="text-blue-300 font-medium text-sm truncate">
-                                        {member.designation}
-                                    </p>
+                                {/* Enhanced department badge */}
+                                <div className="absolute bottom-3 left-0 right-0 flex justify-center">
+                                    <motion.div 
+                                        className="px-4 py-1.5 bg-black/40 backdrop-blur-md rounded-full text-sm text-white/90 flex items-center border border-white/10 shadow-lg"
+                                        whileHover={{ y: -3, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.3)" }}
+                                    >
+                                        {member.department && (
+                                            <span>{member.department}</span>
+                                        )}
+                                    </motion.div>
                                 </div>
                             </div>
 
-                            {/* Details section */}
-                            <div className="md:w-3/5 p-6 md:p-8">
-                                <h2 className="text-2xl md:text-3xl font-bold text-white">
+                            {/* Basic info section */}
+                            <div className="p-5 bg-[#0f172a] border-b border-white/10">
+                                <h2 id="member-profile-title" className="text-xl font-bold text-white text-center">
                                     {member.fullname}
                                 </h2>
-                                <p className="text-blue-300 font-medium mt-1">
+                                <p className="text-blue-300 font-medium mt-1 text-center">
                                     {member.designation}
                                 </p>
-                                <p className="text-indigo-200 mt-1">{member.department}</p>
-
+                                
                                 {/* ID and Member Since - Only visible to authenticated users */}
                                 {isAuthenticated && (
-                                    <div className="flex flex-wrap gap-2 mt-3">
+                                    <div className="flex flex-wrap gap-2 mt-3 justify-center">
                                         {member.memberID && (
                                             <div className="px-2 py-1 bg-indigo-900/20 text-indigo-300 rounded-md text-xs border border-indigo-500/30 flex items-center">
                                                 <Hash size={12} className="mr-1" />
@@ -260,53 +432,49 @@ const TeamMemberModal = ({ member, isOpen, onClose, isAuthenticated }) => {
                                         )}
                                     </div>
                                 )}
+                            </div>
 
-                                {/* Basic information - visible to everyone */}
-                                <div className="mt-6">
-                                    <h3 className="text-lg font-semibold text-white/90 mb-3">
-                                        About
-                                    </h3>
+                            {/* Details section with collapsible content */}
+                            <div className="p-4 md:p-6 overflow-y-auto max-h-[50vh]">
+                                {/* About section */}
+                                <CollapsibleSection title="About" icon={User} defaultExpanded={true}>
                                     <p className="text-white/70">{member.bio || "No bio provided."}</p>
-                                </div>
+                                </CollapsibleSection>
 
-                                {/* Contact information - visible to everyone */}
-                                <div className="mt-6">
-                                    <h3 className="text-lg font-semibold text-white/90 mb-3">
-                                        Contact
-                                    </h3>
-                                    <div className="space-y-2">
-                                        {member.email && (
-                                            <div className="flex items-center">
-                                                <Mail size={18} className="text-blue-300 mr-3" />
-                                                <a
-                                                    href={`mailto:${member.email}`}
-                                                    className="text-white/70 hover:text-white"
-                                                >
-                                                    {member.email}
-                                                </a>
-                                            </div>
-                                        )}
-                                        {member.phone && (
-                                            <div className="flex items-center">
-                                                <Phone size={18} className="text-blue-300 mr-3" />
-                                                <a
-                                                    href={`tel:${member.phone}`}
-                                                    className="text-white/70 hover:text-white"
-                                                >
-                                                    {member.phone}
-                                                </a>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Social links - visible to everyone */}
-                                {socialLinks.length > 0 && (
-                                    <div className="mt-4">
-                                        <h3 className="text-lg font-semibold text-white/90 mb-3">
-                                            Connect
-                                        </h3>
+                                {/* Contact information */}
+                                {(member.email || member.phone) && (
+                                    <CollapsibleSection title="Contact" icon={Mail}>
                                         <div className="space-y-2">
+                                            {member.email && (
+                                                <div className="flex items-center">
+                                                    <Mail size={16} className="text-blue-300 mr-3" />
+                                                    <a
+                                                        href={`mailto:${member.email}`}
+                                                        className="text-white/70 hover:text-white text-sm break-all"
+                                                    >
+                                                        {member.email}
+                                                    </a>
+                                                </div>
+                                            )}
+                                            {member.phone && (
+                                                <div className="flex items-center">
+                                                    <Phone size={16} className="text-blue-300 mr-3" />
+                                                    <a
+                                                        href={`tel:${member.phone}`}
+                                                        className="text-white/70 hover:text-white text-sm"
+                                                    >
+                                                        {member.phone}
+                                                    </a>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </CollapsibleSection>
+                                )}
+
+                                {/* Social links */}
+                                {socialLinks.length > 0 && (
+                                    <CollapsibleSection title="Connect" icon={Share2}>
+                                        <div className="grid grid-cols-2 gap-2">
                                             {socialLinks.map((link, index) => {
                                                 let Icon = LinkIcon;
                                                 if (link.platform.toLowerCase().includes('linkedin')) Icon = Linkedin;
@@ -314,107 +482,94 @@ const TeamMemberModal = ({ member, isOpen, onClose, isAuthenticated }) => {
                                                 if (link.platform.toLowerCase().includes('website') || link.platform.toLowerCase().includes('portfolio')) Icon = Globe;
                                                 
                                                 return (
-                                                    <div key={index} className="flex items-center">
-                                                        <Icon size={18} className="text-blue-300 mr-3" />
-                                                        <a
-                                                            href={link.url}
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                            className="text-white/70 hover:text-white"
-                                                        >
-                                                            {link.platform}
-                                                        </a>
-                                                    </div>
+                                                    <a
+                                                        key={index}
+                                                        href={link.url}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="flex items-center p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+                                                    >
+                                                        <Icon size={16} className="text-blue-300 mr-2" />
+                                                        <span className="text-white/70 text-sm truncate">{link.platform}</span>
+                                                    </a>
                                                 );
                                             })}
                                         </div>
-                                    </div>
+                                    </CollapsibleSection>
                                 )}
 
-                                {/* Skills - visible to everyone */}
+                                {/* Skills */}
                                 {member.skills && member.skills.length > 0 && (
-                                    <div className="mt-6">
-                                        <h3 className="text-lg font-semibold text-white/90 mb-3">
-                                            Skills
-                                        </h3>
+                                    <CollapsibleSection title="Skills" icon={Code}>
                                         <div className="flex flex-wrap gap-2">
                                             {member.skills.map((skill, index) => (
                                                 <span
                                                     key={index}
-                                                    className="px-3 py-1 bg-blue-900/40 text-blue-200 rounded-full text-sm"
+                                                    className="px-2 py-1 bg-blue-900/40 text-blue-200 rounded-full text-xs"
                                                 >
                                                     {skill}
                                                 </span>
                                             ))}
                                         </div>
-                                    </div>
+                                    </CollapsibleSection>
                                 )}
 
                                 {/* Program and Year - Visible to authenticated users */}
                                 {isAuthenticated && (member.program || member.year) && (
-                                    <div className="mt-6">
-                                        <h3 className="text-lg font-semibold text-white/90 mb-3">
-                                            Education
-                                        </h3>
+                                    <CollapsibleSection title="Education" icon={GraduationCap}>
                                         <div className="space-y-2">
                                             {member.program && (
                                                 <div className="flex items-center">
-                                                    <GraduationCap size={18} className="text-blue-300 mr-3" />
-                                                    <span className="text-white/70">
+                                                    <GraduationCap size={16} className="text-blue-300 mr-3" />
+                                                    <span className="text-white/70 text-sm">
                                                         Program: {member.program}
                                                     </span>
                                                 </div>
                                             )}
                                             {member.year && (
                                                 <div className="flex items-center">
-                                                    <Calendar size={18} className="text-blue-300 mr-3" />
-                                                    <span className="text-white/70">
+                                                    <Calendar size={16} className="text-blue-300 mr-3" />
+                                                    <span className="text-white/70 text-sm">
                                                         Year: {member.year}
                                                     </span>
                                                 </div>
                                             )}
                                         </div>
-                                    </div>
+                                    </CollapsibleSection>
                                 )}
 
                                 {/* Hostel Information - Visible to authenticated users */}
                                 {isAuthenticated && member.hosteler && (
-                                    <div className="mt-6">
-                                        <h3 className="text-lg font-semibold text-white/90 mb-3">
-                                            Residence
-                                        </h3>
+                                    <CollapsibleSection title="Residence" icon={Building}>
                                         <div className="space-y-2">
                                             <div className="flex items-center">
-                                                <Building size={18} className="text-blue-300 mr-3" />
-                                                <span className="text-white/70">
+                                                <Building size={16} className="text-blue-300 mr-3" />
+                                                <span className="text-white/70 text-sm">
                                                     {member.hosteler ? `Hosteler (${member.hostel || 'Hostel not specified'})` : 'Day Scholar'}
                                                 </span>
                                             </div>
                                         </div>
-                                    </div>
+                                    </CollapsibleSection>
                                 )}
 
                                 {/* Resume - Visible to authenticated users */}
                                 {isAuthenticated && member.resume?.url && (
-                                    <div className="mt-6">
-                                        <h3 className="text-lg font-semibold text-white/90 mb-3">
-                                            Documents
-                                        </h3>
+                                    <CollapsibleSection title="Documents" icon={FileText}>
                                         <div className="space-y-2">
                                             <div className="flex items-center">
-                                                <FileText size={18} className="text-blue-300 mr-3" />
+                                                <FileText size={16} className="text-blue-300 mr-3" />
                                                 <a
                                                     href={member.resume.url}
                                                     target="_blank"
                                                     rel="noreferrer"
-                                                    className="text-white/70 hover:text-white flex items-center"
+                                                    className="text-white/70 hover:text-white flex items-center text-sm"
                                                 >
                                                     View Resume
-                                                    <Download size={14} className="ml-2" />
+                                                    <Download size={12} className="ml-2" />
                                                 </a>
                                             </div>
                                         </div>
-                                    </div>
+                                    </CollapsibleSection>
                                 )}
 
                                 {/* Projects & Achievements - Auth only section */}
@@ -422,51 +577,42 @@ const TeamMemberModal = ({ member, isOpen, onClose, isAuthenticated }) => {
                                     <>
                                         {/* Projects */}
                                         {member.projects && member.projects.length > 0 && (
-                                            <div className="mt-6">
-                                                <h3 className="text-lg font-semibold text-white/90 mb-3">
-                                                    Projects
-                                                </h3>
-                                                <ul className="list-disc list-inside text-white/70 space-y-1">
+                                            <CollapsibleSection title="Projects" icon={Briefcase}>
+                                                <ul className="list-disc list-inside text-white/70 space-y-1 text-sm">
                                                     {member.projects.map((project, index) => (
                                                         <li key={index}>{project}</li>
                                                     ))}
                                                 </ul>
-                                            </div>
+                                            </CollapsibleSection>
                                         )}
 
                                         {/* Achievements */}
                                         {member.achievements && member.achievements.length > 0 && (
-                                            <div className="mt-6">
-                                                <h3 className="text-lg font-semibold text-white/90 mb-3">
-                                                    Achievements
-                                                </h3>
-                                                <ul className="list-disc list-inside text-white/70 space-y-1">
+                                            <CollapsibleSection title="Achievements" icon={Award}>
+                                                <ul className="list-disc list-inside text-white/70 space-y-1 text-sm">
                                                     {member.achievements.map((achievement, index) => (
                                                         <li key={index}>{achievement}</li>
                                                     ))}
                                                 </ul>
-                                            </div>
+                                            </CollapsibleSection>
                                         )}
 
                                         {/* Additional Information */}
                                         {member.additionalInfo && (
-                                            <div className="mt-6">
-                                                <h3 className="text-lg font-semibold text-white/90 mb-3">
-                                                    Additional Information
-                                                </h3>
-                                                <p className="text-white/70">{member.additionalInfo}</p>
-                                            </div>
+                                            <CollapsibleSection title="Additional Information" icon={Info}>
+                                                <p className="text-white/70 text-sm">{member.additionalInfo}</p>
+                                            </CollapsibleSection>
                                         )}
                                     </>
                                 ) : (
-                                    <div className="mt-8 p-4 border border-blue-800/50 rounded-lg bg-blue-900/20">
+                                    <div className="mt-4 p-3 border border-blue-800/50 rounded-lg bg-blue-900/20">
                                         <div className="flex items-center gap-2 text-blue-300">
-                                            <Lock size={18} />
-                                            <p className="font-medium">
+                                            <Lock size={16} />
+                                            <p className="font-medium text-sm">
                                                 Additional information is only visible to authenticated members
                                             </p>
                                         </div>
-                                        <p className="mt-2 text-sm text-white/60">
+                                        <p className="mt-2 text-xs text-white/60">
                                             Sign in to view complete details including education, projects, achievements, and more.
                                         </p>
                                     </div>

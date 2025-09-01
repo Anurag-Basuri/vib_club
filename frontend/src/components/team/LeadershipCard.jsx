@@ -120,4 +120,6 @@ const LeadershipCard = ({ leader, index, onClick }) => (
     </motion.div>
 );
 
-export default LeadershipCard;
+export default React.memo(LeadershipCard, (prevProps, nextProps) => {
+    return prevProps.leader._id === nextProps.leader._id;
+});

@@ -98,4 +98,7 @@ const TeamMemberCard = ({ member, delay = 0, onClick, isAuthenticated }) => (
     </motion.div>
 );
 
-export default TeamMemberCard;
+export default React.memo(TeamMemberCard, (prevProps, nextProps) => {
+    return prevProps.member._id === nextProps.member._id && 
+           prevProps.isAuthenticated === nextProps.isAuthenticated;
+});
