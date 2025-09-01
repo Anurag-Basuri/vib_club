@@ -1,135 +1,107 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Star, ChevronRight, Lock, Briefcase, Users } from 'lucide-react';
+import { ChevronRight, Briefcase, Users } from 'lucide-react';
 
 const UnifiedTeamCard = ({ member, delay = 0, onClick, isAuthenticated }) => {
+    // Safety check for undefined member
+    if (!member) return null;
+    
+    // Ensure we have proper property names (fullname vs fullName)
+    const name = member.fullname || member.fullName || 'Unknown';
+    const designation = member.designation || 'Position not specified';
+    const department = member.department || 'Department not specified';
+    
     return (
         <motion.div
             className="h-full group"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: delay * 0.1, duration: 0.5 }}
-            whileHover={{ y: -10 }}
+            whileHover={{ y: -5, transition: { duration: 0.2 } }}
             onClick={() => onClick(member)}
         >
-            <div className="relative h-full p-5 rounded-xl bg-gradient-to-b from-[#161a36]/80 to-[#0f1225]/90 backdrop-blur-sm 
-                border border-indigo-500/20 shadow-lg cursor-pointer group-hover:shadow-indigo-500/20 
-                group-hover:border-indigo-400/40 transition-all duration-300 overflow-hidden">
+            <div className="relative h-full rounded-xl overflow-hidden cursor-pointer transition-all duration-300 shadow-lg group-hover:shadow-xl border border-indigo-500/10 group-hover:border-indigo-500/30">
+                {/* Simplified gradient background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-[#1a1f47] via-[#141b38] to-[#0f172a]"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/10 via-blue-600/10 to-purple-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 
-                {/* Animated background elements */}
-                <div className="absolute -top-20 -left-20 w-40 h-40 bg-indigo-600/10 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-                <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-blue-600/10 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                {/* Top accent line */}
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-blue-500 opacity-60 group-hover:opacity-100 transition-opacity"></div>
                 
-                {/* Overlay corner accent */}
-                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-indigo-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-
-                <div className="relative z-10">
-                    {/* Profile image and name section */}
-                    <div className="flex items-center mb-5">
-                        {/* Profile image */}
-                        <div className="relative group/img">
-                            {/* Glow effect */}
-                            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-600 blur-sm opacity-50 group-hover/img:opacity-90 transition-opacity"></div>
+                {/* Card content */}
+                <div className="relative z-10 p-5 flex flex-col h-full">
+                    {/* Profile image with better error handling */}
+                    <div className="flex justify-center mb-4">
+                        <div className="relative">
+                            {/* Simplified glow effect */}
+                            <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-indigo-600/30 to-blue-600/30 blur-sm opacity-70 group-hover:opacity-100 transition-opacity"></div>
                             
-                            {/* Image */}
-                            <img
-                                src={member?.profilePicture?.url || '/default-profile.png'}
-                                alt={member?.fullname}
-                                className="relative z-10 w-16 h-16 rounded-full object-cover border-2 border-white/10"
-                                onError={(e) => {
-                                    e.target.src = '/default-profile.png';
-                                }}
-                                loading="lazy"
-                            />
-                            
-                            {/* Rotating star indicator */}
+                            {/* Image with better error handling */}
                             <motion.div
-                                className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg border border-white/10"
-                                initial={{ rotate: 0 }}
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
+                                initial={{ scale: 0.9, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ delay: delay * 0.1 + 0.2, duration: 0.3 }}
+                                className="relative z-10 w-20 h-20 rounded-full overflow-hidden border-2 border-indigo-500/30 group-hover:border-indigo-500/50 transition-all duration-300 shadow-lg"
                             >
-                                <Star size={10} className="text-white" />
+                                <img
+                                    src={member?.profilePicture?.url || '/assets/images/default-avatar.png'}
+                                    alt={name}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        e.target.onerror = null; // Prevent infinite loop
+                                        e.target.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%232d3748"/><text x="50%" y="50%" font-family="Arial" font-size="42" fill="%23a3bffa" text-anchor="middle" dominant-baseline="middle">' + (name?.charAt(0) || '?') + '</text></svg>';
+                                    }}
+                                    loading="lazy"
+                                />
                             </motion.div>
                         </div>
-                        
-                        <div className="ml-3 flex-1">
-                            {/* Name - Emphasized */}
-                            <h4 className="text-lg font-semibold text-white group-hover:text-blue-200 transition-colors line-clamp-1">
-                                {member.fullname}
-                            </h4>
+                    </div>
+                    
+                    {/* Name - with text overflow protection */}
+                    <h3 className="text-lg font-bold text-white text-center mb-3 group-hover:text-blue-200 transition-colors px-1 truncate">
+                        {name}
+                    </h3>
+                    
+                    {/* Info card with fixed height for consistency */}
+                    <div className="mb-4 flex-1">
+                        <div className="p-3 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10 group-hover:border-indigo-500/30 transition-colors h-full">
+                            {/* Designation with icon and text overflow protection */}
+                            <div className="flex items-center mb-3 pb-2 border-b border-white/10">
+                                <Users size={14} className="text-blue-400 mr-2 flex-shrink-0" />
+                                <p className="text-blue-100 font-medium text-sm truncate">
+                                    {designation}
+                                </p>
+                            </div>
+                            
+                            {/* Department with icon and text overflow protection */}
+                            <div className="flex items-center">
+                                <Briefcase size={14} className="text-indigo-400 mr-2 flex-shrink-0" />
+                                <p className="text-indigo-200 text-sm truncate">
+                                    {department}
+                                </p>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Designation and Department - Highlighted section */}
-                    <div className="mb-4 p-2.5 rounded-lg bg-indigo-900/30 border border-indigo-500/30">
-                        {/* Designation with icon */}
-                        <div className="flex items-center mb-2">
-                            <Users size={14} className="text-blue-300 mr-2 flex-shrink-0" />
-                            <p className="text-blue-300 text-sm font-medium">
-                                {member.designation}
-                            </p>
-                        </div>
-                        
-                        {/* Department with icon */}
-                        <div className="flex items-center">
-                            <Briefcase size={14} className="text-indigo-300 mr-2 flex-shrink-0" />
-                            <p className="text-indigo-300 text-sm">
-                                {member.department}
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* ID display */}
-                    <div className="mb-3 flex items-center text-xs">
-                        {isAuthenticated ? (
-                            <span className="px-2 py-1 rounded-md bg-indigo-600/20 border border-indigo-500/30 text-white">
-                                ID: <span className="font-mono">{member.LpuId || 'N/A'}</span>
-                            </span>
-                        ) : (
-                            <span className="flex items-center gap-1 px-2 py-1 rounded-md bg-indigo-600/10 border border-indigo-500/20 text-white/60">
-                                <Lock size={10} />
-                                <span>Member ID hidden</span>
-                            </span>
-                        )}
-                    </div>
-
-                    {/* Skills tags */}
-                    <div className="mb-5 flex flex-wrap gap-2">
-                        {member.skills?.slice(0, 3).map((skill, idx) => (
-                            <motion.span
-                                key={idx}
-                                className="px-2 py-1 rounded-full bg-indigo-600/20 text-xs text-blue-200 border border-indigo-500/30 group-hover:border-indigo-400/50 transition-colors"
-                                whileHover={{ scale: 1.05 }}
-                            >
-                                {skill}
-                            </motion.span>
-                        ))}
-                        {member.skills?.length > 3 && (
-                            <motion.span
-                                className="px-2 py-1 rounded-full bg-indigo-600/10 text-xs text-blue-200/70"
-                                whileHover={{ scale: 1.05 }}
-                            >
-                                +{member.skills.length - 3}
-                            </motion.span>
-                        )}
-                    </div>
-
-                    {/* View profile button */}
-                    <motion.div
-                        className="flex items-center justify-end text-blue-300 text-xs font-medium group-hover:text-blue-200 transition-colors"
-                        initial={{ x: 0 }}
-                        whileHover={{ x: 3 }}
+                    {/* Improved "View Profile" button */}
+                    <motion.button
+                        className="w-full flex items-center justify-center px-3 py-1.5 rounded-md bg-indigo-900/30 border border-indigo-500/20 text-blue-300 text-xs font-medium group-hover:bg-indigo-900/50 group-hover:border-indigo-500/40 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:ring-offset-1 focus:ring-offset-[#141b38]"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                     >
                         View Profile <ChevronRight size={14} className="ml-1" />
-                    </motion.div>
+                    </motion.button>
                 </div>
+                
+                {/* Simpler corner accents */}
+                <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-indigo-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-blue-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </div>
         </motion.div>
     );
 };
 
 export default React.memo(UnifiedTeamCard, (prevProps, nextProps) => {
-    return prevProps.member._id === nextProps.member._id && 
+    return prevProps.member?._id === nextProps.member?._id && 
            prevProps.isAuthenticated === nextProps.isAuthenticated;
 });
