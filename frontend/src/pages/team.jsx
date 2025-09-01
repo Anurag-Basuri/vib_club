@@ -16,7 +16,7 @@ import { publicClient } from '../services/api.js';
 import { useAuth } from '../hooks/useAuth.js';
 
 // Import components
-import LeadershipCard from '../components/team/LeadershipCard';
+import UnifiedTeamCard from '../components/team/UnifiedTeamCard';
 import DepartmentSection from '../components/team/DepartmentSection';
 import TeamMemberModal from '../components/team/TeamMemberModal';
 import FloatingParticles from '../components/team/FloatingParticles';
@@ -230,28 +230,32 @@ const TeamsPage = () => {
 								</motion.div>
 
 								<div className="relative">
-									{leadership.filter((m) => m.designation === 'CEO').length >
-										0 && (
+									{leadership.filter((m) => m.designation === 'CEO').length > 0 && (
 										<div className="flex justify-center mb-10">
-											<LeadershipCard
-												leader={leadership.find(
-													(m) => m.designation === 'CEO'
-												)}
-												index={0}
-												onClick={handleMemberClick}
-											/>
+											<div className="w-[280px] sm:w-[320px]">
+												<UnifiedTeamCard
+													member={leadership.find((m) => m.designation === 'CEO')}
+													delay={0}
+													onClick={handleMemberClick}
+													isAuthenticated={isAuthenticated}
+													isLeadership={true}
+												/>
+											</div>
 										</div>
 									)}
-									<div className="flex flex-wrap justify-center gap-4 sm:gap-8">
+									<div className="flex flex-wrap justify-center gap-6">
 										{leadership
 											.filter((m) => m.designation !== 'CEO')
 											.map((leader, index) => (
-												<LeadershipCard
-													key={leader._id || index}
-													leader={leader}
-													index={index + 1}
-													onClick={handleMemberClick}
-												/>
+												<div key={leader._id || index} className="w-[240px] sm:w-[280px]">
+													<UnifiedTeamCard
+														member={leader}
+														delay={index + 1}
+														onClick={handleMemberClick}
+														isAuthenticated={isAuthenticated}
+														isLeadership={true}
+													/>
+												</div>
 											))}
 									</div>
 								</div>

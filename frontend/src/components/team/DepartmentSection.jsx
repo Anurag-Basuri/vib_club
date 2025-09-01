@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import TeamMemberCard from './TeamMemberCard';
+import UnifiedTeamCard from './UnifiedTeamCard';
 import { ChevronRight } from 'lucide-react';
 
 const DepartmentSection = ({ department, members, onClick, isAuthenticated }) => {
@@ -49,12 +49,13 @@ const DepartmentSection = ({ department, members, onClick, isAuthenticated }) =>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
                         {membersInDesignation.map((member, index) => (
-                            <TeamMemberCard
+                            <UnifiedTeamCard
                                 key={member._id || index}
                                 member={member}
                                 delay={index}
                                 onClick={onClick}
                                 isAuthenticated={isAuthenticated}
+                                isLeadership={false}
                             />
                         ))}
                     </div>
