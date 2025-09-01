@@ -240,28 +240,29 @@ const TeamsPage = () => {
 						</div>
 					</section>
 
-					{/* Leadership Section */}
+					{/* Leadership Section - Mobile Optimized */}
 					{leadership.length > 0 && (
-    <section id="leadership" className="py-8 sm:py-12 px-4 relative z-10">
-        <div className="max-w-6xl mx-auto">
+    <section id="leadership" className="py-6 sm:py-8 md:py-12 px-3 sm:px-4 relative z-10">
+        <div className="max-w-7xl mx-auto">
             <motion.div
-                className="flex flex-col items-center mb-8 sm:mb-10"
+                className="flex flex-col items-center mb-6 sm:mb-8 md:mb-10"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.8 }}
+                transition={{ duration: 0.6 }}
             >
-                <h2 className="text-3xl sm:text-4xl font-bold text-center mb-4 bg-gradient-to-r from-[#5d7df5] to-[#3a56c9] bg-clip-text text-transparent">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-3 sm:mb-4 
+                    bg-gradient-to-r from-[#5d7df5] to-[#3a56c9] bg-clip-text text-transparent px-4">
                     Leadership Team
                 </h2>
-                <div className="w-20 h-1 bg-gradient-to-r from-[#3a56c9] to-[#5d7df5] rounded-full"></div>
+                <div className="w-16 sm:w-20 h-0.5 sm:h-1 bg-gradient-to-r from-[#3a56c9] to-[#5d7df5] rounded-full"></div>
             </motion.div>
 
             <div className="relative">
-                {/* CEO Card - Centered */}
+                {/* CEO Card - Mobile Centered */}
                 {leadership.filter((m) => m.designation === 'CEO').length > 0 && (
-                    <div className="flex justify-center mb-6 sm:mb-10">
-                        <div className="w-full max-w-[280px]">
+                    <div className="flex justify-center mb-6 sm:mb-8 md:mb-10">
+                        <div className="w-full max-w-[300px] px-2">
                             <UnifiedTeamCard
                                 member={leadership.find((m) => m.designation === 'CEO')}
                                 delay={0}
@@ -272,19 +273,28 @@ const TeamsPage = () => {
                     </div>
                 )}
                 
-                {/* Other leadership - center-aligned flexbox */}
-                <div className="flex flex-wrap justify-center gap-4 sm:gap-6 max-w-6xl mx-auto">
+                {/* Other leadership - Mobile-First Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 max-w-7xl mx-auto px-2">
                     {leadership
                         .filter((m) => m.designation !== 'CEO')
                         .map((leader, index) => (
-                            <div key={leader._id || index} className="w-full max-w-[280px] xs:w-auto xs:max-w-[280px]">
-                                <UnifiedTeamCard
-                                    member={leader}
-                                    delay={index + 1}
-                                    onClick={handleMemberClick}
-                                    isAuthenticated={isAuthenticated}
-                                />
-                            </div>
+                            <motion.div
+                                key={leader._id || index}
+                                className="flex justify-center"
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true, margin: '-20px' }}
+                                transition={{ delay: index * 0.05, duration: 0.4 }}
+                            >
+                                <div className="w-full max-w-[300px]">
+                                    <UnifiedTeamCard
+                                        member={leader}
+                                        delay={index * 0.02}
+                                        onClick={handleMemberClick}
+                                        isAuthenticated={isAuthenticated}
+                                    />
+                                </div>
+                            </motion.div>
                         ))}
                 </div>
             </div>
@@ -292,33 +302,34 @@ const TeamsPage = () => {
     </section>
 					)}
 
-					{/* Departments Sections */}
-					<section id="departments" className="py-10 sm:py-16 px-4 relative z-10">
+					{/* Departments Section Header - Mobile Optimized */}
+					<section id="departments" className="py-6 sm:py-10 md:py-16 px-3 sm:px-4 relative z-10">
     <div className="max-w-7xl mx-auto">
         <motion.div
-            className="flex flex-col items-center mb-10"
+            className="flex flex-col items-center mb-8 sm:mb-10"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.6 }}
         >
-            <h2 className="text-3xl sm:text-4xl font-bold text-center mb-4 bg-gradient-to-r from-[#0ea5e9] to-[#5d7df5] bg-clip-text text-transparent">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-3 sm:mb-4 
+                bg-gradient-to-r from-[#0ea5e9] to-[#5d7df5] bg-clip-text text-transparent px-4">
                 Our Departments
             </h2>
-            <div className="w-20 h-1 bg-gradient-to-r from-[#0ea5e9] to-[#5d7df5] rounded-full"></div>
+            <div className="w-16 sm:w-20 h-0.5 sm:h-1 bg-gradient-to-r from-[#0ea5e9] to-[#5d7df5] rounded-full"></div>
         </motion.div>
 
-        {/* Search results message */}
+        {/* Search results message - Mobile Optimized */}
         {searchQuery && (
-            <div className="mb-8 text-center">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#1a244f]/70 rounded-lg border border-[#3a56c9]/40">
-                    <Filter size={16} className="text-[#5d7df5]" />
+            <div className="mb-6 sm:mb-8 text-center px-2">
+                <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-[#1a244f]/70 rounded-lg border border-[#3a56c9]/40 text-sm">
+                    <Filter size={14} className="text-[#5d7df5]" />
                     <span className="text-[#d0d5f7]">
-                        Showing results for "{searchQuery}"
+                        Results for "{searchQuery}"
                     </span>
                     <button
                         onClick={() => setSearchQuery('')}
-                        className="ml-2 text-[#5d7df5] hover:text-white transition-colors"
+                        className="ml-1 sm:ml-2 text-[#5d7df5] hover:text-white transition-colors text-sm"
                     >
                         Clear
                     </button>
@@ -326,7 +337,8 @@ const TeamsPage = () => {
             </div>
         )}
 
-        <div className="space-y-16 sm:space-y-20">
+        <div className="space-y-12 sm:space-y-16">
+            {/* Keep all your existing department sections as they are */}
             {/* Technical Department */}
             {technical.length > 0 && (
                 <DepartmentSection
@@ -438,7 +450,7 @@ const TeamsPage = () => {
             )}
         </div>
 
-        {/* No results message */}
+        {/* No results message - Mobile Optimized */}
         {searchQuery &&
             technical.length === 0 &&
             management.length === 0 &&
@@ -451,18 +463,18 @@ const TeamsPage = () => {
             eventManagement.length === 0 &&
             pr.length === 0 &&
             coordinator.length === 0 && (
-                <div className="text-center py-16 max-w-md mx-auto">
-                    <div className="bg-[#1a244f]/70 rounded-xl p-8 border border-[#3a56c9]/40">
-                        <SearchX size={48} className="text-[#5d7df5]/70 mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold text-white mb-2">
+                <div className="text-center py-12 sm:py-16 max-w-sm mx-auto px-4">
+                    <div className="bg-[#1a244f]/70 rounded-xl p-6 sm:p-8 border border-[#3a56c9]/40">
+                        <SearchX size={40} className="text-[#5d7df5]/70 mx-auto mb-3 sm:mb-4" />
+                        <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">
                             No Results Found
                         </h3>
-                        <p className="text-[#9ca3d4] mb-4">
-                            We couldn't find any team members matching "{searchQuery}"
+                        <p className="text-[#9ca3d4] mb-4 text-sm sm:text-base">
+                            No team members match "{searchQuery}"
                         </p>
                         <button
                             onClick={() => setSearchQuery('')}
-                            className="px-4 py-2 bg-[#3a56c9] hover:bg-[#5d7df5] text-white rounded-lg transition-colors"
+                            className="px-4 py-2 bg-[#3a56c9] hover:bg-[#5d7df5] text-white rounded-lg transition-colors text-sm"
                         >
                             Clear Search
                         </button>
