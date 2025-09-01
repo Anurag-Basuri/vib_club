@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Star, ChevronRight, Lock } from 'lucide-react';
+import { Star, ChevronRight, Lock, Briefcase } from 'lucide-react';
 
 const TeamMemberCard = ({ member, delay = 0, onClick, isAuthenticated }) => (
     <motion.div
@@ -43,11 +43,32 @@ const TeamMemberCard = ({ member, delay = 0, onClick, isAuthenticated }) => (
                         </motion.div>
                     </div>
                     <div className="ml-3">
+                        {/* Name - Bigger and bolder */}
                         <h4 className="text-base font-semibold text-white group-hover:text-blue-200 transition-colors line-clamp-1">
                             {member.fullName}
                         </h4>
-                        <p className="text-blue-300 text-xs">{member.designation}</p>
+                        
+                        {/* Designation */}
+                        <p className="text-blue-300 text-xs font-medium">
+                            {member.designation}
+                        </p>
+                        
+                        {/* Department - New! */}
+                        <div className="flex items-center mt-1">
+                            <Briefcase size={10} className="text-indigo-400 mr-1" />
+                            <p className="text-indigo-400 text-xs">
+                                {member.department}
+                            </p>
+                        </div>
                     </div>
+                </div>
+
+                {/* Department tag - More visible */}
+                <div className="mb-3">
+                    <span className="inline-flex items-center px-2 py-1 rounded-md bg-indigo-600/20 border border-indigo-500/30 text-blue-300 text-xs">
+                        <Briefcase size={10} className="mr-1" />
+                        {member.department}
+                    </span>
                 </div>
 
                 {/* ID with modern design */}

@@ -31,8 +31,6 @@ const LeadershipCard = ({ leader, index, onClick }) => (
                     {leader.level === 0 && (
                         <motion.div 
                             className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold uppercase tracking-wider py-1 px-4 rounded-full shadow-lg border border-white/10"
-                            animate={{ y: [0, -3, 0] }}
-                            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                         >
                             Club Lead
                         </motion.div>
@@ -73,38 +71,6 @@ const LeadershipCard = ({ leader, index, onClick }) => (
                             <span className="px-4 py-1.5 rounded-full bg-indigo-600/30 text-blue-200 text-sm font-medium border border-indigo-400/30">
                                 {leader.designation}
                             </span>
-                        </div>
-
-                        <p className="text-white/70 text-sm text-center mb-5 max-w-[220px] line-clamp-2">
-                            {leader.bio || 'Passionate leader driving innovation'}
-                        </p>
-
-                        {/* Social icons */}
-                        <div className="flex gap-3 mb-5">
-                            {leader.socialLinks?.some(link => link.platform.toLowerCase().includes('linkedin')) && (
-                                <motion.a 
-                                    href={leader.socialLinks.find(link => 
-                                        link.platform.toLowerCase().includes('linkedin'))?.url || '#'}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="p-2 rounded-full bg-indigo-600/30 text-white hover:bg-indigo-600/60 transition-colors"
-                                    whileHover={{ y: -3 }}
-                                >
-                                    <LinkedinIcon size={16} />
-                                </motion.a>
-                            )}
-                            {leader.socialLinks?.some(link => link.platform.toLowerCase().includes('github')) && (
-                                <motion.a 
-                                    href={leader.socialLinks.find(link => 
-                                        link.platform.toLowerCase().includes('github'))?.url || '#'}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="p-2 rounded-full bg-indigo-600/30 text-white hover:bg-indigo-600/60 transition-colors"
-                                    whileHover={{ y: -3 }}
-                                >
-                                    <GithubIcon size={16} />
-                                </motion.a>
-                            )}
                         </div>
 
                         <motion.div
