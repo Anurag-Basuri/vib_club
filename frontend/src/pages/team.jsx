@@ -71,60 +71,73 @@ const TeamsPage = () => {
 	}, []);
 
 	useEffect(() => {
-		if (teamData.length > 0) {
-			// Filter team data if search query exists
-			const filteredData = searchQuery
-				? teamData.filter(
-						(member) =>
-							member.fullname?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-							member.department?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-							member.designation?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-							member.skills?.some((skill) =>
-								skill.toLowerCase().includes(searchQuery.toLowerCase())
-							)
-					)
-				: teamData;
+    if (teamData.length > 0) {
+        console.log('Total team data:', teamData.length);
+        console.log('Sample member:', teamData[0]);
+        
+        // Filter team data if search query exists
+        const filteredData = searchQuery
+            ? teamData.filter(
+                    (member) =>
+                        member.fullname?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        member.department?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        member.designation?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        member.skills?.some((skill) =>
+                            skill.toLowerCase().includes(searchQuery.toLowerCase())
+                        )
+                )
+            : teamData;
 
-			const leadershipMembers = filteredData
-				.filter((member) => ['CEO', 'CTO', 'CMO', 'COO'].includes(member.designation))
-				.map((member) => ({
-					...member,
-					level: member.designation === 'CEO' ? 0 : 1,
-				}));
-			setLeadership(leadershipMembers);
+        console.log('Filtered data:', filteredData.length);
 
-			const excludeLeadership = (member) =>
-				!leadershipMembers.some((lm) => lm._id === member._id);
+        // Leadership members (CEO, CTO, CMO, COO) - separate from departments
+        const leadershipMembers = filteredData
+            .filter((member) => ['CEO', 'CTO', 'CMO', 'COO'].includes(member.designation))
+            .map((member) => ({
+                ...member,
+                level: member.designation === 'CEO' ? 0 : 1,
+            }));
+        setLeadership(leadershipMembers);
+        console.log('Leadership members:', leadershipMembers.length);
 
-			setTechnical(
-				filteredData.filter((m) => m.department === 'Technical' && excludeLeadership(m))
-			);
-			setManagement(
-				filteredData.filter((m) => m.department === 'Management' && excludeLeadership(m))
-			);
-			setMarketing(
-				filteredData.filter((m) => m.department === 'Marketing' && excludeLeadership(m))
-			);
-			setSocialMedia(
-				filteredData.filter((m) => m.department === 'Social Media' && excludeLeadership(m))
-			);
-			setMedia(filteredData.filter((m) => m.department === 'Media' && excludeLeadership(m)));
-			setContentWriting(
-				filteredData.filter(
-					(m) => m.department === 'Content Writing' && excludeLeadership(m)
-				)
-			);
-			setDesign(
-				filteredData.filter((m) => m.department === 'Design' && excludeLeadership(m))
-			);
-			setHR(filteredData.filter((m) => m.department === 'HR' && excludeLeadership(m)));
-			setEventManagement(
-				filteredData.filter(
-					(m) => m.department === 'Event Management' && excludeLeadership(m)
-				)
-			);
-		}
-	}, [teamData, searchQuery]);
+        // Function to exclude leadership from departments
+        const excludeLeadership = (member) =>
+            !leadershipMembers.some((lm) => lm._id === member._id);
+
+        // Filter each department and include their heads
+        const technicalMembers = filteredData.filter((m) => m.department === 'Technical' && excludeLeadership(m));
+        const managementMembers = filteredData.filter((m) => m.department === 'Management' && excludeLeadership(m));
+        const marketingMembers = filteredData.filter((m) => m.department === 'Marketing' && excludeLeadership(m));
+        const socialMediaMembers = filteredData.filter((m) => m.department === 'Social Media' && excludeLeadership(m));
+        const mediaMembers = filteredData.filter((m) => m.department === 'Media' && excludeLeadership(m));
+        const contentWritingMembers = filteredData.filter((m) => m.department === 'Content Writing' && excludeLeadership(m));
+        const designMembers = filteredData.filter((m) => m.department === 'Design' && excludeLeadership(m));
+        const hrMembers = filteredData.filter((m) => m.department === 'HR' && excludeLeadership(m));
+        const eventManagementMembers = filteredData.filter((m) => m.department === 'Event Management' && excludeLeadership(m));
+
+        console.log('Department counts:', {
+            technical: technicalMembers.length,
+            management: managementMembers.length,
+            marketing: marketingMembers.length,
+            socialMedia: socialMediaMembers.length,
+            media: mediaMembers.length,
+            contentWriting: contentWritingMembers.length,
+            design: designMembers.length,
+            hr: hrMembers.length,
+            eventManagement: eventManagementMembers.length
+        });
+
+        setTechnical(technicalMembers);
+        setManagement(managementMembers);
+        setMarketing(marketingMembers);
+        setSocialMedia(socialMediaMembers);
+        setMedia(mediaMembers);
+        setContentWriting(contentWritingMembers);
+        setDesign(designMembers);
+        setHR(hrMembers);
+        setEventManagement(eventManagementMembers);
+    }
+}, [teamData, searchQuery]);
 
 	// Auto-hide auth message after 5 seconds
 	useEffect(() => {
