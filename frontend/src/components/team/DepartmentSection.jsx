@@ -15,16 +15,16 @@ const DepartmentSection = ({ department, members, onClick, isAuthenticated }) =>
             membersInDesignation.length > 0 && (
                 <motion.div
                     key={designation}
-                    className="mb-20"
+                    className="mb-12 sm:mb-16"
                     initial={{ opacity: 0, y: 50 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: '-100px' }}
                     transition={{ duration: 0.8 }}
                 >
-                    <div className="flex flex-col items-center mb-10 relative">
+                    <div className="flex flex-col items-center mb-6 sm:mb-8 relative">
                         {/* Enhanced header background */}
                         <motion.div 
-                            className="relative group overflow-hidden"
+                            className="relative group overflow-hidden mb-4"
                             whileHover={{ scale: 1.03 }}
                         >
                             {/* Animated background */}
@@ -41,22 +41,25 @@ const DepartmentSection = ({ department, members, onClick, isAuthenticated }) =>
                         </motion.div>
 
                         {/* Modern decorative element */}
-                        <div className="mt-5 relative">
-                            <div className="w-20 h-1 bg-gradient-to-r from-indigo-600 to-blue-400 rounded-full"></div>
+                        <div className="relative">
+                            <div className="w-16 h-1 bg-gradient-to-r from-indigo-600 to-blue-400 rounded-full"></div>
                             <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-blue-400 filter blur-md opacity-70"></div>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+                    {/* Updated responsive grid */}
+                    <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                         {membersInDesignation.map((member, index) => (
-                            <UnifiedTeamCard
-                                key={member._id || index}
-                                member={member}
-                                delay={index}
-                                onClick={onClick}
-                                isAuthenticated={isAuthenticated}
-                                isLeadership={false}
-                            />
+                            <div key={member._id || index} className="flex justify-center">
+                                <div className="w-full max-w-[280px]">
+                                    <UnifiedTeamCard
+                                        member={member}
+                                        delay={index * 0.05}
+                                        onClick={onClick}
+                                        isAuthenticated={isAuthenticated}
+                                    />
+                                </div>
+                            </div>
                         ))}
                     </div>
                 </motion.div>

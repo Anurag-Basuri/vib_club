@@ -214,53 +214,56 @@ const TeamsPage = () => {
 
 					{/* Leadership Section */}
 					{leadership.length > 0 && (
-						<section id="leadership" className="py-10 sm:py-16 px-4 relative z-10">
-							<div className="max-w-6xl mx-auto">
-								<motion.div
-									className="flex flex-col items-center mb-10"
-									initial={{ opacity: 0, y: 20 }}
-									whileInView={{ opacity: 1, y: 0 }}
-									viewport={{ once: true }}
-									transition={{ duration: 0.8 }}
-								>
-									<h2 className="text-3xl sm:text-4xl font-bold text-center mb-4 bg-gradient-to-r from-[#5d7df5] to-[#3a56c9] bg-clip-text text-transparent">
-										Leadership Team
-									</h2>
-									<div className="w-20 h-1 bg-gradient-to-r from-[#3a56c9] to-[#5d7df5] rounded-full"></div>
-								</motion.div>
+    <section id="leadership" className="py-8 sm:py-12 px-4 relative z-10">
+        <div className="max-w-6xl mx-auto">
+            <motion.div
+                className="flex flex-col items-center mb-8 sm:mb-10"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8 }}
+            >
+                <h2 className="text-3xl sm:text-4xl font-bold text-center mb-4 bg-gradient-to-r from-[#5d7df5] to-[#3a56c9] bg-clip-text text-transparent">
+                    Leadership Team
+                </h2>
+                <div className="w-20 h-1 bg-gradient-to-r from-[#3a56c9] to-[#5d7df5] rounded-full"></div>
+            </motion.div>
 
-								<div className="relative">
-									{leadership.filter((m) => m.designation === 'CEO').length > 0 && (
-										<div className="flex justify-center mb-10">
-											<div className="w-[280px] sm:w-[320px]">
-												<UnifiedTeamCard
-													member={leadership.find((m) => m.designation === 'CEO')}
-													delay={0}
-													onClick={handleMemberClick}
-													isAuthenticated={isAuthenticated}
-													isLeadership={true}
-												/>
-											</div>
-										</div>
-									)}
-									<div className="flex flex-wrap justify-center gap-6">
-										{leadership
-											.filter((m) => m.designation !== 'CEO')
-											.map((leader, index) => (
-												<div key={leader._id || index} className="w-[240px] sm:w-[280px]">
-													<UnifiedTeamCard
-														member={leader}
-														delay={index + 1}
-														onClick={handleMemberClick}
-														isAuthenticated={isAuthenticated}
-														isLeadership={true}
-													/>
-												</div>
-											))}
-									</div>
-								</div>
-							</div>
-						</section>
+            <div className="relative">
+                {/* CEO Card - Centered on all screens */}
+                {leadership.filter((m) => m.designation === 'CEO').length > 0 && (
+                    <div className="flex justify-center mb-6 sm:mb-10">
+                        <div className="w-full max-w-[280px] md:max-w-[320px]">
+                            <UnifiedTeamCard
+                                member={leadership.find((m) => m.designation === 'CEO')}
+                                delay={0}
+                                onClick={handleMemberClick}
+                                isAuthenticated={isAuthenticated}
+                            />
+                        </div>
+                    </div>
+                )}
+                
+                {/* Other leadership - responsive grid */}
+                <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                    {leadership
+                        .filter((m) => m.designation !== 'CEO')
+                        .map((leader, index) => (
+                            <div key={leader._id || index} className="flex justify-center">
+                                <div className="w-full max-w-[280px]">
+                                    <UnifiedTeamCard
+                                        member={leader}
+                                        delay={index + 1}
+                                        onClick={handleMemberClick}
+                                        isAuthenticated={isAuthenticated}
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                </div>
+            </div>
+        </div>
+    </section>
 					)}
 
 					{/* Departments Sections */}

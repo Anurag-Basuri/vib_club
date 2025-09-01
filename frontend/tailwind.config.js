@@ -11,6 +11,9 @@ export default {
 			animation: {
 				'pulse-slow': 'pulse-slow 4s ease-in-out infinite',
 			},
+			screens: {
+				'xs': '480px',
+			},
 		},
 	},
 	plugins: [],
