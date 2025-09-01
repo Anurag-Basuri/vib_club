@@ -263,6 +263,7 @@ const EditMemberModal = ({ isOpen, onClose, member, onSubmit, loading, error }) 
 		department: '',
 		designation: '',
 		LpuId: '',
+		joinedAt: '',
 	});
 
 	useEffect(() => {
@@ -271,6 +272,7 @@ const EditMemberModal = ({ isOpen, onClose, member, onSubmit, loading, error }) 
 				department: member.department || '',
 				designation: member.designation || 'member',
 				LpuId: member.LpuId || '',
+				joinedAt: member.joinedAt ? new Date(member.joinedAt).toISOString().split('T')[0] : '',
 			});
 		}
 	}, [isOpen, member]);
@@ -333,6 +335,16 @@ const EditMemberModal = ({ isOpen, onClose, member, onSubmit, loading, error }) 
 					/>
 				</div>
 
+				<div>
+					<label className="block text-gray-300 mb-1">Joined At</label>
+					<input
+						type='date'
+						className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+						value={editData.joinedAt}
+						onChange={(e) => setEditData({ ...editData, joinedAt: e.target.value })}
+					/>
+				</div>
+
 				<div className="flex justify-end gap-3 pt-4">
 					<button
 						className="px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg transition"
@@ -365,6 +377,7 @@ const RegisterMemberModal = ({ isOpen, onClose, onSubmit, loading, error, succes
 		password: '',
 		department: '',
 		designation: '',
+		joinedAt: '',
 	});
 	const [showPassword, setShowPassword] = useState(false);
 
@@ -377,6 +390,7 @@ const RegisterMemberModal = ({ isOpen, onClose, onSubmit, loading, error, succes
 				password: '',
 				department: '',
 				designation: '',
+				joinedAt: '',
 			});
 			setShowPassword(false);
 		}
@@ -506,6 +520,16 @@ const RegisterMemberModal = ({ isOpen, onClose, onSubmit, loading, error, succes
 							</option>
 						))}
 					</select>
+				</div>
+
+				<div>
+					<label className="block text-gray-300 mb-1">Joined Date</label>
+					<input
+						type="date"
+						className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+						value={formData.joinedAt}
+						onChange={(e) => setFormData({ ...formData, joinedAt: e.target.value })}
+					/>
 				</div>
 
 				<div className="flex justify-end gap-3 pt-4">
