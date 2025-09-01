@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Loader, Users, Filter, Search, UserCheck, UserX, X, Award, Layout, SearchX } from 'lucide-react';
+import { Sparkles,
+	Loader,
+	Users,
+	Filter,
+	Search,
+	UserCheck,
+	UserX,
+	X,
+	Award,
+	Layout,
+	SearchX
+} from 'lucide-react';
 import { publicClient } from '../services/api.js';
 import { useAuth } from '../hooks/useAuth.js';
 
@@ -10,7 +21,6 @@ import DepartmentSection from '../components/team/DepartmentSection';
 import TeamMemberModal from '../components/team/TeamMemberModal';
 import FloatingParticles from '../components/team/FloatingParticles';
 import TeamSkeleton from '../components/team/TeamSkeleton';
-import ScrollToTopButton from '../components/team/ScrollToTopButton';
 
 const TeamsPage = () => {
 	const { isAuthenticated } = useAuth();
@@ -401,9 +411,6 @@ const TeamsPage = () => {
 						onClose={closeModal}
 						isAuthenticated={isAuthenticated}
 					/>
-
-					{/* Add the scroll to top button */}
-					<ScrollToTopButton />
 				</>
 			)}
 		</div>
