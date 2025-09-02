@@ -282,30 +282,6 @@ const TeamsPage = () => {
                 sparks innovation.
             </span>
         </motion.p>
-
-        {/* Stats or additional info for mobile */}
-        <motion.div
-            className="flex flex-wrap justify-center gap-4 sm:gap-6 mt-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.9, duration: 0.8 }}
-        >
-            {{
-                label: "Team Members", value: "50+" },
-                { label: "Departments", value: "10+" },
-                { label: "Projects", value: "100+" }
-            ].map((stat, index) => (
-                <motion.div
-                    key={stat.label}
-                    className="text-center p-3 sm:p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10"
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    transition={{ delay: index * 0.1 }}
-                >
-                    <div className="text-lg sm:text-xl font-bold text-white">{stat.value}</div>
-                    <div className="text-xs sm:text-sm text-white/70">{stat.label}</div>
-                </motion.div>
-            ))}
-        </motion.div>
     </div>
 </section>
 
