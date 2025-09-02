@@ -88,7 +88,8 @@ const uploadResume = async (file) => {
         const uploadResponse = await cloudinary.uploader.upload(file.path, {
             resource_type: 'raw',
             type: "upload",
-            public_id: path.basename(file.path, path.extname(file.path)),
+            folder: "resumes",
+            public_id: path.basename(file.originalname),
             overwrite: true,
         });
 
@@ -96,7 +97,6 @@ const uploadResume = async (file) => {
         try {
             fs.unlinkSync(file.path);
         } catch (fsErr) {
-            // Log but don't throw, as upload succeeded
             console.warn('Failed to delete local file after upload:', file.path, fsErr.message);
         }
 
@@ -110,7 +110,7 @@ const uploadResume = async (file) => {
             [error.message]
         );
     }
-}
+};
 
 // Delete file from Cloudinary
 const deleteFile = async ({ public_id, resource_type }) => {
