@@ -2,7 +2,7 @@ import Member from '../models/member.model.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { ApiError } from '../utils/ApiError.js';
-import { uploadFile, uploadResume, deleteFile } from '../utils/cloudinary.js';
+import { uploadFile, uploadResume as resumeUpload, deleteFile } from '../utils/cloudinary.js';
 import { sendPasswordResetEmail } from '../services/email.service.js';
 
 // Register a new member
@@ -287,7 +287,7 @@ const uploadResume = asyncHandler(async (req, res) => {
     }
 
     // Upload new resume to Cloudinary
-    const uploadResponse = await uploadResume(file[0]);
+    const uploadResponse = await resumeUpload(file[0]);
     member.resume = {
         url: uploadResponse.url,
         publicId: uploadResponse.publicId,
