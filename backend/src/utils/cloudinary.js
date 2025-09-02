@@ -80,6 +80,37 @@ const uploadFile = async (file) => {
     }
 };
 
+// Upload resume to cloudinary
+const uploadResume = async (file) => {
+    validateFile(file);
+
+    try {
+        const uploadResponse = await cloudinary.uploader.upload(file.path, {
+            resource_type: 'raw',
+            public_id: path.basename(file.path, path.extname(file.path)),
+            overwrite: true,
+        });
+
+        // Clean up local file after upload
+        try {
+            fs.unlinkSync(file.path);
+        } catch (fsErr) {
+            // Log but don't throw, as upload succeeded
+            console.warn('Failed to delete local file after upload:', file.path, fsErr.message);
+        }
+
+        return {
+            url: uploadResponse.secure_url,
+            publicId: uploadResponse.public_id,
+        };
+    } catch (error) {
+        throw ApiError.internal(
+            `Failed to upload resume "${file.originalname || file.path}" to Cloudinary`,
+            [error.message]
+        );
+    }
+}
+
 // Delete file from Cloudinary
 const deleteFile = async ({ public_id, resource_type }) => {
     if (!public_id || !resource_type) {
@@ -102,4 +133,4 @@ const deleteFile = async ({ public_id, resource_type }) => {
     }
 };
 
-export { InitializeCloudinary, uploadFile, deleteFile };
+export { InitializeCloudinary, uploadFile, uploadResume, deleteFile };
