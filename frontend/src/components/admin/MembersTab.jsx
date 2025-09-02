@@ -272,7 +272,9 @@ const EditMemberModal = ({ isOpen, onClose, member, onSubmit, loading, error }) 
 				department: member.department || '',
 				designation: member.designation || 'member',
 				LpuId: member.LpuId || '',
-				joinedAt: member.joinedAt ? new Date(member.joinedAt).toISOString().split('T')[0] : '',
+				joinedAt: member.joinedAt
+					? new Date(member.joinedAt).toISOString().split('T')[0]
+					: '',
 			});
 		}
 	}, [isOpen, member]);
@@ -338,7 +340,7 @@ const EditMemberModal = ({ isOpen, onClose, member, onSubmit, loading, error }) 
 				<div>
 					<label className="block text-gray-300 mb-1">Joined At</label>
 					<input
-						type='date'
+						type="date"
 						className="w-full px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
 						value={editData.joinedAt}
 						onChange={(e) => setEditData({ ...editData, joinedAt: e.target.value })}

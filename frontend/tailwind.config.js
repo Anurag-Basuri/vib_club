@@ -12,7 +12,7 @@ export default {
 				'pulse-slow': 'pulse-slow 4s ease-in-out infinite',
 			},
 			screens: {
-				'xs': '480px',
+				xs: '480px',
 			},
 		},
 	},
