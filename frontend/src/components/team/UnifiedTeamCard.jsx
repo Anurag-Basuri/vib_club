@@ -3,24 +3,52 @@ import { motion } from 'framer-motion';
 import { ChevronRight, Briefcase, Users } from 'lucide-react';
 
 const UnifiedTeamCard = ({ member, delay = 0, onClick, isAuthenticated }) => {
-    // Safety check for undefined member
-    if (!member) return null;
+    // Better safety check for undefined member
+    if (!member || typeof member !== 'object') return null;
     
-    // Ensure we have proper property names (fullname vs fullName)
-    const name = member.fullname || member.fullName || 'Unknown';
+    // Ensure we have proper property names with better fallbacks
+    const name = member.fullname || member.fullName || member.name || 'Unknown Member';
     const designation = member.designation || 'Position not specified';
     const department = member.department || 'Department not specified';
+    const profilePicture = member.profilePicture?.url || member.profilePicture || null;
+    
+    // Create initials for fallback
+    const initials = name.split(' ').map(n => n.charAt(0)).join('').substring(0, 2).toUpperCase();
+    
+    const handleImageError = (e) => {
+        e.target.onerror = null; // Prevent infinite loop
+        const canvas = document.createElement('canvas');
+        canvas.width = 80;
+        canvas.height = 80;
+        const ctx = canvas.getContext('2d');
+        
+        // Create gradient background
+        const gradient = ctx.createLinearGradient(0, 0, 80, 80);
+        gradient.addColorStop(0, '#4F46E5');
+        gradient.addColorStop(1, '#7C3AED');
+        
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 80, 80);
+        
+        // Add text
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 24px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(initials, 40, 50);
+        
+        e.target.src = canvas.toDataURL();
+    };
     
     return (
         <motion.div
-            className="h-full group"
+            className="h-full group cursor-pointer"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: delay * 0.1, duration: 0.5 }}
             whileHover={{ y: -5, transition: { duration: 0.2 } }}
-            onClick={() => onClick(member)}
+            onClick={() => onClick?.(member)}
         >
-            <div className="relative h-full rounded-xl overflow-hidden cursor-pointer transition-all duration-300 shadow-lg group-hover:shadow-xl border border-indigo-500/10 group-hover:border-indigo-500/30">
+            <div className="relative h-full rounded-xl overflow-hidden transition-all duration-300 shadow-lg group-hover:shadow-xl border border-indigo-500/10 group-hover:border-indigo-500/30">
                 {/* Simplified gradient background */}
                 <div className="absolute inset-0 bg-gradient-to-br from-[#1a1f47] via-[#141b38] to-[#0f172a]"></div>
                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/10 via-blue-600/10 to-purple-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -43,22 +71,25 @@ const UnifiedTeamCard = ({ member, delay = 0, onClick, isAuthenticated }) => {
                                 transition={{ delay: delay * 0.1 + 0.2, duration: 0.3 }}
                                 className="relative z-10 w-20 h-20 rounded-full overflow-hidden border-2 border-indigo-500/30 group-hover:border-indigo-500/50 transition-all duration-300 shadow-lg"
                             >
-                                <img
-                                    src={member?.profilePicture?.url || '/assets/images/default-avatar.png'}
-                                    alt={name}
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                        e.target.onerror = null; // Prevent infinite loop
-                                        e.target.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%232d3748"/><text x="50%" y="50%" font-family="Arial" font-size="42" fill="%23a3bffa" text-anchor="middle" dominant-baseline="middle">' + (name?.charAt(0) || '?') + '</text></svg>';
-                                    }}
-                                    loading="lazy"
-                                />
+                                {profilePicture ? (
+                                    <img
+                                        src={profilePicture}
+                                        alt={name}
+                                        className="w-full h-full object-cover"
+                                        onError={handleImageError}
+                                        loading="lazy"
+                                    />
+                                ) : (
+                                    <div className="w-full h-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
+                                        {initials}
+                                    </div>
+                                )}
                             </motion.div>
                         </div>
                     </div>
                     
                     {/* Name - with text overflow protection */}
-                    <h3 className="text-lg font-bold text-white text-center mb-3 group-hover:text-blue-200 transition-colors px-1 truncate">
+                    <h3 className="text-lg font-bold text-white text-center mb-3 group-hover:text-blue-200 transition-colors px-1 truncate" title={name}>
                         {name}
                     </h3>
                     
@@ -68,7 +99,7 @@ const UnifiedTeamCard = ({ member, delay = 0, onClick, isAuthenticated }) => {
                             {/* Designation with icon and text overflow protection */}
                             <div className="flex items-center mb-3 pb-2 border-b border-white/10">
                                 <Users size={14} className="text-blue-400 mr-2 flex-shrink-0" />
-                                <p className="text-blue-100 font-medium text-sm truncate">
+                                <p className="text-blue-100 font-medium text-sm truncate" title={designation}>
                                     {designation}
                                 </p>
                             </div>
@@ -76,7 +107,7 @@ const UnifiedTeamCard = ({ member, delay = 0, onClick, isAuthenticated }) => {
                             {/* Department with icon and text overflow protection */}
                             <div className="flex items-center">
                                 <Briefcase size={14} className="text-indigo-400 mr-2 flex-shrink-0" />
-                                <p className="text-indigo-200 text-sm truncate">
+                                <p className="text-indigo-200 text-sm truncate" title={department}>
                                     {department}
                                 </p>
                             </div>
@@ -85,9 +116,13 @@ const UnifiedTeamCard = ({ member, delay = 0, onClick, isAuthenticated }) => {
 
                     {/* Improved "View Profile" button */}
                     <motion.button
-                        className="w-full flex items-center justify-center px-3 py-1.5 rounded-md bg-indigo-900/30 border border-indigo-500/20 text-blue-300 text-xs font-medium group-hover:bg-indigo-900/50 group-hover:border-indigo-500/40 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:ring-offset-1 focus:ring-offset-[#141b38]"
+                        className="w-full flex items-center justify-center px-3 py-2 rounded-md bg-indigo-900/30 border border-indigo-500/20 text-blue-300 text-xs font-medium group-hover:bg-indigo-900/50 group-hover:border-indigo-500/40 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:ring-offset-1 focus:ring-offset-[#141b38]"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onClick?.(member);
+                        }}
                     >
                         View Profile <ChevronRight size={14} className="ml-1" />
                     </motion.button>

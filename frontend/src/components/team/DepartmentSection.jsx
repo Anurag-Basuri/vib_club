@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import UnifiedTeamCard from './UnifiedTeamCard';
 import { ChevronRight, ChevronDown, Users, Eye, EyeOff } from 'lucide-react';
 
-const DepartmentSection = ({ department, members, onClick, isAuthenticated }) => {
-    const [isExpanded, setIsExpanded] = useState(true);
+const DepartmentSection = ({ department, members, onClick, isAuthenticated, isExpanded, onToggle }) => {
+    // Remove local state and use props instead
     const [isHovered, setIsHovered] = useState(false);
     
     // Sort members to show heads first, then alphabetically by designation
@@ -15,8 +15,13 @@ const DepartmentSection = ({ department, members, onClick, isAuthenticated }) =>
     });
 
     const toggleExpansion = () => {
-        setIsExpanded(!isExpanded);
+        if (onToggle) {
+            onToggle();
+        }
     };
+
+    // Add default value for isExpanded if not provided
+    const expanded = isExpanded !== undefined ? isExpanded : true;
 
     return (
         <motion.div
@@ -55,8 +60,8 @@ const DepartmentSection = ({ department, members, onClick, isAuthenticated }) =>
                             transition-all duration-500 focus:outline-none focus:ring-2 focus:ring-indigo-400/50"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        aria-expanded={isExpanded}
-                        aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${department} department`}
+                        aria-expanded={expanded}
+                        aria-label={`${expanded ? 'Collapse' : 'Expand'} ${department} department`}
                     >
                         {/* Left side content */}
                         <div className="flex items-center gap-3 flex-1">
@@ -98,7 +103,7 @@ const DepartmentSection = ({ department, members, onClick, isAuthenticated }) =>
                             
                             {/* Expand/Collapse icon */}
                             <motion.div
-                                animate={{ rotate: isExpanded ? 90 : 0 }}
+                                animate={{ rotate: expanded ? 90 : 0 }}
                                 transition={{ duration: 0.3, ease: "easeOut" }}
                                 className="p-1"
                             >
@@ -135,7 +140,7 @@ const DepartmentSection = ({ department, members, onClick, isAuthenticated }) =>
 
             {/* Animated Cards Grid */}
             <AnimatePresence mode="wait">
-                {isExpanded && (
+                {expanded && (
                     <motion.div
                         className="px-3 sm:px-4 lg:px-6"
                         initial={{ opacity: 0, height: 0 }}
