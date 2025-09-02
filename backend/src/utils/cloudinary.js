@@ -87,6 +87,7 @@ const uploadResume = async (file) => {
     try {
         const uploadResponse = await cloudinary.uploader.upload(file.path, {
             resource_type: 'raw',
+            type: "upload",
             public_id: path.basename(file.path, path.extname(file.path)),
             overwrite: true,
         });
