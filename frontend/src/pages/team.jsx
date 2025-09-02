@@ -199,70 +199,165 @@ const TeamsPage = () => {
 				</div>
 			) : (
 				<>
-					{/* Hero Section */}
-					<section className="relative w-full pt-20 md:pt-28 pb-12 md:pb-16 px-4 flex flex-col items-center justify-center text-center">
-						<div className="relative z-10 max-w-4xl mx-auto">
-							<motion.div
-								className="mb-8 flex justify-center"
-								initial={{ scale: 0, opacity: 0 }}
-								animate={{ scale: 1, opacity: 1 }}
-								transition={{ duration: 0.6, ease: "easeOut" }}
-							>
-								<div className="relative">
-									{/* Modern glow effect */}
-									<div className="absolute inset-0 rounded-full bg-gradient-to-br from-indigo-600 via-blue-600 to-sky-400 opacity-80 blur-md"></div>
-									<div className="relative p-4 rounded-full bg-[#1a1f3f]/70 backdrop-blur-md border border-white/10 shadow-lg">
-										<Users size={42} className="text-white" />
-									</div>
-								</div>
-							</motion.div>
+					{/* Enhanced Hero Section - Mobile-First */}
+<section className="relative w-full pt-16 sm:pt-20 md:pt-28 pb-8 sm:pb-12 md:pb-16 px-4 flex flex-col items-center justify-center text-center overflow-hidden">
+    {/* Background decorative elements */}
+    <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/20 via-transparent to-blue-900/20"></div>
+    
+    <div className="relative z-10 max-w-4xl mx-auto">
+        <motion.div
+            className="mb-6 sm:mb-8 flex justify-center"
+            initial={{ scale: 0, opacity: 0, rotate: -180 }}
+            animate={{ scale: 1, opacity: 1, rotate: 0 }}
+            transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+        >
+            <div className="relative">
+                {/* Enhanced glow effect */}
+                <motion.div 
+                    className="absolute inset-0 rounded-full bg-gradient-to-br from-indigo-600 via-blue-600 to-purple-600 opacity-80 blur-lg"
+                    animate={{ 
+                        scale: [1, 1.2, 1],
+                        opacity: [0.8, 1, 0.8]
+                    }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                />
+                <motion.div 
+                    className="relative p-4 sm:p-5 rounded-full bg-slate-800/80 backdrop-blur-xl border border-white/20 shadow-2xl"
+                    whileHover={{ scale: 1.1, rotate: 360 }}
+                    transition={{ duration: 0.8 }}
+                >
+                    <Users size={32} className="sm:w-10 sm:h-10 text-white" />
+                </motion.div>
+            </div>
+        </motion.div>
 
-							<motion.h1
-								className="text-4xl sm:text-5xl md:text-7xl font-black bg-gradient-to-r from-white via-blue-200 to-indigo-200 bg-clip-text text-transparent tracking-tight mb-6"
-								initial={{ opacity: 0, y: 20 }}
-								animate={{ opacity: 1, y: 0 }}
-								transition={{ delay: 0.2, duration: 0.8 }}
-							>
-								Meet Our <span className="italic">Incredible</span> Team
-							</motion.h1>
-							
-							<motion.p
-								className="text-lg sm:text-xl md:text-2xl text-white/80 font-light mb-8 max-w-3xl"
-								initial={{ opacity: 0, y: 20 }}
-								animate={{ opacity: 1, y: 0 }}
-								transition={{ delay: 0.4, duration: 0.8 }}
-							>
-								<Sparkles className="inline-block text-blue-400 mr-2" size={24} />
-								<span>
-									Where <span className="font-semibold text-blue-300">creativity</span> meets <span className="font-semibold text-indigo-300">technology</span> and <span className="font-semibold text-sky-300">collaboration</span> sparks innovation.
-								</span>
-							</motion.p>
-						</div>
-					</section>
+        <motion.h1
+            className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-black bg-gradient-to-r 
+                from-white via-blue-200 to-indigo-200 bg-clip-text text-transparent 
+                tracking-tight mb-4 sm:mb-6 leading-tight"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 1, ease: [0.25, 0.46, 0.45, 0.94] }}
+        >
+            Meet Our{" "}
+            <motion.span 
+                className="italic bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text"
+                animate={{ 
+                    backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"]
+                }}
+                transition={{ duration: 3, repeat: Infinity }}
+            >
+                Incredible
+            </motion.span>{" "}
+            Team
+        </motion.h1>
+        
+        <motion.p
+            className="text-base sm:text-lg md:text-xl lg:text-2xl text-white/80 font-light 
+                mb-6 sm:mb-8 max-w-3xl mx-auto leading-relaxed px-2"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 1 }}
+        >
+            <motion.span
+                animate={{ rotate: [0, 360] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                className="inline-block mr-2"
+            >
+                <Sparkles className="text-blue-400" size={20} />
+            </motion.span>
+            <span>
+                Where{" "}
+                <span className="font-semibold text-blue-300 hover:text-blue-200 transition-colors">
+                    creativity
+                </span>{" "}
+                meets{" "}
+                <span className="font-semibold text-indigo-300 hover:text-indigo-200 transition-colors">
+                    technology
+                </span>{" "}
+                and{" "}
+                <span className="font-semibold text-purple-300 hover:text-purple-200 transition-colors">
+                    collaboration
+                </span>{" "}
+                sparks innovation.
+            </span>
+        </motion.p>
 
-					{/* Leadership Section - Mobile Optimized */}
+        {/* Stats or additional info for mobile */}
+        <motion.div
+            className="flex flex-wrap justify-center gap-4 sm:gap-6 mt-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.9, duration: 0.8 }}
+        >
+            {{
+                label: "Team Members", value: "50+" },
+                { label: "Departments", value: "10+" },
+                { label: "Projects", value: "100+" }
+            ].map((stat, index) => (
+                <motion.div
+                    key={stat.label}
+                    className="text-center p-3 sm:p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10"
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    transition={{ delay: index * 0.1 }}
+                >
+                    <div className="text-lg sm:text-xl font-bold text-white">{stat.value}</div>
+                    <div className="text-xs sm:text-sm text-white/70">{stat.label}</div>
+                </motion.div>
+            ))}
+        </motion.div>
+    </div>
+</section>
+
+					{/* Leadership Section - Enhanced Mobile-First */}
 					{leadership.length > 0 && (
-    <section id="leadership" className="py-6 sm:py-8 md:py-12 px-3 sm:px-4 relative z-10">
+    <section id="leadership" className="py-8 sm:py-12 md:py-16 px-3 sm:px-4 lg:px-6 relative z-10">
         <div className="max-w-7xl mx-auto">
             <motion.div
-                className="flex flex-col items-center mb-6 sm:mb-8 md:mb-10"
-                initial={{ opacity: 0, y: 20 }}
+                className="flex flex-col items-center mb-8 sm:mb-10 md:mb-12"
+                initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
+                transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
             >
-                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-3 sm:mb-4 
-                    bg-gradient-to-r from-[#5d7df5] to-[#3a56c9] bg-clip-text text-transparent px-4">
+                <motion.h2 
+                    className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-4 sm:mb-6 
+                        bg-gradient-to-r from-[#5d7df5] via-[#3a56c9] to-[#5d7df5] bg-clip-text text-transparent px-4
+                        leading-tight"
+                    animate={{ 
+                        backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"]
+                    }}
+                    transition={{ duration: 5, repeat: Infinity }}
+                >
                     Leadership Team
-                </h2>
-                <div className="w-16 sm:w-20 h-0.5 sm:h-1 bg-gradient-to-r from-[#3a56c9] to-[#5d7df5] rounded-full"></div>
+                </motion.h2>
+                
+                <motion.div 
+                    className="relative"
+                    initial={{ scaleX: 0 }}
+                    whileInView={{ scaleX: 1 }}
+                    transition={{ delay: 0.4, duration: 0.8 }}
+                >
+                    <div className="w-20 sm:w-24 h-1 bg-gradient-to-r from-[#3a56c9] to-[#5d7df5] rounded-full"></div>
+                    <motion.div 
+                        className="absolute inset-0 bg-gradient-to-r from-[#3a56c9] to-[#5d7df5] rounded-full blur-sm"
+                        animate={{ opacity: [0.5, 1, 0.5] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                    />
+                </motion.div>
             </motion.div>
 
+            {/* Rest of leadership section remains the same but with enhanced spacing */}
             <div className="relative">
-                {/* CEO Card - Mobile Centered */}
+                {/* CEO Card */}
                 {leadership.filter((m) => m.designation === 'CEO').length > 0 && (
-                    <div className="flex justify-center mb-6 sm:mb-8 md:mb-10">
-                        <div className="w-full max-w-[300px] px-2">
+                    <motion.div 
+                        className="flex justify-center mb-8 sm:mb-10 md:mb-12"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.2, duration: 0.8 }}
+                    >
+                        <div className="w-full max-w-[320px] px-2">
                             <UnifiedTeamCard
                                 member={leadership.find((m) => m.designation === 'CEO')}
                                 delay={0}
@@ -270,26 +365,30 @@ const TeamsPage = () => {
                                 isAuthenticated={isAuthenticated}
                             />
                         </div>
-                    </div>
+                    </motion.div>
                 )}
                 
-                {/* Other leadership - Mobile-First Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 max-w-7xl mx-auto px-2">
+                {/* Other leadership with staggered animation */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6 max-w-7xl mx-auto px-2">
                     {leadership
                         .filter((m) => m.designation !== 'CEO')
                         .map((leader, index) => (
                             <motion.div
                                 key={leader._id || index}
                                 className="flex justify-center"
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
+                                initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                                whileInView={{ opacity: 1, y: 0, scale: 1 }}
                                 viewport={{ once: true, margin: '-20px' }}
-                                transition={{ delay: index * 0.05, duration: 0.4 }}
+                                transition={{ 
+                                    delay: index * 0.1, 
+                                    duration: 0.6,
+                                    ease: [0.25, 0.46, 0.45, 0.94]
+                                }}
                             >
-                                <div className="w-full max-w-[300px]">
+                                <div className="w-full max-w-[320px]">
                                     <UnifiedTeamCard
                                         member={leader}
-                                        delay={index * 0.02}
+                                        delay={index * 0.03}
                                         onClick={handleMemberClick}
                                         isAuthenticated={isAuthenticated}
                                     />

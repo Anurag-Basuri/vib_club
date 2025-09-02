@@ -3,21 +3,30 @@ import { motion } from 'framer-motion';
 
 const TeamSkeleton = () => {
     return (
-        <div className="max-w-7xl mx-auto px-3 sm:px-4">
-            {/* Leadership skeleton - Mobile Optimized */}
-            <div className="mb-12 sm:mb-16">
-                <div className="flex justify-center mb-6 sm:mb-8">
-                    <div className="h-6 sm:h-8 w-32 sm:w-48 bg-indigo-600/10 rounded-lg"></div>
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+            {/* Leadership skeleton - Enhanced Mobile */}
+            <div className="mb-16 sm:mb-20">
+                {/* Header skeleton */}
+                <div className="flex justify-center mb-8 sm:mb-10">
+                    <motion.div 
+                        className="h-8 sm:h-10 w-40 sm:w-56 bg-gradient-to-r from-indigo-600/20 to-blue-600/20 rounded-xl"
+                        animate={{ opacity: [0.4, 0.8, 0.4] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                    />
                 </div>
-                <div className="flex justify-center mb-6">
-                    <div className="w-full max-w-[300px] px-2">
-                        <SkeletonCard index={0} />
+                
+                {/* CEO skeleton */}
+                <div className="flex justify-center mb-8">
+                    <div className="w-full max-w-[320px] px-2">
+                        <SkeletonCard index={0} isLeader />
                     </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 px-2">
+                
+                {/* Other leadership skeleton */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6 px-2">
                     {Array(3).fill(null).map((_, index) => (
                         <div key={index} className="flex justify-center">
-                            <div className="w-full max-w-[300px]">
+                            <div className="w-full max-w-[320px]">
                                 <SkeletonCard index={index + 1} />
                             </div>
                         </div>
@@ -25,21 +34,29 @@ const TeamSkeleton = () => {
                 </div>
             </div>
 
-            {/* Department sections skeleton - Mobile Optimized */}
-            <div className="space-y-12 sm:space-y-16">
-                {Array(3).fill(null).map((_, sectionIndex) => (
+            {/* Department sections skeleton - Enhanced */}
+            <div className="space-y-16 sm:space-y-20">
+                {Array(4).fill(null).map((_, sectionIndex) => (
                     <div key={sectionIndex}>
                         {/* Department header skeleton */}
-                        <div className="flex flex-col items-center mb-6 px-4">
-                            <div className="h-5 sm:h-6 w-24 sm:w-32 bg-indigo-600/10 rounded-lg mb-3"></div>
-                            <div className="h-0.5 sm:h-1 w-12 sm:w-16 bg-indigo-600/10 rounded-full"></div>
+                        <div className="flex flex-col items-center mb-8 px-4">
+                            <motion.div 
+                                className="h-6 sm:h-8 w-32 sm:w-40 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 rounded-xl mb-4"
+                                animate={{ opacity: [0.4, 0.8, 0.4] }}
+                                transition={{ duration: 2, repeat: Infinity, delay: sectionIndex * 0.2 }}
+                            />
+                            <motion.div 
+                                className="h-1 w-16 sm:w-20 bg-gradient-to-r from-indigo-600/30 to-blue-600/30 rounded-full"
+                                animate={{ scaleX: [0.8, 1.2, 0.8] }}
+                                transition={{ duration: 3, repeat: Infinity, delay: sectionIndex * 0.3 }}
+                            />
                         </div>
                         
                         {/* Cards skeleton */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 px-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6 px-3">
                             {Array(6).fill(null).map((_, cardIndex) => (
                                 <div key={cardIndex} className="flex justify-center">
-                                    <div className="w-full max-w-[300px]">
+                                    <div className="w-full max-w-[320px]">
                                         <SkeletonCard index={sectionIndex * 6 + cardIndex} />
                                     </div>
                                 </div>
@@ -52,48 +69,99 @@ const TeamSkeleton = () => {
     );
 };
 
-const SkeletonCard = ({ index }) => (
+const SkeletonCard = ({ index, isLeader = false }) => (
     <motion.div
-        className="p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-[#161a36]/50 to-[#0f1225]/50 
-            border border-indigo-500/10 overflow-hidden relative min-h-[280px]"
-        initial={{ opacity: 0.6 }}
-        animate={{ opacity: [0.6, 0.8, 0.6] }}
-        transition={{ duration: 2, repeat: Infinity, delay: index * 0.1 }}
+        className={`p-4 sm:p-5 rounded-2xl bg-gradient-to-b from-slate-800/40 to-slate-900/40 
+            border border-indigo-500/20 overflow-hidden relative ${isLeader ? 'min-h-[340px]' : 'min-h-[320px]'}
+            shadow-lg shadow-indigo-900/10`}
+        initial={{ opacity: 0.4 }}
+        animate={{ opacity: [0.4, 0.7, 0.4] }}
+        transition={{ duration: 2.5, repeat: Infinity, delay: index * 0.1 }}
     >
-        {/* Shimmer effect */}
+        {/* Enhanced shimmer effect */}
         <motion.div 
-            className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12"
-            animate={{ x: ['0%', '200%'] }}
-            transition={{ duration: 2, repeat: Infinity, repeatDelay: 0.5, delay: index * 0.05 }}
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-indigo-400/10 to-transparent skew-x-12"
+            animate={{ x: ['-100%', '200%'] }}
+            transition={{ 
+                duration: 2.5, 
+                repeat: Infinity, 
+                repeatDelay: 1,
+                delay: index * 0.1,
+                ease: "easeInOut"
+            }}
         />
         
-        {/* Top accent line */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-indigo-600/10"></div>
+        {/* Top accent line skeleton */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-600/20 to-blue-600/20"></div>
         
-        {/* Profile image centered */}
+        {/* Profile image skeleton - Enhanced */}
+        <div className="flex justify-center mb-4 sm:mb-5">
+            <motion.div 
+                className={`${isLeader ? 'w-24 h-24' : 'w-20 h-20'} rounded-full bg-gradient-to-br from-indigo-600/20 to-blue-600/20 relative overflow-hidden`}
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 3, repeat: Infinity, delay: index * 0.2 }}
+            >
+                <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                    animate={{ rotate: [0, 360] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                />
+            </motion.div>
+        </div>
+        
+        {/* Name skeleton - Enhanced */}
         <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-indigo-600/10"></div>
+            <motion.div 
+                className={`h-5 ${isLeader ? 'w-36' : 'w-32'} bg-gradient-to-r from-indigo-600/20 to-blue-600/20 rounded-lg`}
+                animate={{ opacity: [0.5, 0.8, 0.5] }}
+                transition={{ duration: 2, repeat: Infinity, delay: index * 0.15 }}
+            />
         </div>
         
-        {/* Name centered */}
-        <div className="flex justify-center mb-3">
-            <div className="h-4 w-28 sm:w-32 bg-indigo-600/10 rounded-md"></div>
-        </div>
-        
-        {/* Info card */}
-        <div className="p-3 rounded-lg bg-white/5 mb-3 flex-1">
-            <div className="flex items-center mb-2 pb-2 border-b border-white/10">
-                <div className="w-3 h-3 bg-indigo-600/10 rounded mr-2"></div>
-                <div className="h-3 w-20 bg-indigo-600/10 rounded-md"></div>
+        {/* Info card skeleton - Enhanced */}
+        <div className="p-3 sm:p-4 rounded-xl bg-white/5 mb-4 flex-1">
+            {/* Designation skeleton */}
+            <div className="flex items-center mb-3 pb-3 border-b border-white/10">
+                <motion.div 
+                    className="w-6 h-6 bg-blue-600/20 rounded-lg mr-3 flex-shrink-0"
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ duration: 2, repeat: Infinity, delay: index * 0.1 }}
+                />
+                <motion.div 
+                    className="h-4 w-24 bg-blue-600/20 rounded-md"
+                    animate={{ opacity: [0.4, 0.7, 0.4] }}
+                    transition={{ duration: 1.8, repeat: Infinity, delay: index * 0.2 }}
+                />
             </div>
+            
+            {/* Department skeleton */}
             <div className="flex items-center">
-                <div className="w-3 h-3 bg-indigo-600/10 rounded mr-2"></div>
-                <div className="h-3 w-16 bg-indigo-600/10 rounded-md"></div>
+                <motion.div 
+                    className="w-6 h-6 bg-indigo-600/20 rounded-lg mr-3 flex-shrink-0"
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ duration: 2, repeat: Infinity, delay: index * 0.15 }}
+                />
+                <motion.div 
+                    className="h-4 w-20 bg-indigo-600/20 rounded-md"
+                    animate={{ opacity: [0.4, 0.7, 0.4] }}
+                    transition={{ duration: 1.5, repeat: Infinity, delay: index * 0.25 }}
+                />
             </div>
         </div>
         
-        {/* View profile button */}
-        <div className="h-9 w-full bg-indigo-600/10 rounded-lg"></div>
+        {/* Button skeleton - Enhanced */}
+        <motion.div 
+            className="h-12 w-full bg-gradient-to-r from-indigo-600/20 to-blue-600/20 rounded-xl"
+            animate={{ 
+                opacity: [0.4, 0.6, 0.4],
+                scale: [1, 1.02, 1]
+            }}
+            transition={{ duration: 2, repeat: Infinity, delay: index * 0.1 }}
+        />
+        
+        {/* Corner decorations */}
+        <div className="absolute top-0 right-0 w-12 h-12 bg-gradient-to-bl from-indigo-500/10 to-transparent opacity-50"></div>
+        <div className="absolute bottom-0 left-0 w-12 h-12 bg-gradient-to-tr from-blue-500/10 to-transparent opacity-50"></div>
     </motion.div>
 );
 
